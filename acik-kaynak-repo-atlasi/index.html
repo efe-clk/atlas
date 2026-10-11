@@ -553,8 +553,8 @@ let active="all";
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 CATS.forEach(c=>{c.items=c.r.trim().split("\n").map(l=>l.trim()).filter(l=>l.includes("|")).map(l=>{const[n,d,g]=l.split("|");return{n,d,g:g||""}})});
 const total=CATS.reduce((a,c)=>a+c.items.length,0);
-function chip(id,label){const b=document.createElement("button");b.className="chip";b.type="button";b.id="chip-"+id;b.textContent=label;b.setAttribute("aria-pressed",String(id===active));b.onclick=()=>{active=id;try{localStorage.setItem("atlas-cat",id)}catch(e){};document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render()};chips.appendChild(b)}
-try{const s=localStorage.getItem("atlas-cat");if(s&&(s==="all"||CATS.some(c=>c.id===s)))active=s}catch(e){}
+function chip(id,label){const b=document.createElement("button");b.className="chip";b.type="button";b.id="chip-"+id;b.textContent=label;b.setAttribute("aria-pressed",String(id===active));b.onclick=()=>{active=id;try{localStorage.setItem("acik-kaynak-repo-atlasi:atlas-cat",id)}catch(e){};document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render()};chips.appendChild(b)}
+try{const s=localStorage.getItem("acik-kaynak-repo-atlasi:atlas-cat");if(s&&(s==="all"||CATS.some(c=>c.id===s)))active=s}catch(e){}
 chip("all","Tümü · "+total);CATS.forEach(c=>chip(c.id,c.t+" · "+c.items.length));
 function render(){
   const term=q.value.trim().toLocaleLowerCase("tr");let shown=0,html="";
