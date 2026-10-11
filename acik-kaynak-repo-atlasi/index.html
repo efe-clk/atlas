@@ -1,0 +1,572 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Açık Kaynak Repo Atlası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: tek sütun dizin; üstte arama + yapışkan kategori şeridi, altta kategori bölümleri ve satır satır repolar */
+:root{
+  --bg:#f2f4f7; --surface:#ffffff; --ink:#17212c; --muted:#5b6877; --line:#d9e0e7;
+  --accent:#1d55c9; --accent-soft:#e3ebfb;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Instrument Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f141a; --surface:#161d26; --ink:#e4e9ef; --muted:#8e9bab; --line:#26313e;
+  --accent:#7aa2ff; --accent-soft:#1b2740; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#161d26; --ink:#e4e9ef; --muted:#8e9bab; --line:#26313e;
+  --accent:#7aa2ff; --accent-soft:#1b2740; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:0 64px}
+header{padding-block:40px 20px;display:grid;gap:14px}
+.kicker{font-family:var(--f-mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,6vw,52px);line-height:1.02;margin:0;text-wrap:balance;letter-spacing:-.02em}
+.lede{max-width:62ch;color:var(--muted);margin:0}
+.search{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.search input{flex:1 1 260px;min-width:0;font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.search input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.count{font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-block:10px;margin-bottom:8px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:thin;padding-bottom:2px}
+.chip{flex:0 0 auto;font:inherit;font-size:13px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+section{padding-block:28px 8px}
+.sec-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}
+.sec-head h2{font-family:var(--f-display);font-weight:700;font-size:24px;margin:0;letter-spacing:-.01em}
+.path{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.sec-intro{color:var(--muted);margin:10px 0 6px;max-width:65ch}
+ul{list-style:none;margin:0;padding:0}
+li{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:4px 20px;padding-block:11px;border-bottom:1px dashed var(--line)}
+li a{font-family:var(--f-mono);font-size:13.5px;color:var(--ink);text-decoration:none;word-break:break-word}
+li a .own{color:var(--muted)}
+li a .nm{font-weight:600;color:var(--accent)}
+li a:hover .nm{text-decoration:underline}
+li a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.desc{min-width:0}
+.lang{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted);margin-top:3px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:0 0 auto}
+.empty{padding:40px 0;color:var(--muted)}
+footer{margin-top:40px;color:var(--muted);font-size:13px;max-width:65ch}
+@media (max-width:640px){li{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.chip{transition:background .15s,color .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">git clone --depth=1 iyi-örnekler</div>
+    <h1>Açık Kaynak Repo Atlası</h1>
+    <p class="lede">Alanında örnek gösterilen, kod kalitesi, dokümantasyonu ya da topluluğuyla öne çıkan GitHub repoları. Eski ya da yeni, şirket ya da tek geliştirici fark etmeden, kategorilere ayrılmış kısa açıklamalarla.</p>
+    <div class="search">
+      <input id="q" type="search" placeholder="Ara: rust, terminal, stm32, fotoğraf…" aria-label="Repo ara">
+      <span class="count" id="count"></span>
+    </div>
+  </header>
+  <nav aria-label="Kategoriler"><div class="chips" id="chips"></div></nav>
+  <main id="list"></main>
+  <footer>Liste Ekim 2026 itibarıyla derlendi. Bazı projeler sonradan arşivlenmiş, yeniden adlandırılmış ya da GitHub dışına taşınmış olabilir; yıldız sayıları bilerek gösterilmedi. Kalite ölçüsü olarak düzenli bakım, test ve CI, iyi dokümantasyon ve aktif katkıcı kitlesi esas alındı.</footer>
+</div>
+
+<script>
+const LANG={Rust:"#dea584",C:"#555555","C++":"#f34b7d",Go:"#00ADD8",Python:"#3572A5",TypeScript:"#3178c6",JavaScript:"#f1e05a",Java:"#b07219",Kotlin:"#A97BFF",Swift:"#F05138",Ruby:"#701516",PHP:"#4F5D95","C#":"#178600",Elixir:"#6e4a7e",Erlang:"#B83998",Zig:"#ec915c",Lua:"#000080",Shell:"#89e051",Nix:"#7e7eff",OCaml:"#ef7a08",Julia:"#a270ba",Gleam:"#ffaff3",Odin:"#60AFFE",Nim:"#ffc200",Crystal:"#000100",Scala:"#c22d40",Dart:"#00B4AB",Markdown:"#083fa1",Assembly:"#6E4C13",Haskell:"#5e5086",Clojure:"#db5855",Vim:"#199f4b",Svelte:"#ff3e00",Vue:"#41b883",Typst:"#239dad"};
+const CATS=[
+{id:"ogren",t:"Öğrenme ve müfredat",p:"~/learn",i:"Sıfırdan bilgisayar bilimine, işletim sistemi yazmaya ve sistem tasarımına kadar ücretsiz yol haritaları ve uygulamalı rehberler.",r:`
+ossu/computer-science|Ücretsiz kaynaklardan oluşan, üniversite düzeyinde tam bir bilgisayar bilimi müfredatı.|Markdown
+codecrafters-io/build-your-own-x|Git, Docker, veritabanı, derleyici, işletim sistemi gibi araçları sıfırdan yazma rehberleri.|Markdown
+EbookFoundation/free-programming-books|Onlarca dilde, her konuda ücretsiz programlama kitapları ve kursları.|Markdown
+missing-semester/missing-semester|MIT'nin terminal, shell, git, editör ve hata ayıklama üzerine "eksik dönem" dersi.|Markdown
+progit/progit2|Git'in resmî kitabı Pro Git'in kaynağı.|Markdown
+0xAX/linux-insides|Linux çekirdeğinin açılıştan kesmelere, bellek yönetimine kadar içyapısını anlatan kitap.|Markdown
+sysprog21/lkmpg|Linux çekirdek modülü programlama rehberi, güncel çekirdeklere uyarlanmış.|C
+cfenollosa/os-tutorial|Adım adım, sıfırdan küçük bir işletim sistemi yazma eğitimi.|C
+s-matyukevich/raspberry-pi-os|Raspberry Pi üzerinde Linux benzeri bir çekirdek yazarak ARM ve OS öğrenimi.|C
+mit-pdos/xv6-riscv|MIT'nin derslerde kullandığı, okunması kolay Unix v6 türevi öğretim işletim sistemi.|C
+google/comprehensive-rust|Google'ın Android ekibi için hazırladığı çok günlük Rust kursu.|Rust
+rust-lang/book|"The Rust Programming Language" kitabının kaynağı.|Rust
+rust-lang/rustlings|Küçük alıştırmalarla Rust öğrenme aracı.|Rust
+donnemartin/system-design-primer|Büyük ölçekli sistem tasarımını öğrenmek için kapsamlı kaynak.|Python
+jwasham/coding-interview-university|Yazılım mühendisliği mülakatlarına hazırlık için çok aylık çalışma planı.|Markdown
+kamranahmedse/developer-roadmap|Frontend, backend, DevOps ve daha fazlası için etkileşimli yol haritaları.|TypeScript
+freeCodeCamp/freeCodeCamp|Ücretsiz, sertifikalı web geliştirme müfredatının kaynak kodu.|TypeScript
+TheAlgorithms/Python|Python'da yazılmış, açıklamalı algoritma ve veri yapısı koleksiyonu.|Python
+trekhleb/javascript-algorithms|JavaScript'te algoritmalar ve veri yapıları, açıklamalarıyla.|JavaScript
+practical-tutorials/project-based-learning|Proje yaparak programlama öğrenmek için dil bazlı eğitim listesi.|Markdown
+dylanaraps/pure-bash-bible|Harici araç kullanmadan saf Bash ile yapılabilecekler.|Shell
+jlevy/the-art-of-command-line|Komut satırını tek sayfada ustalıkla kullanma rehberi.|Markdown
+papers-we-love/papers-we-love|Bilgisayar bilimindeki önemli akademik makalelerin derlemesi.|Markdown
+mtdvio/every-programmer-should-know|Her programcının bilmesi gereken teknik konuların listesi.|Markdown
+public-apis/public-apis|Projelerde kullanılabilecek ücretsiz, herkese açık API listesi.|Python
+karpathy/micrograd|Yaklaşık 100 satırda otomatik türev motoru; yapay sinir ağlarının temelini öğretir.|Python
+rui314/chibicc|Adım adım commit geçmişiyle okunacak şekilde yazılmış küçük bir C derleyicisi.|C
+`},
+{id:"awesome",t:"Awesome listeleri",p:"~/awesome",i:"Her biri kendi alanında yüzlerce seçilmiş repo içeren küratörlü dizinler. Bu atlası genişletmenin en hızlı yolu.",r:`
+sindresorhus/awesome|Tüm "awesome" listelerinin ana dizini.|Markdown
+rust-unofficial/awesome-rust|Rust kütüphaneleri, araçları ve kaynakları.|Rust
+rust-embedded/awesome-embedded-rust|Gömülü Rust için HAL'ler, sürücüler ve araçlar.|Markdown
+oz123/awesome-c|C kütüphaneleri ve kaynakları.|Markdown
+fffaraz/awesome-cpp|C/C++ kütüphaneleri, çatıları ve araçları.|Markdown
+vinta/awesome-python|Python çatıları, kütüphaneleri ve yazılımları.|Python
+avelino/awesome-go|Go kütüphaneleri ve araçları.|Go
+sindresorhus/awesome-nodejs|Node.js paketleri ve kaynakları.|Markdown
+awesome-selfhosted/awesome-selfhosted|Kendi sunucunda barındırabileceğin özgür yazılımlar.|Markdown
+awesome-foss/awesome-sysadmin|Sistem yöneticileri için açık kaynak araçlar.|Markdown
+luong-komorebi/Awesome-Linux-Software|Linux için uygulamalar, araçlar ve kaynaklar.|Markdown
+agarrharr/awesome-cli-apps|Komut satırı uygulamaları.|Markdown
+alebcay/awesome-shell|Shell araçları ve kaynakları.|Markdown
+veggiemonk/awesome-docker|Docker kaynakları ve projeleri.|Markdown
+ramitsurana/awesome-kubernetes|Kubernetes araçları ve kaynakları.|Markdown
+rockerBOO/awesome-neovim|Neovim eklentileri.|Markdown
+nhivp/Awesome-Embedded|Gömülü sistemler için kaynaklar.|Markdown
+josephmisiti/awesome-machine-learning|Makine öğrenmesi kütüphaneleri ve kaynakları.|Python
+sbilly/awesome-security|Güvenlik yazılımları, kütüphaneleri ve belgeleri.|Markdown
+enaqx/awesome-react|React ekosistemi kaynakları.|Markdown
+akullpp/awesome-java|Java kütüphaneleri ve araçları.|Markdown
+quozd/awesome-dotnet|.NET kütüphaneleri ve araçları.|Markdown
+trimstray/the-book-of-secret-knowledge|Sistem yönetimi, ağ ve güvenlik için devasa not, araç ve kopya kağıdı derlemesi.|Markdown
+k4m4/terminals-are-sexy|Terminal araçları, temaları ve kaynakları.|Markdown`},
+{id:"os",t:"İşletim sistemleri ve çekirdekler",p:"~/os",i:"Masaüstünden mikrodenetleyiciye çekirdekler ve RTOS'lar. Sistem programlamayı en iyi okuyarak öğreneceğin kod tabanları.",r:`
+torvalds/linux|Linux çekirdeğinin resmî GitHub aynası.|C
+freebsd/freebsd-src|FreeBSD işletim sistemi kaynak kodu; temiz ve tutarlı BSD kodu.|C
+openbsd/src|Güvenlik odaklı OpenBSD'nin kaynak aynası; okunabilir C örneği.|C
+haiku/haiku|BeOS'tan ilham alan, bütünlüklü masaüstü işletim sistemi.|C++
+reactos/reactos|Windows uyumlu açık kaynak işletim sistemi.|C
+SerenityOS/serenity|90'lar estetiğinde, her şeyi sıfırdan yazılmış Unix benzeri OS.|C++
+mit-pdos/xv6-public|xv6'nın x86 sürümü.|C
+zephyrproject-rtos/zephyr|Linux Vakfı'nın ölçeklenebilir, güvenlik odaklı RTOS'u.|C
+FreeRTOS/FreeRTOS-Kernel|Mikrodenetleyicilerde en yaygın kullanılan gerçek zamanlı çekirdek.|C
+apache/nuttx|POSIX uyumlu, küçük ayak izli RTOS.|C
+RIOT-OS/RIOT|Nesnelerin interneti için hafif işletim sistemi.|C
+tock/tock|Rust ile yazılmış, güvenli gömülü işletim sistemi.|Rust
+theseus-os/Theseus|Rust'ın tip sistemini işletim sistemi tasarımında kullanan araştırma OS'u.|Rust
+limine-bootloader/limine|Modern, taşınabilir önyükleyici; hobi OS projelerinin gözdesi.|C
+rhboot/shim|UEFI Secure Boot için Linux önyükleme ara katmanı.|C`},
+{id:"lang",t:"Diller ve derleyiciler",p:"~/lang",i:"Programlama dillerinin kendi depoları. Derleyici, çalışma zamanı ve standart kütüphane yazmanın örnekleri.",r:`
+rust-lang/rust|Rust derleyicisi ve standart kütüphanesi.|Rust
+golang/go|Go dili, derleyicisi ve araç zinciri.|Go
+python/cpython|Python'ın referans uygulaması.|Python
+llvm/llvm-project|LLVM, Clang, LLD ve ilgili derleyici altyapısı.|C++
+gcc-mirror/gcc|GNU Derleyici Koleksiyonu'nun aynası.|C
+microsoft/TypeScript|TypeScript dili ve derleyicisi.|TypeScript
+nodejs/node|Node.js JavaScript çalışma zamanı.|JavaScript
+denoland/deno|Rust ile yazılmış, güvenli varsayılanlı JS/TS çalışma zamanı.|Rust
+oven-sh/bun|Hızlı JavaScript çalışma zamanı, paketleyici ve test aracı.|Zig
+JuliaLang/julia|Bilimsel hesaplama için yüksek performanslı dil.|Julia
+ruby/ruby|Ruby dilinin ana deposu.|Ruby
+php/php-src|PHP yorumlayıcısı.|C
+apple/swift|Swift dili ve derleyicisi.|C++
+JetBrains/kotlin|Kotlin dili ve derleyicisi.|Kotlin
+dotnet/runtime|.NET çalışma zamanı ve temel kütüphaneler.|C#
+openjdk/jdk|Java Development Kit'in ana deposu.|Java
+erlang/otp|Erlang ve OTP; dağıtık, hataya dayanıklı sistemlerin temeli.|Erlang
+elixir-lang/elixir|BEAM üzerinde çalışan modern fonksiyonel dil.|Elixir
+gleam-lang/gleam|BEAM ve JavaScript'e derlenen tip güvenli dil.|Rust
+odin-lang/Odin|C'ye alternatif, sade sistem programlama dili.|Odin
+nim-lang/Nim|Python sözdizimine yakın, C'ye derlenen verimli dil.|Nim
+crystal-lang/crystal|Ruby gibi okunan, derlenen hızlı dil.|Crystal
+ocaml/ocaml|OCaml dili ve derleyicisi.|OCaml
+scala/scala3|Scala 3 derleyicisi.|Scala
+dart-lang/sdk|Dart dili SDK'sı.|Dart
+lua/lua|Lua'nın resmî aynası; küçük ve zarif bir yorumlayıcı.|C
+LuaJIT/LuaJIT|Lua için son derece hızlı JIT derleyici.|C
+microsoft/STL|MSVC C++ standart kütüphanesi, açık geliştirilen.|C++
+rui314/mold|Çok hızlı, modern bir bağlayıcı (linker).|C++
+python/mypy|Python için statik tip denetleyici.|Python
+koka-lang/koka|Efekt tipleri olan araştırma dili.|Haskell`},
+{id:"rust",t:"Rust ekosistemi",p:"~/rust",i:"Rust'ın deyimsel kullanımını gösteren kütüphaneler ve araçlar. Çoğu, gündelik terminal kullanımını da değiştiren projeler.",r:`
+tokio-rs/tokio|Rust için standart asenkron çalışma zamanı.|Rust
+tokio-rs/axum|Tokio üzerine ergonomik web çatısı.|Rust
+serde-rs/serde|Rust'ın serileştirme çatısı.|Rust
+clap-rs/clap|Komut satırı argüman ayrıştırıcı.|Rust
+rayon-rs/rayon|Kolay veri paralelliği.|Rust
+hyperium/hyper|Düşük seviyeli, hızlı HTTP kütüphanesi.|Rust
+actix/actix-web|Yüksek performanslı web çatısı.|Rust
+launchbadge/sqlx|Derleme zamanında denetlenen SQL sorguları.|Rust
+diesel-rs/diesel|Güvenli ORM ve sorgu oluşturucu.|Rust
+dtolnay/anyhow|Uygulamalar için esnek hata tipi.|Rust
+dtolnay/thiserror|Kütüphaneler için hata tipi türetme.|Rust
+dtolnay/syn|Rust kodunu ayrıştırma; prosedürel makroların temeli.|Rust
+rust-lang/cargo|Rust paket yöneticisi.|Rust
+rust-lang/rust-analyzer|Rust için dil sunucusu.|Rust
+rust-lang/rust-clippy|Rust lint koleksiyonu.|Rust
+BurntSushi/ripgrep|grep'ten çok daha hızlı, .gitignore'a saygılı arama aracı.|Rust
+sharkdp/bat|Sözdizimi renklendirmeli cat.|Rust
+sharkdp/fd|Kullanımı kolay, hızlı find alternatifi.|Rust
+sharkdp/hyperfine|Komut satırı kıyaslama aracı.|Rust
+astral-sh/ruff|Çok hızlı Python linter ve biçimlendiricisi.|Rust
+astral-sh/uv|Çok hızlı Python paket ve proje yöneticisi.|Rust
+tauri-apps/tauri|Web arayüzlü küçük ve güvenli masaüstü uygulamaları.|Rust
+iced-rs/iced|Elm'den ilham alan çapraz platform GUI kütüphanesi.|Rust
+emilk/egui|Kolay, anlık modlu (immediate mode) GUI.|Rust
+slint-ui/slint|Gömülü ve masaüstü için bildirimsel GUI araç takımı.|Rust
+gtk-rs/gtk4-rs|GTK 4 için Rust bağlamaları.|Rust
+ratatui/ratatui|Terminal kullanıcı arayüzü kütüphanesi.|Rust
+typst/typst|LaTeX'e modern, hızlı alternatif dizgi sistemi.|Rust
+jj-vcs/jj|Git uyumlu, daha sezgisel sürüm kontrol sistemi.|Rust
+gitui-org/gitui|Hızlı terminal Git arayüzü.|Rust
+sxyazi/yazi|Asenkron, hızlı terminal dosya yöneticisi.|Rust
+Wilfred/difftastic|Sözdizimini anlayan yapısal diff aracı.|Rust
+dandavison/delta|git diff için renkli, okunaklı sayfalayıcı.|Rust
+ajeetdsouza/zoxide|Sık gittiğin dizinleri hatırlayan akıllı cd.|Rust
+eza-community/eza|ls'in modern, renkli alternatifi.|Rust
+bootandy/dust|du'nun görsel alternatifi.|Rust
+tealdeer-rs/tealdeer|tldr sayfaları için hızlı istemci.|Rust
+casey/just|Make'e sade alternatif komut çalıştırıcı.|Rust
+mitsuhiko/insta|Anlık görüntü (snapshot) testleri.|Rust
+servo/servo|Rust ile yazılmış gömülebilir tarayıcı motoru.|Rust
+bytecodealliance/wasmtime|Hızlı, güvenli WebAssembly çalışma zamanı.|Rust`},
+{id:"c",t:"C ve C++ temel taşları",p:"~/c",i:"Onlarca yıldır internetin ve masaüstünün altında çalışan kütüphaneler. Temiz C/C++ kodunun ders kitabı örnekleri.",r:`
+git/git|Git'in kendisi; disiplinli commit geçmişi ve C kodu.|C
+sqlite/sqlite|Dünyanın en yaygın veritabanı motoru; olağanüstü test kapsamı.|C
+redis/redis|Bellek içi veri yapısı sunucusu; okunabilir C örneği.|C
+curl/curl|URL ile veri transferinin standart aracı ve libcurl.|C
+nginx/nginx|Web sunucusu ve ters vekil.|C
+openssl/openssl|TLS ve kriptografi kütüphanesi.|C
+madler/zlib|Sıkıştırma kütüphanesi; neredeyse her yazılımda var.|C
+facebook/zstd|Hızlı, yüksek oranlı Zstandard sıkıştırma.|C
+lz4/lz4|Son derece hızlı sıkıştırma algoritması.|C
+libuv/libuv|Node.js'in altındaki çapraz platform asenkron I/O kütüphanesi.|C
+jqlang/jq|Komut satırı JSON işlemcisi.|C
+tmux/tmux|Terminal çoklayıcı.|C
+systemd/systemd|Linux sistem ve servis yöneticisi.|C
+util-linux/util-linux|mount, fdisk, lsblk gibi temel Linux araçları.|C
+htop-dev/htop|Etkileşimli süreç görüntüleyici.|C
+fmtlib/fmt|Modern C++ biçimlendirme kütüphanesi (std::format'ın atası).|C++
+nlohmann/json|Modern C++ için JSON.|C++
+google/googletest|C++ test çatısı.|C++
+catchorg/Catch2|Başlık tabanlı C++ test çatısı.|C++
+abseil/abseil-cpp|Google'ın C++ temel kütüphaneleri.|C++
+protocolbuffers/protobuf|Dil bağımsız veri serileştirme formatı.|C++
+grpc/grpc|Yüksek performanslı RPC çatısı.|C++
+gabime/spdlog|Hızlı C++ loglama.|C++
+microsoft/vcpkg|C/C++ paket yöneticisi.|CMake
+Kitware/CMake|C/C++ yapı sistemi üreteci.|C
+mesonbuild/meson|Hızlı, kullanıcı dostu yapı sistemi.|Python
+ninja-build/ninja|Küçük ve çok hızlı yapı aracı.|C++
+ccache/ccache|Derleme önbelleği.|C++
+antirez/kilo|1000 satırın altında, eğitici metin editörü.|C
+nothings/stb|Tek başlık dosyalık C kütüphaneleri (görüntü, font, ses).|C
+DaveGamble/cJSON|Tek dosyalık, ultra hafif C JSON ayrıştırıcı.|C`},
+{id:"embedded",t:"Gömülü sistemler ve donanım",p:"~/embedded",i:"Mikrodenetleyiciler, hata ayıklama araçları, emülatörler ve gerçek ürünlerde çalışan firmware'ler. STM32 ile çalışanlar için doğrudan kullanılabilir projeler.",r:`
+STMicroelectronics/STM32CubeF4|ST'nin F4 serisi için HAL, LL sürücüler ve örnekler (diğer seriler aynı adlandırmayla).|C
+STMicroelectronics/cmsis-device-f4|STM32F4 için CMSIS cihaz başlıkları.|C
+ARM-software/CMSIS_5|Cortex-M için ARM'ın standart yazılım arayüzü.|C
+libopencm3/libopencm3|ARM Cortex-M için açık kaynak donanım kütüphanesi.|C
+renode/renode|Antmicro'nun çoklu cihaz donanım emülatörü; STM32 kartlarını simüle eder.|C#
+qemu/qemu|Genel amaçlı makine emülatörü ve sanallaştırıcı (resmî ayna).|C
+probe-rs/probe-rs|Rust ile yazılmış gömülü hata ayıklama ve programlama aracı.|Rust
+embassy-rs/embassy|Gömülü Rust için asenkron çatı ve HAL'ler.|Rust
+stm32-rs/stm32-rs|SVD dosyalarından üretilen STM32 Rust erişim kutuları.|Rust
+rust-embedded/cortex-m|Cortex-M için düşük seviyeli Rust erişimi.|Rust
+blackmagic-debug/blackmagic|Kendi içinde GDB sunucusu olan JTAG/SWD hata ayıklayıcı.|C
+pyocd/pyOCD|Cortex-M için Python tabanlı hata ayıklama ve programlama.|Python
+platformio/platformio-core|Gömülü geliştirme için çapraz platform yapı sistemi.|Python
+espressif/esp-idf|ESP32 için resmî geliştirme çatısı.|C
+raspberrypi/pico-sdk|RP2040/RP2350 için resmî SDK.|C
+micropython/micropython|Mikrodenetleyiciler için Python.|C
+adafruit/circuitpython|Eğitime dönük MicroPython türevi.|C
+arduino/ArduinoCore-avr|Arduino AVR çekirdeği.|C++
+qmk/qmk_firmware|Mekanik klavye firmware'i.|C
+zmkfirmware/zmk|Kablosuz klavyeler için Zephyr tabanlı firmware.|C
+betaflight/betaflight|FPV drone uçuş kontrol firmware'i.|C
+ArduPilot/ardupilot|Drone, uçak, tekne ve araçlar için otopilot.|C++
+PX4/PX4-Autopilot|Profesyonel otopilot yazılımı.|C++
+MarlinFirmware/Marlin|3B yazıcı firmware'i.|C++
+Klipper3d/klipper|Hesaplamayı ana bilgisayara taşıyan 3B yazıcı firmware'i.|C
+sigrokproject/libsigrok|Mantık analizörü ve ölçüm cihazları için kütüphane.|C
+openocd-org/openocd|JTAG/SWD üzerinden çip programlama ve hata ayıklama.|C`},
+{id:"linux",t:"Linux masaüstü ve terminal",p:"~/linux",i:"Pencere yöneticileri, terminaller, kabuklar ve gündelik komut satırı araçları.",r:`
+hyprwm/Hyprland|Animasyonlu, dinamik döşemeli Wayland bileşimcisi.|C++
+swaywm/sway|i3 uyumlu Wayland bileşimcisi.|C
+kovidgoyal/kitty|GPU hızlandırmalı, çok özellikli terminal.|Python
+ghostty-org/ghostty|Hızlı, platforma özgü arayüzlü modern terminal.|Zig
+alacritty/alacritty|Sade ve hızlı GPU terminali.|Rust
+wezterm/wezterm|Lua ile yapılandırılan çoklayıcılı terminal.|Rust
+fish-shell/fish-shell|Kutudan çıktığı gibi akıllı, kullanıcı dostu kabuk.|Rust
+nushell/nushell|Yapısal veriyle çalışan modern kabuk.|Rust
+ohmyzsh/ohmyzsh|Zsh yapılandırma çatısı.|Shell
+zsh-users/zsh-autosuggestions|Zsh için geçmişe dayalı öneriler.|Shell
+starship/starship|Her kabukta çalışan hızlı istem (prompt).|Rust
+junegunn/fzf|Bulanık bulucu; her yerde kullanılabilir.|Go
+tldr-pages/tldr|Topluluk tarafından sadeleştirilmiş man sayfaları.|Markdown
+aristocratos/btop|Görsel kaynak izleyici.|C++
+fastfetch-cli/fastfetch|Hızlı sistem bilgisi aracı.|C
+ranger/ranger|Vim tuşlarıyla terminal dosya yöneticisi.|Python
+flatpak/flatpak|Linux için yalıtılmış uygulama dağıtımı.|C
+CachyOS/linux-cachyos|CachyOS'un optimize edilmiş çekirdek yapıları.|Shell
+Alexays/Waybar|Wayland için yapılandırılabilir durum çubuğu.|C++
+mpv-player/mpv|Komut satırı odaklı, betiklenebilir video oynatıcı.|C
+`},
+{id:"editor",t:"Editörler ve geliştirici araçları",p:"~/tools",i:"Kod yazarken her gün dokunduğun araçlar: editörler, Git arayüzleri ve kalite araçları.",r:`
+neovim/neovim|Vim'in modern, Lua ile genişletilebilir çatalı.|Vim
+vim/vim|Vim metin editörü.|Vim
+helix-editor/helix|Seçim öncelikli, yerleşik LSP'li modal editör.|Rust
+zed-industries/zed|Çok hızlı, ortak çalışmaya dönük kod editörü.|Rust
+microsoft/vscode|Visual Studio Code'un açık kaynak çekirdeği.|TypeScript
+VSCodium/vscodium|VS Code'un telemetrisiz ikili dağıtımı.|Shell
+LazyVim/LazyVim|Hazır Neovim yapılandırması.|Lua
+nvim-treesitter/nvim-treesitter|Neovim için Tree-sitter entegrasyonu.|Lua
+tree-sitter/tree-sitter|Artımlı ayrıştırıcı üreteci; editörlerin sözdizimi motoru.|Rust
+jesseduffield/lazygit|Terminal Git arayüzü.|Go
+jesseduffield/lazydocker|Terminal Docker arayüzü.|Go
+cli/cli|GitHub'ın resmî komut satırı aracı gh.|Go
+pre-commit/pre-commit|Git kanca yöneticisi.|Python
+github/gitignore|Diller ve araçlar için .gitignore şablonları.|Markdown
+anthropics/claude-code|Terminalde çalışan ajan tabanlı kodlama aracı.|TypeScript
+modelcontextprotocol/servers|Model Context Protocol için referans sunucular.|TypeScript
+direnv/direnv|Dizine göre ortam değişkeni yükleyici.|Go
+jdx/mise|Dil sürümleri ve görevler için araç yöneticisi.|Rust
+watchexec/watchexec|Dosya değişince komut çalıştırır.|Rust`},
+{id:"selfhost",t:"Self-hosting ve homelab",p:"~/selfhost",i:"Kendi sunucunda çalıştırabileceğin servisler: uygulama mağazası panelleri, medya, yedekleme, kimlik doğrulama ve ağ araçları.",r:`
+coollabsio/coolify|Heroku/Vercel benzeri, kendi barındırdığın PaaS paneli.|PHP
+Dokploy/dokploy|Docker tabanlı, sade dağıtım platformu.|TypeScript
+caprover/caprover|Tek tıklamalı uygulama dağıtım paneli.|TypeScript
+IceWhaleTech/CasaOS|Ev sunucuları için uygulama mağazalı kişisel bulut arayüzü.|Go
+getumbrel/umbrel|Ev sunucusu için şık uygulama mağazalı işletim sistemi.|TypeScript
+runtipi/runtipi|Tek komutla kurulan homelab uygulama mağazası.|TypeScript
+portainer/portainer|Docker ve Kubernetes için yönetim arayüzü.|TypeScript
+louislam/uptime-kuma|Kendi barındırdığın, şık durum izleme aracı.|JavaScript
+gethomepage/homepage|Servis entegrasyonlu homelab başlangıç sayfası.|JavaScript
+immich-app/immich|Google Fotoğraflar'a güçlü, kendi barındırdığın alternatif.|TypeScript
+photoprism/photoprism|Yapay zekâ destekli fotoğraf arşivi.|Go
+jellyfin/jellyfin|Tamamen özgür medya sunucusu.|C#
+navidrome/navidrome|Subsonic uyumlu müzik sunucusu.|Go
+advplyr/audiobookshelf|Sesli kitap ve podcast sunucusu.|JavaScript
+nextcloud/server|Dosya, takvim, kişiler ve daha fazlası için kişisel bulut.|PHP
+home-assistant/core|Yerel öncelikli ev otomasyonu.|Python
+pi-hole/pi-hole|Ağ çapında reklam ve izleyici engelleyici DNS.|Shell
+AdguardTeam/AdGuardHome|Ağ çapında reklam engelleyici DNS sunucusu.|Go
+traefik/traefik|Docker'ı otomatik keşfeden ters vekil.|Go
+caddyserver/caddy|Otomatik HTTPS'li web sunucusu.|Go
+NginxProxyManager/nginx-proxy-manager|Arayüzlü Nginx ters vekil yöneticisi.|JavaScript
+dani-garcia/vaultwarden|Bitwarden uyumlu hafif parola sunucusu.|Rust
+authelia/authelia|Tek oturum açma ve iki faktörlü kimlik doğrulama sunucusu.|Go
+goauthentik/authentik|Kimlik sağlayıcı ve SSO platformu.|Python
+paperless-ngx/paperless-ngx|Belgeleri tarayıp aranabilir arşive dönüştürür.|Python
+syncthing/syncthing|Merkezi sunucusuz dosya senkronizasyonu.|Go
+go-gitea/gitea|Hafif, kendi barındırdığın Git hizmeti.|Go
+n8n-io/n8n|Görsel iş akışı otomasyonu.|TypeScript
+FreshRSS/FreshRSS|Kendi barındırdığın RSS okuyucu.|PHP
+mealie-recipes/mealie|Tarif yöneticisi ve yemek planlayıcı.|Python
+actualbudget/actual|Yerel öncelikli kişisel bütçe uygulaması.|TypeScript
+filebrowser/filebrowser|Web tabanlı dosya yöneticisi.|Go
+Stirling-Tools/Stirling-PDF|PDF birleştirme, bölme, dönüştürme için web aracı.|Java
+restic/restic|Hızlı, şifreli yedekleme programı.|Go
+borgbackup/borg|Tekilleştirmeli, şifreli yedekleme.|Python
+cloudflare/cloudflared|Cloudflare Tunnel istemcisi.|Go
+tailscale/tailscale|WireGuard tabanlı kolay özel ağ.|Go
+juanfont/headscale|Tailscale kontrol sunucusunun açık kaynak uygulaması.|Go
+wg-easy/wg-easy|Web arayüzlü WireGuard VPN.|TypeScript
+open-webui/open-webui|Yerel LLM'ler için ChatGPT benzeri arayüz.|Svelte
+ollama/ollama|Büyük dil modellerini yerelde çalıştırma.|Go
+linuxserver/docker-baseimage-alpine|LinuxServer.io imajlarının temeli; topluluğun yüzlerce bakımlı imajı var.|Dockerfile
+`},
+{id:"devops",t:"DevOps, konteyner ve altyapı",p:"~/infra",i:"Konteyner, orkestrasyon, altyapı-kod ve gözlemlenebilirlik araçları.",r:`
+kubernetes/kubernetes|Konteyner orkestrasyonunun standardı.|Go
+k3s-io/k3s|Hafif, tek ikili Kubernetes dağıtımı.|Go
+moby/moby|Docker motorunun açık kaynak projesi.|Go
+docker/compose|Çok konteynerli uygulamaları tanımlama ve çalıştırma.|Go
+containers/podman|Daemonsuz, rootless konteyner motoru.|Go
+containerd/containerd|Sektör standardı konteyner çalışma zamanı.|Go
+opencontainers/runc|OCI konteynerlerini çalıştıran düşük seviyeli araç.|Go
+hashicorp/terraform|Altyapıyı kodla tanımlama.|Go
+opentofu/opentofu|Terraform'un Linux Vakfı bünyesindeki açık kaynak çatalı.|Go
+ansible/ansible|Ajan gerektirmeyen yapılandırma otomasyonu.|Python
+helm/helm|Kubernetes paket yöneticisi.|Go
+argoproj/argo-cd|Kubernetes için GitOps sürekli dağıtım.|Go
+etcd-io/etcd|Dağıtık, tutarlı anahtar-değer deposu.|Go
+cilium/cilium|eBPF tabanlı ağ, güvenlik ve gözlemlenebilirlik.|Go
+envoyproxy/envoy|Bulut yerlisi yüksek performanslı vekil.|C++
+haproxy/haproxy|Güvenilir yük dengeleyici.|C
+NixOS/nixpkgs|80 binden fazla paketle Nix paket deposu.|Nix
+NixOS/nix|Tekrarlanabilir derlemeler için paket yöneticisi.|C++
+prometheus/prometheus|Metrik toplama ve uyarı sistemi.|Go
+grafana/grafana|Gözlemlenebilirlik ve pano platformu.|TypeScript
+grafana/loki|Log toplama sistemi.|Go
+netdata/netdata|Gerçek zamanlı, sıfır yapılandırmalı izleme.|C
+derailed/k9s|Kubernetes için terminal arayüzü.|Go
+bpftrace/bpftrace|eBPF için üst düzey izleme dili.|C++
+iovisor/bcc|eBPF tabanlı çekirdek izleme araçları.|C
+open-telemetry/opentelemetry-collector|Telemetri toplama ve işleme.|Go
+goreleaser/goreleaser|Go projeleri için sürüm otomasyonu.|Go
+nektos/act|GitHub Actions iş akışlarını yerelde çalıştırma.|Go`},
+{id:"db",t:"Veritabanları ve veri işleme",p:"~/data",i:"İlişkisel, anahtar-değer, zaman serisi, arama motorları ve analitik araçları.",r:`
+postgres/postgres|PostgreSQL'in resmî aynası; en saygın açık kaynak veritabanlarından.|C
+MariaDB/server|MySQL'in topluluk çatalı.|C++
+mongodb/mongo|Belge tabanlı veritabanı.|C++
+duckdb/duckdb|Gömülebilir analitik SQL veritabanı.|C++
+ClickHouse/ClickHouse|Sütun tabanlı, çok hızlı analitik veritabanı.|C++
+cockroachdb/cockroach|Dağıtık SQL veritabanı.|Go
+pingcap/tidb|MySQL uyumlu dağıtık veritabanı.|Go
+tikv/tikv|Dağıtık işlemsel anahtar-değer deposu.|Rust
+apache/cassandra|Geniş sütunlu dağıtık veritabanı.|Java
+apache/kafka|Dağıtık olay akışı platformu.|Java
+rabbitmq/rabbitmq-server|Mesaj kuyruğu sunucusu.|Erlang
+nats-io/nats-server|Hafif, yüksek performanslı mesajlaşma.|Go
+valkey-io/valkey|Redis'in Linux Vakfı çatalı.|C
+dragonflydb/dragonfly|Redis ve Memcached uyumlu modern bellek içi depo.|C++
+meilisearch/meilisearch|Kullanımı kolay, hızlı arama motoru.|Rust
+typesense/typesense|Yazım hatasına toleranslı arama motoru.|C++
+elastic/elasticsearch|Dağıtık arama ve analitik motoru.|Java
+timescale/timescaledb|PostgreSQL üzerinde zaman serisi.|C
+questdb/questdb|Yüksek performanslı zaman serisi veritabanı.|Java
+surrealdb/surrealdb|Çok modelli bulut veritabanı.|Rust
+pocketbase/pocketbase|Tek dosyalık arka uç: veritabanı, kimlik ve dosya.|Go
+supabase/supabase|Postgres tabanlı açık kaynak Firebase alternatifi.|TypeScript
+appwrite/appwrite|Web ve mobil için arka uç platformu.|TypeScript
+minio/minio|S3 uyumlu nesne depolama.|Go
+apache/arrow|Bellek içi sütunlu veri formatı.|C++
+apache/spark|Büyük ölçekli veri işleme motoru.|Scala
+pola-rs/polars|Rust ile yazılmış hızlı DataFrame kütüphanesi.|Rust
+pandas-dev/pandas|Python'da veri analizi.|Python
+numpy/numpy|Python'da bilimsel hesaplamanın temeli.|Python
+dbeaver/dbeaver|Evrensel veritabanı istemcisi.|Java
+rqlite/rqlite|SQLite üzerine dağıtık veritabanı.|Go`},
+{id:"web",t:"Web: frontend ve backend",p:"~/web",i:"Arayüz kütüphaneleri, yapı araçları, sunucu çatıları ve test araçları.",r:`
+facebook/react|Kullanıcı arayüzü kütüphanesi.|JavaScript
+vuejs/core|Vue.js 3 çekirdeği.|TypeScript
+sveltejs/svelte|Derleme zamanlı arayüz çatısı.|JavaScript
+angular/angular|Google'ın web uygulama platformu.|TypeScript
+solidjs/solid|İnce taneli reaktif arayüz kütüphanesi.|TypeScript
+vercel/next.js|React tabanlı tam yığın çatı.|JavaScript
+withastro/astro|İçerik odaklı web siteleri için çatı.|TypeScript
+remix-run/react-router|React için yönlendirme ve tam yığın çatı.|TypeScript
+vitejs/vite|Hızlı frontend yapı aracı.|TypeScript
+evanw/esbuild|Go ile yazılmış çok hızlı paketleyici.|Go
+webpack/webpack|Modül paketleyici.|JavaScript
+tailwindlabs/tailwindcss|Yardımcı sınıf öncelikli CSS çatısı.|TypeScript
+shadcn-ui/ui|Kopyala-yapıştır erişilebilir React bileşenleri.|TypeScript
+bigskysoftware/htmx|HTML öznitelikleriyle AJAX ve etkileşim.|JavaScript
+mrdoob/three.js|3B web grafik kütüphanesi.|JavaScript
+d3/d3|Veri görselleştirme kütüphanesi.|JavaScript
+expressjs/express|Minimal Node.js web çatısı.|JavaScript
+fastify/fastify|Hızlı, düşük yüklü Node.js çatısı.|JavaScript
+honojs/hono|Her çalışma zamanında çalışan küçük web çatısı.|TypeScript
+prisma/prisma|TypeScript ORM.|TypeScript
+drizzle-team/drizzle-orm|Tip güvenli, SQL'e yakın ORM.|TypeScript
+django/django|"Son tarihi olan mükemmeliyetçiler" için Python web çatısı.|Python
+pallets/flask|Hafif Python web çatısı.|Python
+fastapi/fastapi|Tip ipuçlarına dayalı hızlı Python API çatısı.|Python
+rails/rails|Ruby on Rails.|Ruby
+laravel/framework|Laravel PHP çatısının çekirdeği.|PHP
+spring-projects/spring-boot|Java için üretime hazır uygulama çatısı.|Java
+gin-gonic/gin|Go için HTTP web çatısı.|Go
+gohugoio/hugo|Çok hızlı statik site üreteci.|Go
+phoenixframework/phoenix|Elixir web çatısı.|Elixir
+microsoft/playwright|Tarayıcı otomasyonu ve uçtan uca test.|TypeScript
+vitest-dev/vitest|Vite tabanlı test çatısı.|TypeScript
+prettier/prettier|Görüş sahibi kod biçimlendirici.|JavaScript
+eslint/eslint|JavaScript linter.|JavaScript
+biomejs/biome|Hızlı biçimlendirici ve linter.|Rust
+electron/electron|Web teknolojileriyle masaüstü uygulamaları.|C++
+excalidraw/excalidraw|El çizimi görünümlü sanal beyaz tahta.|TypeScript
+mdn/content|MDN Web Docs içeriği.|Markdown`},
+{id:"ai",t:"Yapay zekâ ve makine öğrenmesi",p:"~/ai",i:"Derin öğrenme çatıları, yerel LLM çalıştırma araçları ve eğitici minimal uygulamalar.",r:`
+pytorch/pytorch|Esnek, yaygın derin öğrenme çatısı.|Python
+tensorflow/tensorflow|Google'ın uçtan uca ML platformu.|C++
+jax-ml/jax|Bileşenli dönüşümlerle hızlandırılmış sayısal hesaplama.|Python
+keras-team/keras|Çok arka uçlu üst düzey derin öğrenme API'si.|Python
+huggingface/transformers|Binlerce ön eğitimli model için standart kütüphane.|Python
+huggingface/diffusers|Difüzyon modelleri kütüphanesi.|Python
+scikit-learn/scikit-learn|Klasik makine öğrenmesi.|Python
+matplotlib/matplotlib|Python grafik kütüphanesi.|Python
+ggml-org/llama.cpp|LLM'leri CPU ve GPU'da verimli çalıştıran C/C++ motoru.|C++
+ggml-org/whisper.cpp|Whisper konuşma tanımanın C/C++ uygulaması.|C++
+vllm-project/vllm|Yüksek verimli LLM sunum motoru.|Python
+microsoft/onnxruntime|Platformlar arası model çalıştırma.|C++
+openai/whisper|Çok dilli konuşma tanıma modeli.|Python
+comfyanonymous/ComfyUI|Düğüm tabanlı görüntü üretim arayüzü.|Python
+karpathy/nanoGPT|GPT eğitimi için en sade, okunabilir kod.|Python
+karpathy/llm.c|Saf C ve CUDA ile LLM eğitimi.|C
+Lightning-AI/pytorch-lightning|PyTorch eğitim döngüsünü düzenleyen çatı.|Python
+unslothai/unsloth|Daha hızlı, az bellekli LLM ince ayarı.|Python
+mlc-ai/mlc-llm|LLM'leri her cihazda yerel çalıştırma.|Python
+LostRuins/koboldcpp|Tek dosyalık yerel LLM arayüzü.|C++
+ggml-org/ggml|Makine öğrenmesi için tensör kütüphanesi.|C++
+openai/tiktoken|Hızlı BPE tokenizer.|Python
+huggingface/tokenizers|Rust ile yazılmış hızlı tokenizer'lar.|Rust
+explosion/spaCy|Endüstriyel doğal dil işleme.|Python`},
+{id:"sec",t:"Güvenlik",p:"~/sec",i:"Savunma, tarama, sır sızıntısı tespiti ve güvenli yapılandırma kaynakları.",r:`
+OWASP/CheatSheetSeries|Uygulama güvenliği için kısa, pratik rehberler.|Python
+nmap/nmap|Ağ keşfi ve güvenlik taraması.|C
+aquasecurity/trivy|Konteyner, kod ve yapılandırma güvenlik tarayıcısı.|Go
+gitleaks/gitleaks|Git geçmişinde sızmış sırları bulur.|Go
+trufflesecurity/trufflehog|Sızmış kimlik bilgilerini bulur ve doğrular.|Go
+falcosecurity/falco|Bulut yerlisi çalışma zamanı tehdit tespiti.|C++
+crowdsecurity/crowdsec|Topluluk destekli saldırı engelleme.|Go
+fail2ban/fail2ban|Kaba kuvvet saldırılarını otomatik engeller.|Python
+wazuh/wazuh|Açık kaynak SIEM ve XDR platformu.|C
+OISF/suricata|Ağ saldırı tespit ve önleme motoru.|C
+mitmproxy/mitmproxy|Etkileşimli HTTPS vekili; trafik inceleme.|Python
+FiloSottile/age|Basit, modern dosya şifreleme aracı.|Go
+getsops/sops|Yapılandırma dosyalarında sır yönetimi.|Go
+hashicorp/vault|Sır ve kimlik yönetimi.|Go
+keepassxreboot/keepassxc|Çapraz platform parola yöneticisi.|C++
+bitwarden/clients|Bitwarden istemci uygulamaları.|TypeScript
+CISOfy/lynis|Linux ve Unix sistemler için güvenlik denetim aracı.|Shell`},
+{id:"game",t:"Oyun, grafik ve multimedya",p:"~/media",i:"Oyun motorları, grafik kütüphaneleri, video ve ses işleme araçları, yaratıcı yazılımlar.",r:`
+godotengine/godot|Tamamen özgür 2B/3B oyun motoru.|C++
+bevyengine/bevy|Veri odaklı, ECS tabanlı Rust oyun motoru.|Rust
+raysan5/raylib|Oyun programlamayı öğrenmek için sade C kütüphanesi.|C
+libsdl-org/SDL|Çapraz platform pencere, girdi ve ses katmanı.|C
+glfw/glfw|OpenGL ve Vulkan için pencere ve girdi.|C
+ocornut/imgui|Anlık modlu C++ GUI; araç ve hata ayıklama arayüzlerinin standardı.|C++
+gfx-rs/wgpu|Rust için güvenli, taşınabilir grafik API'si.|Rust
+KhronosGroup/Vulkan-Docs|Vulkan spesifikasyonu.|JavaScript
+FFmpeg/FFmpeg|Ses ve video işlemenin İsviçre çakısı.|C
+obsproject/obs-studio|Yayın ve ekran kaydı yazılımı.|C
+HandBrake/HandBrake|Video dönüştürücü.|C
+yt-dlp/yt-dlp|Çok sayıda siteden video ve ses indirme aracı.|Python
+audacity/audacity|Çok kanallı ses editörü.|C++
+musescore/MuseScore|Nota yazım yazılımı.|C++
+darktable-org/darktable|RAW fotoğraf işleme ve arşivleme.|C
+Beep6581/RawTherapee|RAW fotoğraf işleme.|C++
+libretro/RetroArch|Emülatörler için ortak arayüz.|C
+dolphin-emu/dolphin|GameCube ve Wii emülatörü.|C++
+PCSX2/pcsx2|PlayStation 2 emülatörü.|C++
+hrydgard/ppsspp|PSP emülatörü.|C++
+mgba-emu/mgba|Game Boy Advance emülatörü.|C
+OpenTTD/OpenTTD|Transport Tycoon'un açık kaynak yeniden yazımı.|C++
+minetest/minetest|Voksel oyun motoru (Luanti).|C++`},
+{id:"apps",t:"Masaüstü ve gündelik uygulamalar",p:"~/apps",i:"Günlük hayatta kullanılan, açık kaynak ve iyi bakımlı uygulamalar.",r:`
+LadybirdBrowser/ladybird|Sıfırdan yazılan bağımsız web tarayıcısı.|C++
+zen-browser/desktop|Firefox tabanlı, odak dostu tarayıcı.|JavaScript
+signalapp/Signal-Desktop|Signal'in masaüstü istemcisi.|TypeScript
+localsend/localsend|Yerel ağda AirDrop benzeri dosya paylaşımı.|Dart
+rustdesk/rustdesk|Kendi sunucunla uzak masaüstü.|Rust
+Genymobile/scrcpy|Android ekranını bilgisayardan görüntüle ve kontrol et.|C
+qbittorrent/qBittorrent|Reklamsız BitTorrent istemcisi.|C++
+transmission/transmission|Hafif BitTorrent istemcisi.|C++
+flameshot-org/flameshot|Güçlü ekran görüntüsü aracı.|C++
+ventoy/Ventoy|Birden fazla ISO'yu tek USB'den başlatma.|C
+logseq/logseq|Çıktı tabanlı, yerel öncelikli not alma.|Clojure
+AppFlowy-IO/AppFlowy|Notion'a açık kaynak alternatif.|Dart
+laurent22/joplin|Uçtan uca şifreli not alma uygulaması.|TypeScript
+zotero/zotero|Akademik kaynak yöneticisi.|JavaScript
+kovidgoyal/calibre|E-kitap yönetimi, dönüştürme ve okuma.|Python`}
+];
+
+const list=document.getElementById("list"),chips=document.getElementById("chips"),q=document.getElementById("q"),count=document.getElementById("count");
+let active="all";
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+CATS.forEach(c=>{c.items=c.r.trim().split("\n").map(l=>l.trim()).filter(l=>l.includes("|")).map(l=>{const[n,d,g]=l.split("|");return{n,d,g:g||""}})});
+const total=CATS.reduce((a,c)=>a+c.items.length,0);
+function chip(id,label){const b=document.createElement("button");b.className="chip";b.type="button";b.id="chip-"+id;b.textContent=label;b.setAttribute("aria-pressed",String(id===active));b.onclick=()=>{active=id;try{localStorage.setItem("atlas-cat",id)}catch(e){};document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));render()};chips.appendChild(b)}
+try{const s=localStorage.getItem("atlas-cat");if(s&&(s==="all"||CATS.some(c=>c.id===s)))active=s}catch(e){}
+chip("all","Tümü · "+total);CATS.forEach(c=>chip(c.id,c.t+" · "+c.items.length));
+function render(){
+  const term=q.value.trim().toLocaleLowerCase("tr");let shown=0,html="";
+  CATS.forEach(c=>{if(active!=="all"&&active!==c.id)return;
+    const its=c.items.filter(x=>!term||(x.n+" "+x.d+" "+x.g+" "+c.t).toLocaleLowerCase("tr").includes(term));
+    if(!its.length)return;shown+=its.length;
+    html+=`<section id="${c.id}"><div class="sec-head"><h2>${esc(c.t)}</h2><span class="path">${c.p} · ${its.length} repo</span></div><p class="sec-intro">${esc(c.i)}</p><ul>`+
+    its.map(x=>{const[o,r]=x.n.split("/");return`<li><a href="https://github.com/${esc(x.n)}" target="_blank" rel="noopener"><span class="own">${esc(o)}/</span><span class="nm">${esc(r)}</span></a><div class="desc">${esc(x.d)}${x.g?`<div class="lang"><span class="dot" style="background:${LANG[x.g]||"var(--muted)"}"></span>${esc(x.g)}</div>`:""}</div></li>`}).join("")+`</ul></section>`});
+  list.innerHTML=html||`<p class="empty">“${esc(q.value)}” için sonuç yok. Başka bir kelime dene ya da “Tümü” kategorisine geç.</p>`;
+  count.textContent=shown+" / "+total+" repo";
+}
+q.addEventListener("input",render);render();
+</script>
+
+</body></html>

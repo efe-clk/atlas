@@ -1,0 +1,767 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Arayüz Atlası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: protokol şartnamesi + mantık analizörü — solda kategori rayı, sağda terim kartları; her kartta metin | canlı akış şeması */
+:root{
+  --bg:#eef1f3; --panel:#fbfcfc; --ink:#14202a; --muted:#56636e; --line:#cfd6dc;
+  --accent:#1d55c9; --resp:#14866d; --event:#c47a06; --note:#e4e9ef; --soft:#e3e9f2;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
+a{color:var(--accent)}
+.rail,main{min-width:0}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:0 80px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:0;padding-inline:16px}}
+
+/* ray */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-block:28px;max-height:100vh;overflow:auto}
+.brand{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01em;line-height:1.1}
+.brand small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
+.search{margin-top:18px;width:100%;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.search:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.rail nav{margin-top:18px;display:flex;flex-direction:column;gap:2px}
+.rail nav a{display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);font-size:14px;padding:6px 10px;border-radius:6px}
+.rail nav a:hover,.rail nav a:focus-visible{background:var(--soft);outline:none}
+.rail nav a span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend{margin-top:22px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:8px}
+@media (max-width:900px){
+  .rail{position:sticky;max-height:none;padding-block:12px;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+  .brand small,.legend{display:none}
+  .rail nav{flex-direction:row;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+  .rail nav a{white-space:nowrap;background:var(--panel);border:1px solid var(--line)}
+  .search{margin-top:10px}
+}
+
+/* hero */
+.hero{padding-block:40px 24px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5.4vw,60px);line-height:1.02;letter-spacing:-.025em;margin:10px 0 16px;text-wrap:balance;max-width:16ch}
+.hero p.lead{font-size:18px;max-width:62ch;color:var(--muted);margin:0}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:center;margin-top:26px}
+@media (max-width:1050px){.hero-grid{grid-template-columns:minmax(0,1fr)}}
+.hero-notes{display:flex;flex-direction:column;gap:14px;font-size:15px}
+.hero-notes div{padding-left:14px;border-left:2px solid var(--line)}
+.hero-notes b{font-family:var(--mono);font-weight:600}
+
+.index{display:flex;flex-wrap:wrap;gap:6px;margin-top:26px}
+.index a{font-family:var(--mono);font-size:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);padding:3px 8px;border-radius:5px}
+.index a:hover,.index a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+
+/* bölümler */
+section.cat{padding-top:48px}
+.cat-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:6px}
+.cat-head h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;margin:0;line-height:1.1}
+.cat-head .num{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.cat-intro{color:var(--muted);max-width:68ch;margin:0 0 22px}
+
+.term{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px;scroll-margin-top:90px}
+.term header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.abbr{font-family:var(--mono);font-weight:600;font-size:26px;color:var(--accent);letter-spacing:-.01em}
+.term h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0;line-height:1.2}
+.term .tr{font-size:14px;color:var(--muted);margin:0;flex-basis:100%}
+.term .meta{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 7px;margin-left:auto}
+.one{font-size:17px;font-weight:500;margin:12px 0 0;max-width:70ch}
+.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;margin-top:16px}
+@media (max-width:1150px){.body{grid-template-columns:minmax(0,1fr)}}
+.body h4{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.body p{margin:0 0 16px;max-width:66ch}
+dl.tech{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:0;font-size:14px}
+dl.tech dt{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:2px}
+dl.tech dd{margin:0}
+figure{margin:0;min-width:0}
+.diag-box{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+pre.code{margin:16px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55}
+pre.code .cl{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+/* svg diyagram */
+svg.diag{display:block;font-family:var(--mono);width:100%;height:auto;margin:0 auto}
+.actor{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.actor-t{fill:var(--ink);font-size:11.5px;font-weight:600}
+.life{stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
+.arrow{stroke-width:1.6;fill:none}
+.k-q .arrow{stroke:var(--accent)} .k-r .arrow{stroke:var(--resp);stroke-dasharray:5 3} .k-e .arrow{stroke:var(--event)}
+.lbl{fill:var(--ink);font-size:11px}
+.note{fill:var(--note);stroke:var(--line)}
+.step{transition:opacity .25s}
+.playing .step{opacity:.45} .playing .step.on{opacity:1}
+.step.on .lbl{font-weight:600}
+.pkt{fill:var(--event);stroke:var(--panel);stroke-width:2}
+.mq{fill:var(--accent)} .mr{fill:var(--resp)} .me{fill:var(--event)}
+.layer{fill:var(--panel);stroke:var(--ink);stroke-width:1.1}
+.layer-t{fill:var(--ink);font-size:12px;font-weight:600}
+.layer-c{fill:var(--muted);font-size:10.5px}
+.step.on .layer{fill:var(--soft);stroke:var(--accent);stroke-width:2}
+
+/* karşılaştırma */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td:first-child{font-family:var(--mono);font-weight:600;color:var(--accent)}
+tr:last-child td{border-bottom:0}
+.empty{display:none;padding:40px 0;color:var(--muted)}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.pkt{display:none}.step{transition:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="m-q" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mq" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mr" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="me" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand">Arayüz Atlası<small>API · SDK · MCP ve fazlası</small></div>
+    <input id="q" class="search" type="search" placeholder="Ara: JWT, akış, JSON-RPC…" aria-label="Terim ara">
+    <nav id="nav" aria-label="Kategoriler"></nav>
+    <div class="legend" aria-label="Şema renkleri">
+      <span><i style="border-color:var(--accent)"></i>istek / çağrı</span>
+      <span><i style="border-color:var(--resp);border-top-style:dashed"></i>yanıt / sonuç</span>
+      <span><i style="border-color:var(--event)"></i>olay / akış / bildirim</span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Geliştirici arayüzleri, protokoller ve araçlar</div>
+      <h1>Yazılımlar birbiriyle nasıl konuşur?</h1>
+      <p class="lead">Her kısaltmanın tam adı, ne işe yaradığı, kabloların içinde gerçekte ne olduğu ve kimin kime hangi sırayla ne gönderdiği. Şemalardaki turuncu nokta, mesajın o anda nerede olduğunu gösterir.</p>
+      <div class="hero-grid">
+        <figure>
+          <div class="diag-box" id="hero-diag"></div>
+          <figcaption>Tek bir <code>client.messages.create()</code> çağrısı aşağı doğru katman katman paketlenir, ağdan geçer, sunucuda ters sırayla açılır.</figcaption>
+        </figure>
+        <div class="hero-notes">
+          <div><b>Arayüz</b> iki yazılım arasındaki sözleşmedir: hangi isimle çağırırsın, ne gönderirsin, ne geri gelir.</div>
+          <div><b>Protokol</b> o sözleşmenin tel üzerindeki biçimidir: baytların sırası, el sıkışma, hata durumları.</div>
+          <div><b>Araç</b> (SDK, CLI, IDE) bu protokolleri senin yerine konuşan, sana kolay bir yüz sunan katmandır.</div>
+          <div>Pek çok modern protokol aynı temeli paylaşır. Örneğin <b>MCP</b>, <b>LSP</b>, <b>DAP</b> ve <b>ACP</b> mesajlarının hepsi <b>JSON-RPC 2.0</b>'dır.</div>
+        </div>
+      </div>
+      <div class="index" id="index" aria-label="Hızlı dizin"></div>
+    </header>
+
+    <div id="content"></div>
+    <p class="empty" id="empty">Bu aramaya uyan terim yok. Kısaltma, tam ad ya da Türkçe karşılık deneyebilirsin.</p>
+
+    <section class="cat" id="karsilastirma">
+      <div class="cat-head"><h2>Yan yana: API iletişim stilleri</h2><span class="num">özet tablo</span></div>
+      <p class="cat-intro">Hangisini ne zaman seçeceğine dair kaba bir rehber. Gerçek sistemler çoğu zaman birkaçını birlikte kullanır.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Stil</th><th>Kim başlatır</th><th>Bağlantı</th><th>Veri biçimi</th><th>Tipik kullanım</th></tr></thead>
+        <tbody>
+          <tr><td>REST</td><td>İstemci</td><td>İstek başına (HTTP)</td><td>Genelde JSON</td><td>Halka açık web API'leri, CRUD</td></tr>
+          <tr><td>GraphQL</td><td>İstemci</td><td>Tek uç nokta, HTTP POST</td><td>JSON</td><td>Çok ekranlı ön yüzler, esnek sorgu</td></tr>
+          <tr><td>gRPC</td><td>İstemci (çift yönlü akış da olur)</td><td>Kalıcı HTTP/2</td><td>Protobuf (ikili)</td><td>Mikroservisler arası, düşük gecikme</td></tr>
+          <tr><td>JSON-RPC</td><td>Her iki taraf</td><td>Taşıyıcıdan bağımsız (stdio, HTTP, WS)</td><td>JSON</td><td>MCP, LSP, DAP, kripto düğümleri</td></tr>
+          <tr><td>SOAP</td><td>İstemci</td><td>Çoğunlukla HTTP</td><td>XML zarf</td><td>Banka, devlet, eski kurumsal sistemler</td></tr>
+          <tr><td>Webhook</td><td>Sunucu (olay olunca)</td><td>Olay başına HTTP POST</td><td>JSON</td><td>Ödeme bildirimi, Git push olayı</td></tr>
+          <tr><td>WebSocket</td><td>Her iki taraf</td><td>Kalıcı, çift yönlü</td><td>Metin/ikili çerçeve</td><td>Sohbet, oyun, canlı panolar</td></tr>
+          <tr><td>SSE</td><td>Sunucu (abonelikten sonra)</td><td>Kalıcı, tek yönlü</td><td>text/event-stream</td><td>LLM token akışı, bildirimler</td></tr>
+          <tr><td>MQTT</td><td>Yayıncılar ve aboneler (broker üzerinden)</td><td>Kalıcı TCP</td><td>Serbest bayt yükü</td><td>IoT sensörleri, ev otomasyonu</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>Kaynak olarak ilgili RFC'ler (HTTP 9110/9113/9114, TLS 8446, OAuth 6749, PKCE 7636, JWT 7519, WebSocket 6455), modelcontextprotocol.io, a2a-protocol.org, Microsoft LSP/DAP şartnameleri, OpenAPI ve GraphQL şartnameleri temel alınmıştır. Yapay zekâ ajan protokolleri (MCP, A2A, AG-UI, ACP, AP2, UCP) 2024–2026 arasında çıktı ve hızla değişiyor; üretimde kullanmadan önce güncel sürüme bak.</footer>
+  </main>
+</div>
+
+<script>
+/* ============ VERİ ============ */
+const CATS=[
+ {id:"temel",n:"Temel kavramlar",i:"Her şeyin üstüne kurulduğu üç kelime: arayüz, kit ve ikili sözleşme."},
+ {id:"ag",n:"Ağın temeli",i:"Web API'lerinin altında çalışan katmanlar. Bir HTTP isteği bunların hepsinden geçer."},
+ {id:"stil",n:"API stilleri ve iletişim desenleri",i:"Aynı ağ üzerinde konuşmanın farklı yolları: sor-cevapla, abone ol, olay gönder, akıt."},
+ {id:"veri",n:"Veri biçimleri ve şemalar",i:"Telin üzerindeki baytların ne anlama geldiğini belirleyen dil."},
+ {id:"auth",n:"Kimlik doğrulama ve yetki",i:"\"Sen kimsin\" (authentication) ve \"neye iznin var\" (authorization) sorularının standart cevapları."},
+ {id:"ai",n:"Yapay zekâ ve ajan protokolleri",i:"2023 sonrası doğan yeni katman: modeli araçlara, ajanları birbirine, kullanıcı arayüzüne ve ödeme sistemlerine bağlayan protokoller."},
+ {id:"sistem",n:"Düşük seviye ve sistem arayüzleri",i:"İşletim sistemi, donanım ve diller arası sınırlar. Burada iletişim ağ yerine yazmaçlar, bellek ve kesmelerle olur."},
+ {id:"arac",n:"Geliştirici araçları",i:"Kodu yazdığın, çalıştırdığın, hata ayıkladığın ve yayına aldığın ortamlar ile aralarındaki protokoller."}
+];
+
+const T=[
+/* ---------- TEMEL ---------- */
+{id:"api",c:"temel",a:"API",f:"Application Programming Interface",tr:"Uygulama Programlama Arayüzü",y:"kavram",
+o:"Bir yazılımın dış dünyaya sunduğu, \"beni şu isimlerle, şu girdilerle çağır, sana şunu döndüreyim\" sözleşmesi.",
+h:"API bir menü gibidir: mutfağın (iç kodun) nasıl çalıştığını bilmezsin, sadece menüdeki yemeği (fonksiyonu, uç noktayı) doğru şekilde sipariş edersin. Yerel API'ler bir kütüphanenin fonksiyonlarıdır (ör. C'deki fopen). Web API'leri ise ağ üzerinden çağrılır: istemci bir URL'e HTTP isteği atar, sunucu iş mantığını çalıştırıp JSON gibi bir yanıt döner. İyi bir API sürümlenir, belgelenir ve geriye dönük uyumluluğu korur, çünkü sözleşme bozulursa onu kullanan herkes bozulur.",
+t:[["Türleri","Kütüphane API'si, işletim sistemi API'si, web API'si"],["Web'de","REST, GraphQL, gRPC, SOAP gibi stillerle"],["Sözleşme","Fonksiyon imzası ya da OpenAPI / .proto / GraphQL şeması"],["Sürümleme","/v1/, başlık (header) ya da tarih tabanlı sürüm"]],
+x:["Web API çağrısı","GET /v1/users/42 HTTP/1.1\nHost: api.ornek.com\nAuthorization: Bearer eyJhbGciOi...\n\nHTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"id\":42,\"ad\":\"Efe\"}"],
+d:{a:["Uygulaman","API","İç sistem"],s:[[0,1,"GET /users/42","q"],[1,1,"yetki kontrolü","n"],[1,2,"sorgu","q"],[2,1,"kayıt","r"],[1,0,"200 + JSON","r"]]},
+cap:"İstemci sadece API'yi görür; arkadaki veritabanı ya da servisler gizlidir."},
+
+{id:"sdk",c:"temel",a:"SDK",f:"Software Development Kit",tr:"Yazılım Geliştirme Kiti",y:"araç paketi",
+o:"Bir platformu ya da API'yi kullanmayı kolaylaştıran hazır kütüphane, araç, belge ve örnekler paketi.",
+h:"Ham bir API'yi kullanmak için URL'leri, başlıkları, kimlik doğrulamayı, sayfalama ve yeniden denemeyi kendin yazman gerekir. SDK bunları senin dilinde (Python, TypeScript, Rust…) tipli fonksiyonların arkasına saklar. Sen client.messages.create() yazarsın; SDK isteği oluşturur, anahtarı ekler, gönderir, hata olursa üstel bekleme ile tekrar dener ve yanıtı dilin nesnelerine çevirir. Android SDK veya Windows SDK gibi platform SDK'ları ayrıca derleyici, emülatör ve hata ayıklayıcı da içerir.",
+t:[["İçerik","İstemci kütüphanesi, tip tanımları, CLI, örnekler, belgeler"],["Üretim","Çoğu zaman OpenAPI veya .proto dosyasından otomatik üretilir"],["Sağladıkları","Kimlik doğrulama, retry, zaman aşımı, sayfalama, akış"],["Örnek","Anthropic SDK, AWS SDK, Android SDK, Stripe SDK"]],
+x:["Python","import anthropic\nclient = anthropic.Anthropic()          # anahtarı ortamdan okur\nmsg = client.messages.create(\n    model=\"claude-opus-5-5\", max_tokens=200,\n    messages=[{\"role\":\"user\",\"content\":\"Merhaba\"}])\nprint(msg.content[0].text)"],
+d:{a:["Senin kodun","SDK","Web API"],s:[[0,1,"create(...)","q"],[1,1,"JSON + anahtar","n"],[1,2,"POST /v1/messages","q"],[2,1,"429 çok istek","r"],[1,1,"bekle, tekrar dene","n"],[1,2,"POST /v1/messages","q"],[2,1,"200 JSON","r"],[1,0,"Message nesnesi","r"]]},
+cap:"SDK, ham HTTP ayrıntılarını ve hata durumlarını senin yerine yönetir."},
+
+{id:"abi",c:"temel",a:"ABI",f:"Application Binary Interface",tr:"Uygulama İkili Arayüzü",y:"derlenmiş kod",
+o:"Derlenmiş makine kodunun başka derlenmiş kodla bayt ve yazmaç düzeyinde nasıl konuşacağını belirleyen kurallar.",
+h:"API kaynak koddaki sözleşmedir; ABI ise derlendikten sonraki sözleşmedir. Bir fonksiyon çağrılırken argümanların hangi yazmaçlara konacağı (çağrı kuralı), yapıların bellekte nasıl hizalanacağı, sembol isimlerinin nasıl yazılacağı (C++ name mangling) ve dönüş değerinin nereden okunacağı ABI'dır. Linux x86-64'te System V ABI geçerlidir: ilk tam sayı argümanlar rdi, rsi, rdx, rcx, r8, r9 yazmaçlarına gider, sonuç rax'tan döner. ABI bozulursa kaynak kod aynı kalsa bile eski derlenmiş programlar yeni kütüphaneyle çöker.",
+t:[["Linux x86-64","System V AMD64 ABI"],["Windows x64","Microsoft x64 çağrı kuralı (rcx, rdx, r8, r9)"],["Kapsam","Çağrı kuralı, yığın hizası, struct düzeni, ELF biçimi"],["Rust'ta","Kararlı ABI yok; dışa açarken extern \"C\" kullanılır"]],
+x:["C → x86-64 asm","long topla(long a, long b){ return a + b; }\n\n; derleyici çıktısı (System V):\ntopla:\n    lea rax, [rdi + rsi]   ; a=rdi, b=rsi\n    ret                    ; sonuç rax'ta"],
+d:{k:"stack",l:["Çağıran kod|argümanları yazmaçlara koyar","Yazmaçlar|rdi=a  rsi=b","call topla|dönüş adresi yığına","topla|rax = rdi + rsi","ret|çağıran rax'ı okur"]},
+cap:"İki taraf da aynı kuralı bildiği için farklı derleyicilerin ürettiği kodlar birlikte çalışabilir."},
+
+/* ---------- AĞ ---------- */
+{id:"tcp",c:"ag",a:"TCP / UDP",f:"Transmission Control Protocol / User Datagram Protocol",tr:"İletim Kontrol Protokolü / Kullanıcı Veri Birimi Protokolü",y:"RFC 9293 · RFC 768",
+o:"IP üzerindeki iki taşıma katmanı: TCP güvenilir ve sıralı akış, UDP hızlı ama garantisiz paket.",
+h:"TCP veri göndermeden önce üçlü el sıkışma yapar (SYN, SYN-ACK, ACK). Her bayta sıra numarası verir, karşı taraf aldığını ACK ile onaylar, kaybolanlar yeniden gönderilir, tıkanıklık denetimi hızı ayarlar. Sonuç kayıpsız, sıralı bir bayt akışıdır; HTTP/1.1, HTTP/2, SSH ve veritabanı bağlantıları bunu kullanır. UDP ise el sıkışmaz, sıra ve teslim garantisi vermez; sadece paketi yollar. Bu yüzden düşük gecikme isteyen DNS, oyunlar, sesli görüşme ve QUIC (HTTP/3) UDP üzerine kurulur.",
+t:[["Katman","OSI 4, taşıma katmanı"],["Adresleme","IP adresi + port (ör. 443)"],["TCP güvencesi","Sıra numarası, ACK, yeniden iletim, akış ve tıkanıklık denetimi"],["UDP başlığı","Sadece 8 bayt: kaynak/hedef port, uzunluk, sağlama toplamı"]],
+d:{a:["İstemci","Sunucu"],s:[[0,1,"SYN seq=x","q"],[1,0,"SYN-ACK seq=y ack=x+1","r"],[0,1,"ACK ack=y+1","q"],[0,1,"veri (bayt 1..1460)","e"],[1,0,"ACK","r"],[0,1,"FIN (kapat)","q"]]},
+cap:"TCP'nin üçlü el sıkışması: veri ancak üçüncü adımdan sonra akmaya başlar."},
+
+{id:"dns",c:"ag",a:"DNS",f:"Domain Name System",tr:"Alan Adı Sistemi",y:"RFC 1034/1035",
+o:"api.ornek.com gibi isimleri 203.0.113.10 gibi IP adreslerine çeviren dağıtık rehber.",
+h:"Bir isme bağlanmak istediğinde işletim sistemi önce kendi önbelleğine bakar, yoksa çözümleyiciye (genelde ISS'nin veya 1.1.1.1 gibi bir servisin) sorar. Çözümleyici kök sunuculardan başlar: kök \".com sunucularına sor\" der, .com sunucusu \"ornek.com'un yetkili sunucusuna sor\" der, yetkili sunucu nihai A/AAAA kaydını verir. Her yanıtın bir TTL süresi vardır ve o süre boyunca önbellekte tutulur. Sorgular genelde UDP 53 üzerinden gider; şifreli seçenekleri DoH (HTTPS üzerinden) ve DoT'tur (TLS üzerinden).",
+t:[["Kayıt tipleri","A (IPv4), AAAA (IPv6), CNAME, MX, TXT, NS"],["Port","UDP/TCP 53; DoT 853; DoH 443"],["Önbellek","Her kayıt TTL saniyesi kadar saklanır"],["Hiyerarşi","Kök (.) → TLD (.com) → yetkili sunucu"]],
+d:{a:["Bilgisayar","Çözümleyici","Kök","TLD .com","Yetkili"],s:[[0,1,"api.ornek.com?","q"],[1,2,"api.ornek.com?","q"],[2,1,".com NS'e sor","r"],[1,3,"api.ornek.com?","q"],[3,1,"ornek.com NS'e sor","r"],[1,4,"api.ornek.com?","q"],[4,1,"A 203.0.113.10","r"],[1,0,"203.0.113.10","r"]]},
+cap:"Özyinelemeli çözümleme. Sonraki sorgular önbellekten anında döner."},
+
+{id:"tls",c:"ag",a:"TLS",f:"Transport Layer Security",tr:"Taşıma Katmanı Güvenliği",y:"TLS 1.3 · RFC 8446",
+o:"TCP (veya QUIC) bağlantısını şifreleyen, sunucunun kimliğini sertifikayla kanıtlayan katman. HTTPS'teki \"S\" budur.",
+h:"TLS 1.3'te istemci ilk mesajında (ClientHello) desteklediği şifreleri ve bir Diffie-Hellman anahtar payını gönderir. Sunucu kendi payını, sertifikasını ve bu el sıkışmayı imzaladığını gösteren kanıtı yollar. İki taraf, payları birleştirerek kimsenin dinleyemediği ortak bir gizli anahtar türetir. İstemci sertifikayı güvendiği kök otoritelere kadar doğrular. Tüm bunlar tek gidiş-dönüşte (1-RTT) biter, sonrasında HTTP verisi AES-GCM veya ChaCha20 ile şifreli akar.",
+t:[["Anahtar değişimi","ECDHE (X25519 vb.), ileri gizlilik sağlar"],["Kimlik","X.509 sertifika zinciri, CA imzası"],["Şifreleme","AES-GCM, ChaCha20-Poly1305 (AEAD)"],["Hız","1-RTT; tekrar bağlanmada 0-RTT mümkün"]],
+d:{a:["İstemci","Sunucu"],s:[[0,1,"ClientHello + anahtar payı","q"],[1,0,"ServerHello + anahtar payı","r"],[1,0,"Sertifika + İmza + Finished","r"],[0,0,"sertifikayı doğrula","n"],[0,1,"Finished","q"],[0,1,"şifreli HTTP isteği","e"],[1,0,"şifreli yanıt","e"]]},
+cap:"TLS 1.3 el sıkışması tek gidiş-dönüş sürer; sonrasında her şey şifrelidir."},
+
+{id:"http",c:"ag",a:"HTTP(S)",f:"Hypertext Transfer Protocol (Secure)",tr:"Hiper Metin Aktarım Protokolü (Güvenli)",y:"RFC 9110",
+o:"Web'in istek-yanıt protokolü: istemci metot + yol + başlık gönderir, sunucu durum kodu + başlık + gövde döner.",
+h:"Her istek bir metot (GET oku, POST oluştur, PUT değiştir, PATCH kısmen değiştir, DELETE sil), bir yol, başlıklar ve isteğe bağlı bir gövde taşır. Sunucu 3 haneli bir durum koduyla cevap verir: 2xx başarı, 3xx yönlendirme, 4xx istemci hatası (404 yok, 401 kimlik yok), 5xx sunucu hatası. HTTP durumsuzdur, yani her istek kendi başına anlamlıdır; oturum çerez ya da token ile taşınır. HTTPS, aynı protokolün TLS ile şifrelenmiş halidir.",
+t:[["Metotlar","GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS"],["Durum kodları","200, 201, 204, 301, 304, 400, 401, 403, 404, 429, 500, 503"],["Önemli başlıklar","Content-Type, Authorization, Cache-Control, Accept"],["Port","80 (HTTP), 443 (HTTPS)"]],
+x:["Ham HTTP/1.1","POST /v1/notlar HTTP/1.1\nHost: api.ornek.com\nContent-Type: application/json\nContent-Length: 22\n\n{\"metin\":\"süt al\"}\n\nHTTP/1.1 201 Created\nLocation: /v1/notlar/7"],
+d:{a:["Tarayıcı","Sunucu"],s:[[0,1,"GET /index.html","q"],[1,0,"200 OK + HTML","r"],[0,1,"GET /style.css","q"],[1,0,"304 Not Modified","r"],[0,1,"POST /login","q"],[1,0,"302 + Set-Cookie","r"]]},
+cap:"Her satır bağımsız bir istek-yanıt çiftidir; durum çerezlerle taşınır."},
+
+{id:"http23",c:"ag",a:"HTTP/2 · HTTP/3",f:"HTTP version 2 · HTTP version 3 (over QUIC)",tr:"HTTP sürüm 2 ve 3",y:"RFC 9113 · RFC 9114",
+o:"Aynı HTTP anlamını daha hızlı taşıyan yeni sürümler: HTTP/2 tek TCP bağlantıda çoklu akış, HTTP/3 ise UDP üzerinde QUIC.",
+h:"HTTP/1.1'de bir bağlantıda aynı anda tek istek ilerler; tarayıcılar bu yüzden 6 bağlantı açardı. HTTP/2 mesajları ikili çerçevelere böler ve her çerçeveye bir akış (stream) numarası verir; böylece onlarca istek tek TCP bağlantısında iç içe akar ve başlıklar HPACK ile sıkıştırılır. Ama TCP'de tek bir paket kaybolursa tüm akışlar bekler. HTTP/3 bunu çözmek için QUIC'i kullanır: QUIC, UDP üzerinde kendi güvenilirliğini ve TLS 1.3 şifrelemesini içerir, kayıp sadece ilgili akışı durdurur ve bağlantı Wi-Fi'dan mobile geçerken bile kopmaz.",
+t:[["HTTP/2","İkili çerçeve, çoklu akış, HPACK, tek TCP+TLS"],["HTTP/3","QUIC (RFC 9000) üzerinde, UDP 443"],["Kazanç","Satır başı tıkanması (head-of-line) azalır"],["gRPC","HTTP/2 üzerine kuruludur"]],
+d:{a:["İstemci","Sunucu"],s:[[0,1,"akış 1: GET /a","q"],[0,1,"akış 3: GET /b","q"],[0,1,"akış 5: GET /c","q"],[1,0,"akış 3: veri","r"],[1,0,"akış 1: veri","r"],[1,0,"akış 5: veri","r"]]},
+cap:"Tek bağlantı, iç içe geçmiş akışlar: yanıtlar hazır olan sırayla döner."},
+
+{id:"cdn",c:"ag",a:"CDN",f:"Content Delivery Network",tr:"İçerik Dağıtım Ağı",y:"altyapı",
+o:"İçeriğin kopyalarını dünyanın dört bir yanındaki uç sunucularda tutup kullanıcıya en yakından servis eden ağ.",
+h:"Alan adın CDN'e yönlendirildiğinde (genelde DNS veya anycast ile), kullanıcı en yakın uç noktaya (PoP) bağlanır. Uç sunucu istenen dosya önbelleğinde varsa (cache hit) hemen döner. Yoksa (miss) asıl sunucudan (origin) çeker, Cache-Control başlığına göre saklar ve sonraki kullanıcılara oradan verir. Bu hem gecikmeyi düşürür hem origin'in yükünü azaltır. Modern CDN'ler ayrıca TLS sonlandırma, DDoS koruması, WAF ve uçta kod çalıştırma (edge functions) da sunar.",
+t:[["Yönlendirme","Anycast IP veya coğrafi DNS"],["Önbellek kuralı","Cache-Control, ETag, s-maxage"],["Ek işler","TLS, DDoS koruması, sıkıştırma, edge fonksiyonları"],["Örnek","Cloudflare, Fastly, Akamai, CloudFront"]],
+d:{a:["Kullanıcı","Uç (İstanbul)","Origin"],s:[[0,1,"GET /logo.png","q"],[1,1,"önbellekte yok","n"],[1,2,"GET /logo.png","q"],[2,1,"200 + max-age=86400","r"],[1,0,"200 logo","r"],[0,1,"GET /logo.png (2. kişi)","q"],[1,0,"200 (cache hit)","r"]]},
+cap:"İlk istek origin'e kadar gider, sonrakiler uçtan döner."},
+
+/* ---------- STİLLER ---------- */
+{id:"rest",c:"stil",a:"REST",f:"Representational State Transfer",tr:"Temsili Durum Aktarımı",y:"Fielding, 2000",
+o:"Her şeyi URL ile adreslenen kaynaklar olarak görüp HTTP metotlarıyla yöneten API mimari stili.",
+h:"Roy Fielding'in doktora tezinde tanımlanan REST bir protokol değil, kısıtlar kümesidir: istemci-sunucu ayrımı, durumsuzluk, önbelleklenebilirlik, tek tip arayüz ve katmanlı sistem. Pratikte /users bir koleksiyon, /users/42 tek bir kaynaktır; GET okur, POST yeni oluşturur, PUT/PATCH günceller, DELETE siler. Sunucu kaynağın bir temsilini (genelde JSON) döner. Durumsuz olduğu için her istek kimlik bilgisini kendisi taşır ve sunucular kolayca çoğaltılabilir.",
+t:[["Taşıyıcı","HTTP/1.1, HTTP/2"],["Biçim","Genelde JSON; XML de olabilir"],["Tanımlama","OpenAPI şartnamesi"],["Güçlü yanı","Basit, önbellek dostu, her dilde araç var"],["Zayıf yanı","Fazla/eksik veri çekme, çok sayıda istek"]],
+x:["CRUD eşlemesi","GET    /notlar        → listele\nPOST   /notlar        → oluştur   (201)\nGET    /notlar/7      → oku\nPATCH  /notlar/7      → kısmen güncelle\nDELETE /notlar/7      → sil       (204)"],
+d:{a:["İstemci","REST API","Veritabanı"],s:[[0,1,"POST /notlar {metin}","q"],[1,2,"INSERT","q"],[2,1,"id=7","r"],[1,0,"201 Location: /notlar/7","r"],[0,1,"GET /notlar/7","q"],[1,0,"200 {id:7,metin}","r"]]},
+cap:"Kaynak odaklı: aynı URL, farklı metotlarla farklı işlemler."},
+
+{id:"graphql",c:"stil",a:"GraphQL",f:"GraphQL (resmî açılımı yok)",tr:"Grafik sorgu dili",y:"Facebook 2015 · GraphQL Foundation",
+o:"İstemcinin ihtiyaç duyduğu alanları tek bir sorguda tam olarak tarif ettiği, tipli API sorgu dili.",
+h:"Sunucu tüm veri modelini tipli bir şema (SDL) olarak yayınlar. İstemci tek bir uç noktaya (genelde POST /graphql) \"kullanıcı 42'nin adını ve son 3 gönderisinin başlığını ver\" gibi bir sorgu yollar. Sunucu sorguyu şemaya göre doğrular, ardından her alan için bir resolver fonksiyonu çalıştırır ve sonucu sorguyla aynı şekle sahip JSON olarak döner. Okuma için query, yazma için mutation, canlı güncelleme için subscription kullanılır. Böylece REST'teki fazla veri çekme ve çoklu istek sorunu ortadan kalkar; bedeli sunucuda önbellek ve sorgu maliyeti yönetiminin zorlaşmasıdır.",
+t:[["Uç nokta","Tek: /graphql"],["İşlemler","query, mutation, subscription"],["Çalışma","Doğrulama → resolver ağacı → JSON"],["Dikkat","N+1 sorgu (DataLoader ile çözülür), sorgu derinlik limiti"]],
+x:["Sorgu ve yanıt","query {\n  user(id: 42) {\n    ad\n    posts(last: 3) { baslik }\n  }\n}\n\n→ {\"data\":{\"user\":{\"ad\":\"Efe\",\n     \"posts\":[{\"baslik\":\"...\"}]}}}"],
+d:{a:["İstemci","GraphQL","User servisi","Post servisi"],s:[[0,1,"POST /graphql {query}","q"],[1,1,"şemaya göre doğrula","n"],[1,2,"resolver: user(42)","q"],[2,1,"{ad}","r"],[1,3,"resolver: posts(last:3)","q"],[3,1,"[başlıklar]","r"],[1,0,"tek JSON, sorgu şeklinde","r"]]},
+cap:"Tek istek, birden çok arka uç; yanıt tam olarak istenen alanları içerir."},
+
+{id:"rpc",c:"stil",a:"RPC",f:"Remote Procedure Call",tr:"Uzak Yordam Çağrısı",y:"kavram · 1980'ler",
+o:"Başka bir makinedeki fonksiyonu, yerel bir fonksiyon çağırıyormuş gibi çağırma modeli.",
+h:"Kodunda hesapla(3, 4) yazarsın ama o fonksiyon aslında uzak bir sunucudadır. Yerel tarafta bir stub (vekil) argümanları baytlara çevirir (marshalling/serileştirme), ağdan gönderir; sunucu tarafındaki iskelet (skeleton) baytları geri çözer, gerçek fonksiyonu çalıştırır ve sonucu aynı yolla döndürür. REST kaynaklarla (isimlerle), RPC ise eylemlerle (fiillerle) düşünür. gRPC, JSON-RPC, XML-RPC, Thrift ve Cap'n Proto bu modelin somut uygulamalarıdır.",
+t:[["Bileşenler","İstemci stub, serileştirici, taşıyıcı, sunucu iskeleti"],["Tanım","IDL (arayüz tanım dili): .proto, .thrift"],["Uygulamalar","gRPC, JSON-RPC, XML-RPC, Thrift"],["Tuzak","Ağ hatası yerel çağrıda olmaz; zaman aşımı şart"]],
+d:{a:["Kodun","Stub","Ağ","Sunucu"],s:[[0,1,"hesapla(3,4)","q"],[1,1,"serileştir","n"],[1,2,"baytlar","q"],[2,3,"baytlar","q"],[3,3,"çöz + çalıştır","n"],[3,1,"sonuç baytları","r"],[1,0,"return 7","r"]]},
+cap:"Uzak çağrı, yerel çağrı görünümüne bürünür."},
+
+{id:"grpc",c:"stil",a:"gRPC",f:"gRPC Remote Procedure Calls (özyinelemeli)",tr:"gRPC uzak yordam çağrıları",y:"Google 2015 · CNCF",
+o:"Protocol Buffers ve HTTP/2 üzerine kurulu, akış destekli, yüksek performanslı RPC çatısı.",
+h:"Servisi ve mesajları bir .proto dosyasında tanımlarsın. protoc derleyicisi bu dosyadan her dil için tipli istemci ve sunucu kodu üretir. Çağrı yapıldığında mesaj Protobuf ile kompakt ikili biçime çevrilir ve HTTP/2 üzerinden bir akış (stream) olarak gönderilir; yöntem adı :path başlığında (/paket.Servis/Metot) taşınır, sonuç durumu grpc-status trailer'ında döner. Dört çağrı tipi vardır: tekli, sunucu akışı, istemci akışı ve çift yönlü akış. Tarayıcıdan doğrudan HTTP/2 çerçevelerine erişilemediği için web'de gRPC-Web köprüsü kullanılır.",
+t:[["Taşıyıcı","HTTP/2 (tek bağlantıda çoklu akış)"],["Biçim","Protobuf (ikili), JSON'dan küçük ve hızlı"],["Çağrı tipleri","Unary, server-stream, client-stream, bidi-stream"],["Ek","Deadline, iptal, metadata, yük dengeleme"]],
+x:["kitap.proto","syntax = \"proto3\";\nservice Kutuphane {\n  rpc KitapGetir (KitapIstek) returns (Kitap);\n  rpc YeniKitaplar (Bos) returns (stream Kitap);\n}\nmessage KitapIstek { int64 id = 1; }\nmessage Kitap { int64 id = 1; string ad = 2; }"],
+d:{a:["İstemci","HTTP/2","Sunucu"],s:[[0,1,"HEADERS :path=/Kutuphane/KitapGetir","q"],[0,1,"DATA protobuf{id:1}","q"],[1,2,"akış 1","q"],[2,1,"DATA protobuf Kitap","r"],[1,0,"Kitap","r"],[2,0,"trailer grpc-status: 0","e"]]},
+cap:"Bir gRPC çağrısı, HTTP/2 üzerinde başlık + veri + trailer çerçeveleridir."},
+
+{id:"jsonrpc",c:"stil",a:"JSON-RPC",f:"JavaScript Object Notation – Remote Procedure Call 2.0",tr:"JSON tabanlı uzak yordam çağrısı",y:"v2.0 · 2010",
+o:"Yöntem adı, parametre ve kimlik içeren JSON mesajlarıyla yapılan son derece hafif RPC protokolü.",
+h:"Bir istek dört alandan oluşur: jsonrpc:\"2.0\", method, params ve id. Karşı taraf aynı id ile ya result ya da error içeren bir yanıt döner; id sayesinde istekler aynı anda uçuşabilir ve yanıtlar karışmaz. id içermeyen mesaj bildirimdir (notification) ve yanıt beklemez. Protokol taşıyıcıdan bağımsızdır: stdin/stdout, HTTP, WebSocket fark etmez. Bu sadelik yüzünden MCP, LSP, DAP, ACP ve Ethereum düğümleri hep JSON-RPC konuşur.",
+t:[["Alanlar","jsonrpc, method, params, id / result, error"],["Bildirim","id yok → yanıt yok"],["Hata kodları","-32700 ayrıştırma, -32601 yöntem yok, -32602 parametre"],["Kullananlar","MCP, LSP, DAP, ACP, Ethereum"]],
+x:["İstek / yanıt / bildirim","→ {\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"topla\",\"params\":[3,4]}\n← {\"jsonrpc\":\"2.0\",\"id\":1,\"result\":7}\n\n→ {\"jsonrpc\":\"2.0\",\"method\":\"log\",\"params\":[\"hazır\"]}   // id yok"],
+d:{a:["İstemci","Sunucu"],s:[[0,1,"{id:1, method:topla}","q"],[0,1,"{id:2, method:carp}","q"],[1,0,"{id:2, result:12}","r"],[1,0,"{id:1, result:7}","r"],[1,0,"{method:log} bildirim","e"]]},
+cap:"id sayesinde yanıtlar sırasız dönebilir; bildirimler yanıt beklemez."},
+
+{id:"soap",c:"stil",a:"SOAP · WSDL",f:"SOAP (eskiden Simple Object Access Protocol) · Web Services Description Language",tr:"XML tabanlı web servis protokolü ve tanım dili",y:"W3C · 2000'ler",
+o:"XML zarflarıyla mesajlaşan, WSDL ile katı sözleşmesi tanımlanmış kurumsal web servis protokolü.",
+h:"Her SOAP mesajı bir Envelope (zarf) içinde Header (güvenlik, işlem bilgisi) ve Body (asıl çağrı) taşır; hata olursa Body içinde Fault döner. Servisin hangi operasyonları sunduğu, mesajların XML şeması ve adresi bir WSDL dosyasında tanımlanır. Araçlar WSDL'den otomatik istemci kodu üretir. WS-Security, WS-ReliableMessaging gibi eklentiler imza, şifreleme ve güvenilir teslim sağlar; bu yüzden bankacılık ve kamu sistemlerinde hâlâ yaygındır. Bedeli ağır XML ve karmaşıklıktır.",
+t:[["Biçim","XML (Envelope / Header / Body / Fault)"],["Taşıyıcı","Çoğunlukla HTTP POST; SMTP ve JMS de olabilir"],["Sözleşme","WSDL + XSD şemaları"],["Eklentiler","WS-Security, WS-Addressing, WS-ReliableMessaging"]],
+x:["SOAP zarfı","<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n  <soap:Header><wsse:Security>...</wsse:Security></soap:Header>\n  <soap:Body>\n    <m:KurGetir><m:Doviz>EUR</m:Doviz></m:KurGetir>\n  </soap:Body>\n</soap:Envelope>"],
+d:{a:["İstemci","SOAP servisi"],s:[[0,1,"GET ?wsdl","q"],[1,0,"WSDL sözleşmesi","r"],[0,0,"istemci kodu üret","n"],[0,1,"POST Envelope<KurGetir>","q"],[1,0,"Envelope<KurYanit>","r"]]},
+cap:"Önce sözleşme okunur, sonra XML zarflarla çağrı yapılır."},
+
+{id:"openapi",c:"stil",a:"OpenAPI",f:"OpenAPI Specification (eski adı Swagger Specification)",tr:"OpenAPI Şartnamesi",y:"OAS 3.1 / 3.2 · Linux Foundation",
+o:"Bir REST API'nin uç noktalarını, parametrelerini ve yanıtlarını makinece okunur YAML/JSON olarak tanımlayan standart.",
+h:"Tek bir openapi.yaml dosyasında hangi yolların olduğu, her yolun hangi metotları kabul ettiği, girdi ve çıktıların JSON Schema ile şekli ve kimlik doğrulama yöntemi yazılır. Bu dosya bir kez yazılınca pek çok şey otomatikleşir: Swagger UI veya Redoc ile etkileşimli belge, openapi-generator ile onlarca dilde SDK, sunucu iskeleti, istek doğrulama ve sözleşme testleri. Swagger adı 2016'da şartname OpenAPI olarak yeniden adlandırılınca SmartBear'ın araç ailesine kaldı.",
+t:[["Biçim","YAML veya JSON"],["Şema","3.1'den itibaren tam JSON Schema uyumu"],["Araçlar","Swagger UI, Redoc, openapi-generator, Prism"],["Yaklaşım","Önce tasarım (design-first) veya koddan üretim"]],
+x:["openapi.yaml (parça)","openapi: 3.1.0\ninfo: { title: Not API, version: 1.0.0 }\npaths:\n  /notlar/{id}:\n    get:\n      parameters:\n        - { name: id, in: path, required: true, schema: { type: integer } }\n      responses:\n        '200':\n          content:\n            application/json:\n              schema: { $ref: '#/components/schemas/Not' }"],
+d:{k:"stack",l:["openapi.yaml|tek doğruluk kaynağı","Üreticiler|codegen, doc, mock","SDK'lar|Python, TS, Go…","Belge sitesi|Swagger UI / Redoc","Doğrulama|istek/yanıt testleri"]},
+cap:"Tek bir şartname dosyası; belge, SDK ve testler ondan türetilir."},
+
+{id:"webhook",c:"stil",a:"Webhook",f:"Webhook (kısaltma değil; HTTP geri çağrısı)",tr:"Olay geri çağrısı",y:"desen",
+o:"Bir olay olduğunda sunucunun senin verdiğin URL'e kendiliğinden HTTP POST atması; \"ters API\".",
+h:"Normalde sen sunucuya sorarsın (polling: \"ödeme geldi mi?\" diye her 10 saniyede). Webhook'ta ise bir kez \"olay olunca şu adrese haber ver\" diye URL kaydedersin. Olay olduğunda (ödeme tamamlandı, kod push edildi) sağlayıcı o URL'e olay verisini içeren bir JSON POST'lar. Güvenlik için gövde, paylaşılan gizli anahtarla HMAC-SHA256 imzalanır ve imza bir başlıkta gelir; sen aynı imzayı hesaplayıp karşılaştırırsın. Hızlıca 2xx dönmezsen sağlayıcı artan aralıklarla tekrar dener, bu yüzden işleyicin idempotent olmalı.",
+t:[["Yön","Sağlayıcı → senin sunucun"],["Doğrulama","HMAC imza başlığı + zaman damgası"],["Teslim","En az bir kez; yeniden deneme, olay id ile tekilleştirme"],["Örnek","Stripe, GitHub, Telegram bot, Slack"]],
+x:["İmza doğrulama (Python)","import hmac, hashlib\nbeklenen = hmac.new(SIR.encode(), govde, hashlib.sha256).hexdigest()\nif not hmac.compare_digest(beklenen, gelen_imza):\n    return 401\n# işle, sonra hızlıca:\nreturn 200"],
+d:{a:["Sen","Sağlayıcı","Senin sunucun"],s:[[0,1,"URL kaydet: /hooks/odeme","q"],[1,0,"201 kaydedildi","r"],[1,1,"... olay: ödeme tamam","n"],[1,2,"POST /hooks/odeme + imza","e"],[2,2,"HMAC doğrula","n"],[2,1,"200 OK","r"]]},
+cap:"Sorma yok: olay olunca sağlayıcı seni arar."},
+
+{id:"websocket",c:"stil",a:"WebSocket",f:"WebSocket Protocol",tr:"Web soketi",y:"RFC 6455",
+o:"HTTP ile başlayıp kalıcı, çift yönlü, düşük gecikmeli bir bağlantıya dönüşen protokol.",
+h:"İstemci normal bir HTTP isteği atar ama içine Upgrade: websocket ve rastgele bir Sec-WebSocket-Key başlığı koyar. Sunucu 101 Switching Protocols ile cevap verir ve anahtardan türettiği Sec-WebSocket-Accept değerini döner. Bu andan sonra aynı TCP bağlantısı HTTP olmaktan çıkar ve iki taraf da istediği an küçük çerçeveler (metin, ikili, ping/pong, kapat) gönderebilir. Her mesaj için yeni istek açılmadığı için sohbet, çok oyunculu oyun, borsa ve ortak düzenleme gibi gerçek zamanlı işler için idealdir.",
+t:[["Başlangıç","HTTP Upgrade → 101 Switching Protocols"],["Adres","ws:// ve şifreli wss://"],["Çerçeveler","text, binary, ping, pong, close"],["Not","İstemciden gelen çerçeveler maskelenir"]],
+x:["Tarayıcı","const ws = new WebSocket(\"wss://ornek.com/sohbet\");\nws.onopen = () => ws.send(\"merhaba\");\nws.onmessage = e => console.log(\"gelen:\", e.data);"],
+d:{a:["Tarayıcı","Sunucu"],s:[[0,1,"GET + Upgrade: websocket","q"],[1,0,"101 Switching Protocols","r"],[0,1,"çerçeve: merhaba","e"],[1,0,"çerçeve: yeni mesaj","e"],[1,0,"çerçeve: yeni mesaj","e"],[0,1,"ping","e"],[1,0,"pong","e"]]},
+cap:"Bir kez yükseltilir, sonra iki yönde serbestçe akar."},
+
+{id:"sse",c:"stil",a:"SSE",f:"Server-Sent Events",tr:"Sunucu Gönderimli Olaylar",y:"HTML standardı",
+o:"Tek bir HTTP yanıtının açık tutulup sunucudan istemciye satır satır olay akıtılması.",
+h:"İstemci normal bir GET (veya POST) isteği atar; sunucu Content-Type: text/event-stream ile yanıt verir ve bağlantıyı kapatmaz. Ardından her olayı \"data: ...\" satırları ve bir boş satırla gönderir; istenirse event: ve id: alanları da eklenir. Tarayıcıdaki EventSource bağlantı koparsa otomatik yeniden bağlanır ve Last-Event-ID başlığıyla kaldığı yeri bildirir. Tek yönlü ve düz HTTP olduğu için proxy'lerle uyumludur; LLM API'lerinin token token yanıt akıtması ve MCP'nin Streamable HTTP taşıyıcısı SSE kullanır.",
+t:[["Yön","Sadece sunucu → istemci"],["Biçim","text/event-stream; data:, event:, id:, retry:"],["Yeniden bağlanma","Otomatik, Last-Event-ID ile"],["Kullanım","LLM akışı, bildirim, canlı log"]],
+x:["Akış (LLM benzeri)","event: content_block_delta\ndata: {\"delta\":{\"text\":\"Mer\"}}\n\nevent: content_block_delta\ndata: {\"delta\":{\"text\":\"haba\"}}\n\nevent: message_stop\ndata: {}"],
+d:{a:["İstemci","Sunucu"],s:[[0,1,"POST /stream (Accept: text/event-stream)","q"],[1,0,"200 text/event-stream","r"],[1,0,"data: Mer","e"],[1,0,"data: haba","e"],[1,0,"data: dünya","e"],[1,0,"event: stop","e"]]},
+cap:"Tek yanıt, çok sayıda olay: ekrana yazının akarak gelmesi bundandır."},
+
+{id:"cors",c:"stil",a:"CORS",f:"Cross-Origin Resource Sharing",tr:"Kökenler Arası Kaynak Paylaşımı",y:"WHATWG Fetch",
+o:"Tarayıcının, bir sitedeki JavaScript'in başka bir alan adındaki API'yi çağırmasına izin verip vermeyeceğini belirleyen başlık kuralları.",
+h:"Tarayıcılar varsayılan olarak aynı köken politikası uygular: siteA.com'daki kod, siteB.com'a yaptığı isteğin yanıtını okuyamaz. CORS, sunucunun buna izin vermesinin yoludur. Basit olmayan isteklerden (ör. JSON gövdeli POST veya Authorization başlığı) önce tarayıcı kendiliğinden bir OPTIONS ön kontrol (preflight) isteği gönderir. Sunucu Access-Control-Allow-Origin, -Methods ve -Headers başlıklarıyla izin verirse asıl istek gider. CORS bir sunucu güvenlik duvarı değildir, tarayıcının uyguladığı bir kuraldır; curl gibi araçları etkilemez.",
+t:[["Ön kontrol","OPTIONS + Access-Control-Request-Method"],["İzin başlığı","Access-Control-Allow-Origin: https://siteA.com"],["Çerez","Allow-Credentials: true gerekiyorsa * kullanılamaz"],["Uygulayan","Sadece tarayıcı"]],
+d:{a:["Tarayıcı (siteA)","API (siteB)"],s:[[0,1,"OPTIONS /veri  Origin: siteA","q"],[1,0,"204 Allow-Origin: siteA","r"],[0,0,"izin var","n"],[0,1,"POST /veri","q"],[1,0,"200 + Allow-Origin","r"],[0,0,"JS yanıtı okuyabilir","n"]]},
+cap:"Ön kontrol başarısız olursa asıl istek hiç gönderilmez."},
+
+{id:"mqtt",c:"stil",a:"MQTT",f:"MQTT (eskiden MQ Telemetry Transport; artık açılımsız)",tr:"Hafif yayınla-abone ol mesajlaşma protokolü",y:"OASIS · v5.0",
+o:"Cihazların bir broker üzerinden konulara (topic) mesaj yayınladığı ve abone olduğu hafif IoT protokolü.",
+h:"Ortada bir broker (ör. Mosquitto) durur. Sensör ev/salon/sicaklik konusuna 22.5 yayınlar; o konuya abone olan herkes (ekran, otomasyon, kayıt servisi) mesajı alır. Yayıncı ile abone birbirini tanımaz. + ve # joker karakterleriyle (ev/+/sicaklik) toplu abone olunur. Üç teslim seviyesi vardır: QoS 0 en fazla bir kez, QoS 1 en az bir kez, QoS 2 tam olarak bir kez. Başlığı 2 bayta kadar küçülebildiği için zayıf ağlarda ve pille çalışan cihazlarda tercih edilir; Home Assistant gibi sistemlerin temel taşıdır.",
+t:[["Mimari","Yayınla/abone ol, merkezde broker"],["Taşıyıcı","TCP 1883, TLS ile 8883, WebSocket"],["QoS","0, 1, 2"],["Özellikler","Retained mesaj, son vasiyet (LWT), kalıcı oturum"]],
+d:{a:["Sensör","Broker","Ekran","Otomasyon"],s:[[2,1,"SUBSCRIBE ev/+/sicaklik","q"],[3,1,"SUBSCRIBE ev/#","q"],[0,1,"PUBLISH ev/salon/sicaklik 22.5","e"],[1,2,"22.5","e"],[1,3,"22.5","e"]]},
+cap:"Yayıncı aboneleri tanımaz; broker mesajı konuya göre dağıtır."},
+
+{id:"amqp",c:"stil",a:"AMQP",f:"Advanced Message Queuing Protocol",tr:"Gelişmiş Mesaj Kuyruklama Protokolü",y:"0-9-1 (RabbitMQ) · 1.0 (OASIS/ISO)",
+o:"Mesajları exchange'ler üzerinden kuyruklara yönlendiren, teslim onaylı kurumsal mesajlaşma protokolü.",
+h:"Üretici mesajı doğrudan kuyruğa değil bir exchange'e gönderir. Exchange, kuyruklarla arasındaki bağlara (binding) ve mesajın yönlendirme anahtarına bakarak mesajı bir veya daha fazla kuyruğa koyar: direct tam eşleşme, topic desen eşleşmesi, fanout herkese. Tüketiciler kuyruktan mesajı alır, işler ve ack ile onaylar; onay gelmezse mesaj başka tüketiciye verilir. Bu yapı, işleri arka plan işçilerine dağıtmak ve servisleri birbirinden zamansal olarak ayırmak için kullanılır.",
+t:[["Bileşenler","Producer, exchange, binding, queue, consumer"],["Exchange tipleri","direct, topic, fanout, headers"],["Güvence","ack/nack, kalıcı kuyruk, publisher confirm"],["Örnek","RabbitMQ, Azure Service Bus (1.0)"]],
+d:{a:["Üretici","Exchange","Kuyruk","İşçi"],s:[[0,1,"publish key=resim.kucult","q"],[1,1,"binding eşleştir","n"],[1,2,"kuyruğa koy","q"],[2,3,"teslim et","e"],[3,3,"işle","n"],[3,2,"ack","r"]]},
+cap:"İşçi onay vermeden mesaj kuyruktan silinmez."},
+
+/* ---------- VERİ ---------- */
+{id:"json",c:"veri",a:"JSON · XML · YAML",f:"JavaScript Object Notation · Extensible Markup Language · YAML Ain't Markup Language",tr:"Metin tabanlı veri biçimleri",y:"RFC 8259 · W3C · yaml.org",
+o:"API'lerin ve yapılandırma dosyalarının veriyi metin olarak taşıdığı üç yaygın biçim.",
+h:"JSON nesne {}, dizi [], metin, sayı, true/false ve null'dan oluşur; sade ve her dilde hızlı ayrıştırıldığı için web API'lerinin standardıdır. XML etiketlerle iç içe yapı kurar, öznitelik, ad alanı (namespace) ve XSD ile katı şema desteği vardır; SOAP, RSS, SVG ve ofis belgelerinde yaşar. YAML girintiye dayalı, insan dostu bir yapılandırma dilidir; JSON'un bir üst kümesidir ve Docker Compose, Kubernetes, GitHub Actions dosyaları YAML'dır. Üçü de metindir; ağ üzerinde ikili Protobuf'a göre daha büyük ama okunabilirdir.",
+t:[["JSON şeması","JSON Schema"],["XML şeması","XSD, DTD"],["YAML tuzağı","Girinti hataları; no → false yorumlanabilir (YAML 1.1)"],["Kodlama","UTF-8"]],
+x:["Aynı veri, üç biçim","JSON:  {\"ad\":\"Efe\",\"diller\":[\"rust\",\"c\"]}\n\nXML:   <kisi><ad>Efe</ad><diller><d>rust</d><d>c</d></diller></kisi>\n\nYAML:  ad: Efe\n       diller: [rust, c]"],
+d:{k:"stack",l:["Nesne (bellekte)|struct / dict","Serileştir|json.dumps()","Metin baytları|{\"ad\":\"Efe\"}","Ağ / dosya|HTTP gövdesi","Ayrıştır|json.loads()","Nesne (karşı tarafta)|aynı yapı"]},
+cap:"Serileştirme: bellekteki yapıyı taşınabilir metne çevirip karşıda geri kurmak."},
+
+{id:"protobuf",c:"veri",a:"Protobuf",f:"Protocol Buffers",tr:"Protokol Tamponları",y:"Google · 2008 açık kaynak",
+o:"Şemadan kod üreten, veriyi alan numaralarıyla kompakt ikili biçimde kodlayan serileştirme sistemi.",
+h:"Mesaj yapısını .proto dosyasında, her alana kalıcı bir numara vererek tanımlarsın (string ad = 2). Kodlarken alan adı değil, alan numarası ve tel tipi (wire type) tek bir etiket baytında yazılır; tam sayılar varint ile küçükse 1 bayta sığar. Bu yüzden aynı veri JSON'dan birkaç kat küçük ve daha hızlı işlenir. Bilinmeyen alanlar atlandığı için eski ve yeni sürümler birbirini okuyabilir; yeter ki alan numaralarını değiştirme. gRPC'nin varsayılan biçimidir.",
+t:[["Tel tipleri","VARINT, I64, LEN, I32"],["Etiket","(alan_no << 3) | tel_tipi"],["Uyumluluk","Alan ekle serbest, numara değiştirme yasak"],["Alternatifler","FlatBuffers, Cap'n Proto, MessagePack, CBOR"]],
+x:["Kodlanmış baytlar","message Kitap { int64 id = 1; string ad = 2; }\nKitap{id:150, ad:\"Dune\"}\n\n08 96 01       → alan 1 (varint) = 150\n12 04 44 75 6E 65 → alan 2 (LEN 4) = \"Dune\"\n// toplam 9 bayt; JSON hali ~22 bayt"],
+d:{k:"stack",l:[".proto şeması|alan numaraları","protoc|kod üretici","Üretilmiş sınıf|Kitap.encode()","İkili baytlar|08 96 01 12 04 …","Karşı taraf|Kitap.decode()"]},
+cap:"Şema iki tarafta da bilindiği için alan adlarının tele yazılmasına gerek yoktur."},
+
+/* ---------- AUTH ---------- */
+{id:"apikey",c:"auth",a:"API Key",f:"Application Programming Interface Key",tr:"API Anahtarı",y:"desen",
+o:"Bir uygulamayı tanımlayan ve her isteğe eklenen uzun, gizli bir metin; en basit kimlik doğrulama.",
+h:"Sağlayıcı panelinden sk-... gibi rastgele bir anahtar üretirsin ve her istekte bir başlıkta (Authorization: Bearer veya x-api-key) gönderirsin. Sunucu anahtarın özetini veritabanındaki kayıtla karşılaştırır, hangi hesaba ait olduğunu, kotasını ve izinlerini bulur. Basittir ama anahtar kimin elindeyse o kişi senmişsin gibi davranabilir. Bu yüzden sadece sunucu tarafında tutulur, ortam değişkeninde saklanır, koda ve Git'e asla yazılmaz, sızarsa hemen döndürülür.",
+t:[["Taşıma","Authorization: Bearer … veya x-api-key başlığı"],["Saklama","Ortam değişkeni, gizli yöneticisi (Vault, secrets)"],["Kapsam","Hesap/proje düzeyi, bazen izin kısıtlı"],["Risk","Tarayıcı veya mobil uygulamaya gömülmemeli"]],
+d:{a:["Sunucu kodun","API"],s:[[0,1,"istek + x-api-key: sk-…","q"],[1,1,"özeti kontrol et, kota","n"],[1,0,"200 yanıt","r"],[0,1,"istek + yanlış anahtar","q"],[1,0,"401 Unauthorized","r"]]},
+cap:"Her istek kendi anahtarını taşır; sunucu oturum tutmaz."},
+
+{id:"oauth",c:"auth",a:"OAuth 2.0",f:"Open Authorization 2.0",tr:"Açık Yetkilendirme",y:"RFC 6749 · OAuth 2.1 taslak",
+o:"Şifreni vermeden bir uygulamaya hesabına sınırlı, geri alınabilir erişim izni verme standardı.",
+h:"\"Google ile bağlan\" düğmesine bastığında uygulama seni Google'ın yetki sunucusuna yönlendirir. Orada giriş yapar ve \"bu uygulama takvimini okuyabilsin mi?\" sorusunu onaylarsın. Yetki sunucusu seni kısa ömürlü bir yetki koduyla uygulamaya geri gönderir. Uygulama bu kodu arka kanalda kendi gizli bilgisiyle access token'a çevirir ve API'yi bu token'la çağırır. Uygulama şifreni hiç görmez, token sadece istenen kapsamı (scope) kapsar ve süresi dolar; refresh token ile yenilenir. MCP sunucularının uzaktan yetkilendirmesi de OAuth 2.1 üzerine kuruludur.",
+t:[["Roller","Kaynak sahibi, istemci, yetki sunucusu, kaynak sunucusu"],["Akışlar","Authorization Code (+PKCE), Client Credentials, Device Code"],["Token'lar","Access token (kısa), refresh token (uzun)"],["Kapsam","scope=calendar.read gibi"]],
+d:{a:["Kullanıcı","Uygulama","Yetki sunucusu","API"],s:[[0,1,"Google ile bağlan","q"],[1,2,"yönlendir /authorize?scope=…","q"],[0,2,"giriş + onay","q"],[2,1,"redirect ?code=abc","r"],[1,2,"POST /token code=abc","q"],[2,1,"access_token","r"],[1,3,"GET /takvim + Bearer","q"],[3,1,"etkinlikler","r"]]},
+cap:"Yetki kodu akışı: şifre sadece yetki sunucusuna girilir."},
+
+{id:"pkce",c:"auth",a:"PKCE",f:"Proof Key for Code Exchange (\"piksi\" okunur)",tr:"Kod Değişimi için Kanıt Anahtarı",y:"RFC 7636",
+o:"Mobil ve tarayıcı uygulamalarında çalınan OAuth yetki kodunun kullanılmasını engelleyen ek adım.",
+h:"Gizli anahtar saklayamayan uygulamalar (mobil, SPA, CLI) için tasarlandı. Uygulama her girişte rastgele bir code_verifier üretir ve onun SHA-256 özetini (code_challenge) yetki isteğine ekler. Yetki sunucusu bu özeti saklar. Kod uygulamaya döndüğünde, token isteğinde orijinal verifier gönderilir; sunucu özetini alıp sakladığıyla karşılaştırır. Kodu yolda çalan saldırgan verifier'ı bilmediği için kodu token'a çeviremez. OAuth 2.1'de tüm istemciler için zorunlu.",
+t:[["Üretim","code_verifier: 43–128 karakter rastgele"],["Özet","code_challenge = BASE64URL(SHA256(verifier))"],["Yöntem","code_challenge_method=S256"],["Kim için","Mobil, SPA, masaüstü, CLI istemciler"]],
+d:{a:["Uygulama","Yetki sunucusu"],s:[[0,0,"verifier üret, özetini al","n"],[0,1,"/authorize + challenge","q"],[1,1,"challenge'ı sakla","n"],[1,0,"code","r"],[0,1,"/token code + verifier","q"],[1,1,"SHA256(verifier) = challenge?","n"],[1,0,"access_token","r"]]},
+cap:"Kodu çalan biri, sadece uygulamanın bildiği verifier olmadan işe yaramaz bir şey çalmış olur."},
+
+{id:"oidc",c:"auth",a:"OIDC",f:"OpenID Connect",tr:"OpenID Bağlantısı",y:"OpenID Foundation · 2014",
+o:"OAuth 2.0'ın üstüne \"bu kullanıcı kim\" bilgisini ekleyen kimlik katmanı.",
+h:"OAuth tek başına yetki verir ama kullanıcının kim olduğunu söylemez. OIDC, isteğe scope=openid eklenince token yanıtına bir id_token koyar. Bu, kullanıcının benzersiz kimliğini (sub), e-postasını, giriş zamanını ve hangi uygulama için üretildiğini (aud) içeren imzalı bir JWT'dir. Uygulama imzayı sağlayıcının yayınladığı açık anahtarlarla (JWKS) doğrular. /.well-known/openid-configuration adresi tüm uç noktaları otomatik keşfettirir. \"Google/GitHub/Apple ile giriş yap\" düğmelerinin çoğu OIDC'dir.",
+t:[["Ek token","id_token (JWT)"],["Uç noktalar","/authorize, /token, /userinfo, /jwks"],["Keşif","/.well-known/openid-configuration"],["Kimlik alanları","sub, email, name, iss, aud, exp"]],
+d:{a:["Uygulama","Sağlayıcı (IdP)"],s:[[0,1,"/authorize scope=openid email","q"],[1,0,"code","r"],[0,1,"/token","q"],[1,0,"access_token + id_token","r"],[0,1,"GET /jwks","q"],[1,0,"açık anahtarlar","r"],[0,0,"id_token imzasını doğrula","n"]]},
+cap:"OAuth yetki, OIDC kimlik verir; ikisi aynı akışta birlikte gelir."},
+
+{id:"jwt",c:"auth",a:"JWT",f:"JSON Web Token (\"cot\" okunur)",tr:"JSON Web Belirteci",y:"RFC 7519",
+o:"Nokta ile ayrılmış üç parçadan oluşan, içindeki iddiaların değiştirilmediğini imzayla kanıtlayan token.",
+h:"Biçim başlık.yük.imza şeklindedir; ilk iki parça Base64URL ile kodlanmış JSON'dur. Başlık algoritmayı (HS256, RS256, ES256), yük ise iddiaları söyler: kim verdi (iss), kim için (sub), kime (aud), ne zaman bitiyor (exp). İmza, ilk iki parçanın gizli anahtarla veya özel anahtarla imzasıdır. Sunucu veritabanına sormadan sadece imzayı ve süreyi kontrol ederek isteği doğrulayabilir; bu durumsuz ölçeklemeyi kolaylaştırır. Dikkat: yük şifreli değildir, herkes okuyabilir; içine gizli bilgi konmaz ve süresi dolmadan iptali zordur.",
+t:[["Yapı","base64url(header).base64url(payload).imza"],["Algoritmalar","HS256 (paylaşılan sır), RS256/ES256 (açık anahtar)"],["Standart iddialar","iss, sub, aud, exp, iat, nbf, jti"],["Tuzak","alg:none kabul etme, exp'i mutlaka kontrol et"]],
+x:["Çözülmüş JWT","eyJhbGciOiJSUzI1NiJ9 . eyJzdWIiOiI0MiIsImV4cCI6MTc5…} . SflKxwRJ…\n\nheader : {\"alg\":\"RS256\",\"typ\":\"JWT\"}\npayload: {\"sub\":\"42\",\"iss\":\"auth.ornek.com\",\"exp\":1791000000}\nsignature: RS256(header + \".\" + payload, özel_anahtar)"],
+d:{a:["İstemci","Auth sunucusu","API"],s:[[0,1,"giriş","q"],[1,1,"özel anahtarla imzala","n"],[1,0,"JWT","r"],[0,2,"Authorization: Bearer JWT","q"],[2,2,"imza + exp kontrolü","n"],[2,0,"200 veri","r"]]},
+cap:"API, auth sunucusuna sormadan token'ı kendi başına doğrular."},
+
+{id:"saml",c:"auth",a:"SAML · SSO",f:"Security Assertion Markup Language · Single Sign-On",tr:"Güvenlik Beyanı İşaretleme Dili · Tek Oturum Açma",y:"SAML 2.0 · OASIS 2005",
+o:"Kurumsal tek oturum açmada kullanılan, kimlik sağlayıcının imzalı XML beyanıyla kullanıcıyı uygulamaya tanıttığı standart.",
+h:"SSO'nun amacı tek girişle onlarca iş uygulamasına erişmektir. SAML'de iki taraf vardır: kimlik sağlayıcı (IdP; Okta, Entra ID) ve hizmet sağlayıcı (SP; Slack, Jira). Kullanıcı SP'ye girmek istediğinde SP bir AuthnRequest ile onu IdP'ye yönlendirir. IdP kullanıcıyı doğrular (zaten oturum varsa sormaz), \"bu kişi efe@sirket.com, grubu mühendislik\" diyen imzalı bir XML Assertion üretir ve tarayıcı üzerinden SP'ye POST'lar. SP imzayı IdP'nin sertifikasıyla doğrular ve oturum açar. Yeni projelerde aynı iş için genelde OIDC tercih edilir.",
+t:[["Roller","IdP (kimlik sağlayıcı), SP (hizmet sağlayıcı)"],["Taşıma","Tarayıcı yönlendirmesi, HTTP-POST binding"],["Belge","İmzalı XML Assertion"],["Alternatif","OIDC (JSON/JWT tabanlı)"]],
+d:{a:["Tarayıcı","Uygulama (SP)","Kimlik (IdP)"],s:[[0,1,"jira.sirket.com aç","q"],[1,0,"IdP'ye yönlendir + AuthnRequest","r"],[0,2,"AuthnRequest","q"],[2,2,"oturum var mı?","n"],[2,0,"imzalı Assertion (form)","r"],[0,1,"POST Assertion","q"],[1,0,"oturum açıldı","r"]]},
+cap:"Tarayıcı, iki sistem arasındaki imzalı mesajı taşıyan kuryedir."},
+
+/* ---------- AI ---------- */
+{id:"llm",c:"ai",a:"LLM",f:"Large Language Model",tr:"Büyük Dil Modeli",y:"kavram",
+o:"Metni token'lara bölüp bir sonraki token'ı olasılıkla tahmin ederek metin üreten büyük sinir ağı.",
+h:"Girdi önce token'lara (kelime parçalarına) bölünür ve her token bir sayı vektörüne çevrilir. Transformer katmanları, dikkat (attention) mekanizmasıyla her token'ın diğerleriyle ilişkisini hesaplar. Son katman bütün sözlük üzerinde bir olasılık dağılımı üretir; bir token seçilir (sıcaklık ayarı rastgeleliği belirler), girdinin sonuna eklenir ve döngü tekrar eder. Model bağlam penceresi kadar token görebilir. Bir LLM'e API üzerinden mesaj listesi gönderirsin, yanıtı genelde SSE ile token token akarak alırsın.",
+t:[["Mimari","Transformer (öz-dikkat katmanları)"],["Birim","Token (Türkçede yaklaşık 3-4 karakter)"],["Ayarlar","temperature, top_p, max_tokens"],["Erişim","HTTP API + SDK, akış için SSE"]],
+d:{k:"stack",l:["Metin|\"Başkent nedir\"","Tokenizer|[Baş, kent, ned, ir]","Gömme (embedding)|token → vektör","Transformer katmanları|attention × N","Olasılıklar|Ankara 0.91 …","Seçilen token|döngü başa döner"]},
+cap:"Her yeni token için tüm katmanlar bir kez çalışır."},
+
+{id:"toolcall",c:"ai",a:"Tool use",f:"Function calling / Tool use",tr:"Fonksiyon çağırma / Araç kullanımı",y:"desen",
+o:"Modelin, kendisine tanımlanan fonksiyonları çağırmak için yapılandırılmış JSON üretmesi; uygulamanın da bunu çalıştırması.",
+h:"İsteğe metin mesajlarının yanında araçların listesini koyarsın: adı, açıklaması ve JSON Schema ile parametreleri. Model bir aracın gerektiğine karar verirse metin yerine tool_use bloğu üretir: {\"name\":\"hava_durumu\",\"input\":{\"sehir\":\"İzmir\"}}. Modelin kendisi hiçbir şey çalıştırmaz; senin kodun bu çağrıyı yapar ve sonucu tool_result olarak modele geri verir. Model sonucu okuyup ya yeni bir araç çağırır ya da son cevabı yazar. Bu döngü \"ajan\" denen şeyin çekirdeğidir; MCP ise araçların bu listeye standart şekilde nasıl takılacağını tanımlar.",
+t:[["Tanım","name + description + input_schema (JSON Schema)"],["Model çıktısı","tool_use bloğu (yapılandırılmış JSON)"],["Geri bildirim","tool_result mesajı"],["Döngü","Ajan döngüsü: düşün → çağır → gözle → tekrar"]],
+x:["Araç tanımı","tools=[{\n  \"name\": \"hava_durumu\",\n  \"description\": \"Bir şehrin güncel hava durumunu getirir\",\n  \"input_schema\": {\"type\":\"object\",\n     \"properties\":{\"sehir\":{\"type\":\"string\"}},\n     \"required\":[\"sehir\"]}\n}]"],
+d:{a:["Uygulama","LLM","Hava API"],s:[[0,1,"soru + araç listesi","q"],[1,0,"tool_use hava_durumu(İzmir)","r"],[0,2,"GET /hava?sehir=İzmir","q"],[2,0,"24°C güneşli","r"],[0,1,"tool_result 24°C","q"],[1,0,"\"İzmir'de 24°C, güneşli\"","r"]]},
+cap:"Model sadece niyeti yazar; çağrıyı uygulama yapar."},
+
+{id:"mcp",c:"ai",a:"MCP",f:"Model Context Protocol",tr:"Model Bağlam Protokolü",y:"Anthropic 2024 · AAIF (Linux Foundation)",
+o:"Yapay zekâ uygulamalarını araçlara, verilere ve servislere tek bir standart yolla bağlayan açık protokol; \"yapay zekâ için USB-C\".",
+h:"Üç rol vardır. Host, kullanıcının kullandığı uygulamadır (Claude, bir IDE). Host her bağlantı için bir client açar ve client tek bir server ile konuşur. Server bir yeteneği paketler: GitHub, veritabanı, dosya sistemi. Bağlantı initialize ile başlar, iki taraf sürüm ve yeteneklerini bildirir. Ardından client tools/list ile araçları öğrenir ve bunları modele araç olarak sunar. Model bir aracı seçince client tools/call gönderir, server çalıştırır ve sonucu döner. Server'lar ayrıca okunabilir veri (resources) ve hazır şablonlar (prompts) sunabilir. Client da server'a model örneklemesi (sampling) ve kullanıcıdan bilgi isteme (elicitation) imkânı verebilir. Tüm mesajlar JSON-RPC 2.0'dır. Yerelde stdio, uzakta Streamable HTTP ve OAuth kullanılır.",
+t:[["Mesaj biçimi","JSON-RPC 2.0"],["Taşıyıcılar","stdio (yerel süreç), Streamable HTTP (+SSE)"],["Server sunar","tools, resources, prompts"],["Client sunar","sampling, roots, elicitation"],["Yetki","Uzak sunucularda OAuth 2.1"],["İlham","LSP'nin \"bir kez yaz, her yerde çalış\" fikri"]],
+x:["tools/call","→ {\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"tools/call\",\n   \"params\":{\"name\":\"create_issue\",\n             \"arguments\":{\"repo\":\"efe/atlas\",\"title\":\"Hata\"}}}\n← {\"jsonrpc\":\"2.0\",\"id\":7,\"result\":{\n   \"content\":[{\"type\":\"text\",\"text\":\"#12 oluşturuldu\"}]}}"],
+d:{a:["Model","Host/Client","MCP Server","GitHub"],s:[[1,2,"initialize","q"],[2,1,"yetenekler: tools","r"],[1,2,"tools/list","q"],[2,1,"[create_issue, …]","r"],[0,1,"tool_use create_issue","q"],[1,2,"tools/call create_issue","q"],[2,3,"POST /repos/…/issues","q"],[3,2,"201","r"],[2,1,"result: #12","r"],[1,0,"tool_result","r"]]},
+cap:"Model hangi aracı çağıracağına karar verir; client JSON-RPC ile server'a iletir, server gerçek servisi çağırır."},
+
+{id:"a2a",c:"ai",a:"A2A",f:"Agent2Agent Protocol",tr:"Ajandan Ajana Protokolü",y:"Google 2025 · Linux Foundation",
+o:"Farklı firmaların ve çatıların yapay zekâ ajanlarının birbirini keşfedip görev devretmesini sağlayan protokol.",
+h:"Her ajan yeteneklerini, adresini ve kimlik doğrulama gereksinimini bir Agent Card'da (/.well-known/agent-card.json) yayınlar. İstemci ajan bu kartı okuyup uygun ajanı bulur ve ona bir mesaj gönderir. Bu bir görev (task) başlatır. Görevin yaşam döngüsü vardır: submitted, working, input-required, completed, failed. Uzun işler SSE akışıyla veya push bildirimiyle takip edilir, sonuçlar artifact olarak döner. Ajanlar birbirinin iç yapısını, belleğini veya araçlarını görmez; sadece mesaj ve görev üzerinden konuşur. MCP bir ajanı araçlara bağlar, A2A ise ajanları birbirine.",
+t:[["Keşif","Agent Card (JSON) /.well-known/ altında"],["Taşıma","JSON-RPC 2.0 / HTTP, SSE; v0.3'ten beri gRPC"],["Kavramlar","Task, Message, Part, Artifact"],["Görev durumları","submitted, working, input-required, completed…"]],
+d:{a:["Seyahat ajanı","Otel ajanı"],s:[[0,1,"GET /.well-known/agent-card.json","q"],[1,0,"kart: rezervasyon yeteneği","r"],[0,1,"message/send \"2 gece, İzmir\"","q"],[1,0,"task: working","e"],[1,0,"input-required: bütçe?","e"],[0,1,"\"en fazla 3000 TL\"","q"],[1,0,"completed + artifact","r"]]},
+cap:"Ajanlar birbirine opak kalır; sadece görev ve mesaj alışverişi yapar."},
+
+{id:"agui",c:"ai",a:"AG-UI",f:"Agent-User Interaction Protocol",tr:"Ajan-Kullanıcı Etkileşim Protokolü",y:"CopilotKit · 2025",
+o:"Arka uçta çalışan bir ajanı ön yüzdeki kullanıcı arayüzüne standart olay akışıyla bağlayan protokol.",
+h:"Ajan çalışırken arayüze ne olduğunu küçük, tipli olaylarla bildirir: RUN_STARTED, TEXT_MESSAGE_CONTENT (metin parçaları), TOOL_CALL_START / ARGS / END (araç çağrıları), STATE_SNAPSHOT ve STATE_DELTA (paylaşılan durumun JSON Patch ile güncellenmesi), RUN_FINISHED. Arayüz bu olaylara göre akan metni, ilerleme çubuklarını, onay düğmelerini ve canlı formları çizer. Kullanıcının girdisi geri gönderilir. Olaylar SSE, WebSocket veya webhook ile taşınabilir. Böylece LangGraph, CrewAI ya da kendi yazdığın ajan, aynı ön yüz bileşenleriyle kullanılabilir.",
+t:[["Model","Olay akışı (event stream)"],["Olay türleri","Yaşam döngüsü, metin, araç çağrısı, durum, özel"],["Durum senkronu","STATE_SNAPSHOT + STATE_DELTA (JSON Patch)"],["Taşıma","SSE, WebSocket, webhook"]],
+d:{a:["Arayüz","Ajan"],s:[[0,1,"run (kullanıcı mesajı)","q"],[1,0,"RUN_STARTED","e"],[1,0,"TEXT_MESSAGE_CONTENT \"Bakıyorum\"","e"],[1,0,"TOOL_CALL_START ara()","e"],[1,0,"STATE_DELTA sonuçlar","e"],[1,0,"RUN_FINISHED","e"]]},
+cap:"Arayüz, ajanın ne yaptığını olay olay görür ve anında çizer."},
+
+{id:"acpzed",c:"ai",a:"ACP (editör)",f:"Agent Client Protocol",tr:"Ajan İstemci Protokolü",y:"Zed · Ağustos 2025",
+o:"Kod editörleri ile yapay zekâ kodlama ajanlarını bağlayan protokol; \"ajanlar için LSP\".",
+h:"Editör ajanı bir alt süreç olarak başlatır ve onunla stdin/stdout üzerinden JSON-RPC konuşur. initialize ile sürüm ve yetenekler belirlenir, session/new ile çalışma oturumu açılır, session/prompt ile kullanıcının isteği iletilir. Ajan çalıştıkça session/update bildirimleriyle düşüncelerini, planını, araç çağrılarını ve önerdiği dosya farklarını (diff) editöre akıtır. Dosya yazma veya komut çalıştırma gibi işler için editörden izin ister (request_permission); editör kullanıcıya sorar. Böylece bir editör, ACP destekleyen herhangi bir ajanla (Gemini CLI, Claude Code adaptörü vb.) çalışabilir. Aynı kısaltmayı kullanan ticaret protokolüyle karıştırma.",
+t:[["Taşıma","JSON-RPC 2.0, stdio üzerinden (alt süreç)"],["Ana yöntemler","initialize, session/new, session/prompt, session/update"],["İzin","session/request_permission"],["Kullananlar","Zed, JetBrains, Neovim eklentileri"]],
+d:{a:["Editör","Ajan (alt süreç)"],s:[[0,1,"initialize","q"],[0,1,"session/prompt \"testi düzelt\"","q"],[1,0,"session/update: plan","e"],[1,0,"session/update: diff","e"],[1,0,"request_permission yaz?","q"],[0,1,"izin verildi","r"],[1,0,"stopReason: end_turn","r"]]},
+cap:"Editör arayüzü, ajan zekâyı sağlar; aralarındaki sözleşme ACP'dir."},
+
+{id:"acpcom",c:"ai",a:"ACP (ticaret)",f:"Agentic Commerce Protocol",tr:"Ajan Ticaret Protokolü",y:"OpenAI + Stripe · Eylül 2025",
+o:"Bir yapay zekâ ajanının kullanıcı adına mağazadan satın alma yapabilmesi için ödeme akışını standartlaştıran protokol.",
+h:"Satıcı, ajan platformunun çağırabileceği bir checkout API'si sunar: oturum oluştur, güncelle (adet, adres, kargo), tamamla. Kullanıcı sohbet içinde \"bunu al\" dediğinde ajan bu uç noktaları çağırır. Ödeme bilgisi satıcıya ham kart numarası olarak gitmez: ödeme sağlayıcı, tutar ve satıcıyla sınırlı, tek kullanımlık bir paylaşılan ödeme token'ı üretir. Satıcı siparişin sahibi olmaya devam eder; iade ve müşteri ilişkisi onda kalır. ChatGPT'deki Instant Checkout bunun ilk uygulamasıdır.",
+t:[["Uç noktalar","checkout_sessions: create, update, complete, cancel"],["Ödeme","Kapsamı sınırlı, tek kullanımlık token"],["Rol","Satıcı, kayıt tüccarı (merchant of record) olarak kalır"],["İlgili","AP2 ve UCP ile aynı alan"]],
+d:{a:["Kullanıcı","Ajan","Satıcı API","Ödeme"],s:[[0,1,"\"bu kulaklığı al\"","q"],[1,2,"checkout_sessions create","q"],[2,1,"toplam 1.499 TL","r"],[1,0,"onaylıyor musun?","r"],[0,1,"onay","q"],[1,3,"sınırlı ödeme token'ı iste","q"],[3,1,"tek kullanımlık token","r"],[1,2,"complete + token","q"],[2,1,"sipariş #881","r"]]},
+cap:"Kart bilgisi değil, tutarı ve satıcısı sınırlı bir token dolaşır."},
+
+{id:"ap2",c:"ai",a:"AP2",f:"Agent Payments Protocol",tr:"Ajan Ödeme Protokolü",y:"Google · Eylül 2025 · FIDO Alliance'a devredildi",
+o:"Bir ajanın yaptığı ödemenin gerçekten kullanıcı tarafından istendiğini kriptografik yetki belgeleriyle (mandate) kanıtlayan protokol.",
+h:"Sorun şudur: bir ajan ödeme yaptığında banka bunun kullanıcının gerçek isteği mi yoksa halüsinasyon mu olduğunu bilemez. AP2 bunu doğrulanabilir kimlik bilgisi (verifiable credential) olarak imzalanan yetki belgeleriyle çözer. Intent Mandate kullanıcının niyetini ve sınırlarını kaydeder (\"en fazla 2.000 TL'ye beyaz ayakkabı\"). Cart Mandate kullanıcının onayladığı kesin sepeti imzalar. Ödeme ağına giden Payment Mandate ise işlemin ajan aracılığıyla yapıldığını bildirir. Böylece anlaşmazlık durumunda kimin neyi onayladığına dair değiştirilemez bir iz kalır. Kart, banka transferi ve stablecoin ile çalışır; A2A ve MCP'nin üstüne eklenti olarak tasarlandı.",
+t:[["Yetki belgeleri","Intent Mandate, Cart Mandate, Payment Mandate"],["Biçim","İmzalı doğrulanabilir kimlik bilgileri (VC)"],["Senaryolar","Kullanıcı başındayken ve başında değilken"],["Yönetim","2026'da FIDO Alliance'a devredildi"]],
+d:{a:["Kullanıcı","Alışveriş ajanı","Satıcı","Ödeme ağı"],s:[[0,1,"imzalı Intent Mandate","q"],[1,2,"ürün ara","q"],[2,1,"sepet teklifi","r"],[1,0,"sepeti onayla","q"],[0,1,"imzalı Cart Mandate","r"],[1,3,"Payment Mandate + belgeler","q"],[3,2,"ödeme onayı","r"]]},
+cap:"Her adım imzalı belgeyle zincirlenir: kim, neye, ne kadar izin verdi."},
+
+{id:"ucp",c:"ai",a:"UCP",f:"Universal Commerce Protocol",tr:"Evrensel Ticaret Protokolü",y:"Google + Shopify vd. · Ocak 2026",
+o:"Ajanların ürün bulma, sepet, ödeme ve sipariş sonrası süreçleri tek bir ortak dille yürütmesini sağlayan ticaret protokolü.",
+h:"Her mağazanın kendine özgü API'si, ajanların her biri için ayrı entegrasyon yazmayı gerektirir. UCP, ticaretin ortak yapı taşlarını (katalog keşfi, sepet, checkout, kimlik bağlama, sipariş takibi) standart yetenekler olarak tanımlar. Satıcı hangi yetenekleri desteklediğini bir profilde yayınlar, ajan bunları keşfedip çağırır. Taşıma için REST, MCP veya A2A kullanılabilir, ödeme adımı ise AP2 ile uyumludur. Amacı herhangi bir ajanın, ayrı entegrasyon yazmadan herhangi bir UCP uyumlu mağazadan alışveriş yapabilmesidir.",
+t:[["Kapsam","Keşif → sepet → ödeme → sipariş sonrası"],["Taşıma","REST, MCP, A2A bağlamaları"],["Ödeme","AP2 uyumlu"],["Destekçiler","Shopify, Etsy, Wayfair, Target, Walmart ve diğerleri"]],
+d:{a:["Ajan","Satıcı (UCP)"],s:[[0,1,"yetenek profili?","q"],[1,0,"catalog, checkout, orders","r"],[0,1,"catalog.search \"çadır\"","q"],[1,0,"ürünler","r"],[0,1,"checkout (AP2 belgesi)","q"],[1,0,"sipariş + takip","r"]]},
+cap:"Ortak dil sayesinde bir ajan, entegrasyon yazmadan her uyumlu mağazayla konuşur."},
+
+{id:"rag",c:"ai",a:"RAG",f:"Retrieval-Augmented Generation",tr:"Erişimle Zenginleştirilmiş Üretim",y:"Lewis vd. · 2020",
+o:"Modelin cevap vermeden önce ilgili belgeleri bir arama sisteminden çekip bağlamına eklemesi.",
+h:"Önce belgeler parçalara bölünür ve her parça bir gömme modeliyle (embedding) sayı vektörüne çevrilip vektör veritabanına yazılır. Kullanıcı soru sorduğunda soru da vektöre çevrilir, anlamca en yakın parçalar (kosinüs benzerliği) bulunur; çoğu zaman anahtar kelime aramasıyla birleştirilip yeniden sıralanır. Bulunan parçalar \"şu belgelere dayanarak cevapla\" talimatıyla modelin girdisine eklenir. Model böylece eğitiminde görmediği güncel veya özel bilgiyle, kaynak göstererek cevap verebilir.",
+t:[["Hazırlık","Parçala → embedding → vektör DB"],["Arama","Vektör benzerliği + BM25 (hibrit) + yeniden sıralama"],["Araçlar","pgvector, Qdrant, Weaviate, FAISS"],["Kazanç","Güncel, özel ve kaynaklı cevap"]],
+d:{a:["Kullanıcı","Uygulama","Vektör DB","LLM"],s:[[0,1,"soru","q"],[1,1,"soruyu vektöre çevir","n"],[1,2,"en yakın 5 parça","q"],[2,1,"parçalar","r"],[1,3,"talimat + parçalar + soru","q"],[3,1,"kaynaklı cevap","r"],[1,0,"cevap","r"]]},
+cap:"Model, cevabı kendi hafızası yerine getirilen belgelere dayandırır."},
+
+{id:"agentsmd",c:"ai",a:"AGENTS.md",f:"AGENTS.md (dosya adı)",tr:"Ajan talimat dosyası",y:"OpenAI kökenli · AAIF",
+o:"Kod deposunun köküne konan, kodlama ajanlarına \"bu projede nasıl derlenir, test edilir, hangi kurallara uyulur\" diyen Markdown dosyası.",
+h:"README insanlar içindir; AGENTS.md ajanlar için. İçinde kurulum komutları, test komutları, kod stili, klasör yapısı ve dokunulmaması gereken yerler yazılır. Ajan bir görev aldığında önce bu dosyayı okur ve bağlamına ekler. Alt klasörlere de konabilir; en yakın dosya önceliklidir. Özel bir sözdizimi yoktur, düz Markdown'dır. Benzer amaçla Claude Code CLAUDE.md, Cursor ise kendi kurallar dosyasını kullanır.",
+t:[["Biçim","Düz Markdown"],["Konum","Depo kökü ve alt klasörler"],["İçerik","Kurulum, test, stil, güvenlik kuralları"],["Benzerleri","CLAUDE.md, .cursor/rules, copilot-instructions.md"]],
+x:["AGENTS.md","# AGENTS.md\n## Kurulum\ncargo build\n## Test\ncargo test --all\n## Kurallar\n- unsafe kullanma\n- Commit mesajları İngilizce, emir kipinde"],
+d:{k:"stack",l:["Görev|\"testi düzelt\"","AGENTS.md okunur|proje kuralları","Ajanın bağlamı|talimat + kod","Eylemler|cargo test, düzenle","Sonuç|kurallara uygun değişiklik"]},
+cap:"Dosya, ajanın her görevde baştan öğrenmesi gerekenleri kalıcı hale getirir."},
+
+/* ---------- SİSTEM ---------- */
+{id:"syscall",c:"sistem",a:"Syscall",f:"System Call",tr:"Sistem Çağrısı",y:"çekirdek arayüzü",
+o:"Bir programın dosya açma, bellek alma, ağ kullanma gibi işler için işletim sistemi çekirdeğinden hizmet istemesi.",
+h:"Programlar kullanıcı modunda çalışır ve donanıma doğrudan dokunamaz. Bir dosyaya yazmak için libc'deki write() çağrılır; bu, sistem çağrısı numarasını (Linux x86-64'te write için 1) rax yazmacına, argümanları rdi, rsi, rdx yazmaçlarına koyar ve syscall komutunu çalıştırır. İşlemci çekirdek moduna geçer, çekirdek isteği doğrular, sürücü üzerinden donanımla konuşur, sonucu rax'a yazıp kullanıcı moduna döner. strace komutu bir programın yaptığı tüm sistem çağrılarını gösterir.",
+t:[["Linux x86-64","syscall komutu; numara rax, argümanlar rdi, rsi, rdx, r10, r8, r9"],["Örnekler","read, write, openat, mmap, clone, execve, ioctl"],["Sayı","Linux'ta yaklaşık 450"],["İzleme","strace, ltrace, perf, eBPF"]],
+x:["strace çıktısı","$ strace -e trace=openat,write cat not.txt\nopenat(AT_FDCWD, \"not.txt\", O_RDONLY) = 3\nwrite(1, \"süt al\\n\", 8)                = 8"],
+d:{k:"stack",l:["Program|write(1, buf, 8)","libc|rax=1, rdi=1, rsi=buf, rdx=8","syscall komutu|kullanıcı → çekirdek modu","Çekirdek (VFS)|izin + dosya tanımlayıcı","Sürücü|terminal / disk","Donanım|baytlar yazılır"]},
+cap:"Nokta aşağı iner, iş yapılır, sonuç rax'ta yukarı döner."},
+
+{id:"posix",c:"sistem",a:"POSIX",f:"Portable Operating System Interface",tr:"Taşınabilir İşletim Sistemi Arayüzü",y:"IEEE 1003.1 · POSIX.1-2024",
+o:"Unix benzeri sistemlerin ortak C API'sini, kabuğunu ve araçlarını tanımlayan standart; bir kez yaz, her Unix'te derle.",
+h:"Linux, macOS, FreeBSD birbirinden farklı çekirdeklere sahiptir ama POSIX sayesinde aynı fonksiyonları sunarlar: open, read, write, fork, exec, pipe, pthread_create, signal. POSIX ayrıca sh kabuğunun davranışını ve ls, grep, sed gibi araçların seçeneklerini de tanımlar. Sadece POSIX fonksiyonlarını kullanan bir program bu sistemlerde küçük değişikliklerle derlenir. Windows doğal olarak POSIX değildir; WSL veya Cygwin gibi katmanlar bu arayüzü sağlar.",
+t:[["Kapsam","C API, sh kabuğu, temel araçlar, dosya sistemi anlamı"],["Başlıklar","unistd.h, fcntl.h, pthread.h, signal.h"],["Uyumlu","macOS (sertifikalı), Linux (büyük ölçüde)"],["Windows","WSL, Cygwin, MSYS2"]],
+d:{k:"stack",l:["Senin C programın|open, read, fork","POSIX API|ortak sözleşme","libc (glibc / musl / libSystem)|her sistemin kendi uygulaması","Çekirdek|Linux / XNU / FreeBSD"]},
+cap:"Üstteki kod değişmez; alttaki uygulama işletim sistemine göre değişir."},
+
+{id:"ffi",c:"sistem",a:"FFI · JNI",f:"Foreign Function Interface · Java Native Interface",tr:"Yabancı Fonksiyon Arayüzü · Java Yerel Arayüzü",y:"diller arası",
+o:"Bir programlama dilinden, başka bir dilde (çoğunlukla C) yazılmış fonksiyonları çağırma mekanizması.",
+h:"Diller arasında ortak payda C ABI'sıdır. Rust'ta extern \"C\" bloğunda bir C fonksiyonunun imzasını bildirirsin ve unsafe içinde çağırırsın; derleyici C çağrı kuralına uyan kod üretir. Python'da ctypes veya cffi kütüphaneyi çalışma anında yükler ve Python nesnelerini C tiplerine çevirir. Java'da JNI, C tarafında JNIEnv* üzerinden Java nesnelerine erişen özel imzalı fonksiyonlar ister. Sınırı geçerken tipler dönüştürülür, bellek sahipliği netleştirilmelidir; hataların çoğu burada çıkar.",
+t:[["Ortak payda","C ABI"],["Rust","extern \"C\", bindgen, cbindgen"],["Python","ctypes, cffi, PyO3 (Rust)"],["Java","JNI, yeni Panama FFM API"]],
+x:["Rust'tan C çağırmak","extern \"C\" {\n    fn strlen(s: *const std::ffi::c_char) -> usize;\n}\nfn main() {\n    let s = std::ffi::CString::new(\"merhaba\").unwrap();\n    let n = unsafe { strlen(s.as_ptr()) };\n    println!(\"{n}\"); // 7\n}"],
+d:{a:["Rust kodu","FFI sınırı","C kütüphanesi"],s:[[0,1,"strlen(&str)","q"],[1,1,"CString'e çevir","n"],[1,2,"C ABI çağrısı","q"],[2,1,"size_t 7","r"],[1,0,"usize 7","r"]]},
+cap:"Sınırda tipler çevrilir ve bellek sorumluluğu el değiştirir."},
+
+{id:"hal",c:"sistem",a:"HAL",f:"Hardware Abstraction Layer",tr:"Donanım Soyutlama Katmanı",y:"katman",
+o:"Donanımın ayrıntılarını gizleyip üstteki yazılıma tek tip bir arayüz sunan katman.",
+h:"Bir LED'i yakmak için STM32'de bir yazmaca, ESP32'de başka bir yazmaca yazmak gerekir. HAL, gpio_write(pin, 1) gibi ortak bir fonksiyon sunar ve altta her çip için doğru yazmaç işlemini yapar. Böylece uygulama kodu donanım değişince yeniden yazılmaz. Gömülü dünyada STM32 HAL ve Rust'taki embedded-hal trait'leri, işletim sistemlerinde Windows HAL ve Android HAL (kamera, sensör, ses arayüzleri) bunun örnekleridir. Bedeli biraz performans ve donanımın özel özelliklerine daha zor erişimdir.",
+t:[["Gömülü","STM32 HAL/LL, embedded-hal (Rust), Zephyr API"],["İşletim sistemi","Windows HAL, Android HAL (HIDL/AIDL)"],["Altında","Bellek eşlemeli yazmaçlar (MMIO), kesmeler"],["Kazanç","Taşınabilirlik ve test edilebilirlik"]],
+d:{k:"stack",l:["Uygulama|led.set_high()","HAL arayüzü|OutputPin trait","Çip sürücüsü|STM32 GPIOA uygulaması","Yazmaç (MMIO)|GPIOA->BSRR = 1<<5","Donanım|LED yanar"]},
+cap:"Üst katmanlar aynı kalır; çip değişince sadece sürücü katmanı değişir."},
+
+{id:"dll",c:"sistem",a:"DLL · .so",f:"Dynamic-Link Library · Shared Object",tr:"Dinamik Bağlantı Kütüphanesi · Paylaşılan Nesne",y:"Windows · Linux (ELF)",
+o:"Program çalışırken belleğe yüklenen ve birden çok program tarafından paylaşılan derlenmiş kütüphane dosyaları.",
+h:"Statik bağlamada kütüphane kodu programın içine kopyalanır. Dinamik bağlamada ise program sadece \"libssl.so.3'teki SSL_connect fonksiyonuna ihtiyacım var\" diye not düşer. Linux'ta program başlarken dinamik bağlayıcı (ld-linux.so) gerekli .so dosyalarını bulur, belleğe eşler ve sembol adreslerini GOT/PLT tablolarına yazar; varsayılan olarak bir fonksiyonun adresi ilk çağrıldığında çözülür. Kütüphane güncellenince programı yeniden derlemek gerekmez ve bellekte tek kopya paylaşılır. Bedeli sürüm uyumsuzluğudur (\"DLL cehennemi\"). Program çalışırken dlopen ile eklenti de yüklenebilir.",
+t:[["Linux","ELF .so, ld-linux.so, LD_LIBRARY_PATH, ldd"],["Windows","PE .dll, LoadLibrary, GetProcAddress"],["macOS","Mach-O .dylib"],["Mekanizma","GOT/PLT, tembel bağlama (lazy binding)"]],
+x:["ldd","$ ldd /usr/bin/curl\n  libcurl.so.4 => /usr/lib/libcurl.so.4\n  libssl.so.3  => /usr/lib/libssl.so.3\n  libc.so.6    => /usr/lib/libc.so.6"],
+d:{a:["Program","ld-linux.so","libssl.so"],s:[[0,1,"başlat: bağımlılıklar?","q"],[1,2,"bul + belleğe eşle","q"],[1,0,"main() çalışsın","r"],[0,1,"SSL_connect ilk çağrı (PLT)","q"],[1,1,"sembolü çöz, GOT'a yaz","n"],[0,2,"sonraki çağrılar doğrudan","e"]]},
+cap:"İlk çağrıda adres çözülür, sonra doğrudan atlanır."},
+
+{id:"wasm",c:"sistem",a:"Wasm · WASI",f:"WebAssembly · WebAssembly System Interface",tr:"Web Montaj Dili · WebAssembly Sistem Arayüzü",y:"W3C 2019 · WASI 0.2",
+o:"Tarayıcıda ve tarayıcı dışında güvenli, hızlı ve taşınabilir çalışan ikili kod biçimi ve onun sistem arayüzü.",
+h:"Rust, C veya Go kodu .wasm dosyasına derlenir. Bu, yığın tabanlı bir sanal makine için kompakt bir ikili koddur. Tarayıcı veya Wasmtime gibi bir çalışma ortamı onu hızla yerel makine koduna çevirir. Modül kendi doğrusal belleğinin dışına çıkamaz ve hiçbir şeye dokunamaz; dış dünyaya sadece kendisine verilen içe aktarılan fonksiyonlarla erişir. Tarayıcıda bunlar JavaScript fonksiyonlarıdır. Tarayıcı dışında WASI, dosya, saat, ağ gibi yetenekleri yetki tabanlı (capability) bir arayüzle sağlar. Bileşen modeli (component model) ise farklı dillerde yazılmış modüllerin tipli arayüzlerle (WIT) birleşmesini sağlar.",
+t:[["Bellek","Doğrusal bellek, korumalı alan (sandbox)"],["Çalışma ortamı","Tarayıcılar, Wasmtime, Wasmer, WasmEdge"],["WASI","Yetki tabanlı sistem erişimi; 0.2 bileşen modeli"],["Kullanım","Tarayıcıda ağır hesap, eklenti sistemleri, edge fonksiyonları"]],
+d:{k:"stack",l:["Rust / C kaynak|cargo build --target wasm32-wasip2","app.wasm|taşınabilir ikili","Çalışma ortamı|Wasmtime / tarayıcı","JIT / AOT|yerel makine kodu","WASI / JS içe aktarmaları|sadece verilen yetkiler"]},
+cap:"Modül sandbox içinde çalışır; dışarıya sadece izin verilen kapılardan çıkar."},
+
+{id:"odbc",c:"sistem",a:"ODBC · JDBC",f:"Open Database Connectivity · Java Database Connectivity",tr:"Açık Veritabanı Bağlanabilirliği · Java Veritabanı Bağlanabilirliği",y:"Microsoft 1992 · Sun 1997",
+o:"Uygulamanın, hangi veritabanı olduğunu bilmeden aynı arayüzle SQL çalıştırmasını sağlayan sürücü standartları.",
+h:"Uygulama standart fonksiyonları çağırır (ODBC'de SQLConnect, SQLExecDirect; JDBC'de DriverManager.getConnection, executeQuery). Arada bir sürücü yöneticisi bağlantı dizesine bakarak doğru sürücüyü yükler. Sürücü, standart çağrıları o veritabanının kendi ağ protokolüne çevirir (PostgreSQL için kendi tel protokolü, SQL Server için TDS). Sonuçlar satır satır geri okunur. Böylece Excel'den Power BI'ya kadar pek çok araç, her veritabanı için ayrı kod yazmadan bağlanabilir.",
+t:[["Katmanlar","Uygulama → sürücü yöneticisi → sürücü → veritabanı"],["ODBC","C API, unixODBC / Windows sürücü yöneticisi"],["JDBC","Java API, jdbc:postgresql://… bağlantı dizesi"],["Benzerleri","ADO.NET, Python DB-API, Go database/sql"]],
+d:{a:["Uygulama","Sürücü yöneticisi","PG sürücüsü","PostgreSQL"],s:[[0,1,"connect(dsn)","q"],[1,2,"sürücüyü yükle","q"],[2,3,"StartupMessage + auth","q"],[3,2,"ReadyForQuery","r"],[0,2,"execute SELECT…","q"],[2,3,"Query mesajı","q"],[3,2,"DataRow × N","r"],[2,0,"sonuç kümesi","r"]]},
+cap:"Sürücü, standart çağrıları veritabanının kendi tel protokolüne çevirir."},
+
+/* ---------- ARAÇLAR ---------- */
+{id:"cli",c:"arac",a:"CLI · TUI · GUI",f:"Command-Line Interface · Text-based (Terminal) User Interface · Graphical User Interface",tr:"Komut Satırı / Metin Tabanlı / Grafik Kullanıcı Arayüzü",y:"arayüz türleri",
+o:"Bir programla etkileşimin üç biçimi: komut yazarak, terminalde menülerle, ya da pencere ve fareyle.",
+h:"Bir CLI programı başlarken argümanları (argv) alır, girdiyi stdin'den okur, sonucu stdout'a, hataları stderr'e yazar ve bir çıkış koduyla (0 başarı) biter. Bu sade sözleşme sayesinde boru (|) ile birbirine bağlanabilir ve betiklenebilir. TUI, terminali bir tuval gibi kullanır: ANSI kaçış dizileriyle imleci taşır, renk verir ve ekranı her karede yeniden çizer (ncurses, ratatui, htop). GUI ise bir olay döngüsü içinde fare ve klavye olaylarını alır, pencere içeriğini çizer ve bir bileşik yöneticiye (Linux'ta Wayland compositor) teslim eder.",
+t:[["CLI sözleşmesi","argv, stdin, stdout, stderr, çıkış kodu, ortam değişkenleri"],["TUI","ANSI/VT100 kaçış dizileri, ham terminal modu"],["GUI","Olay döngüsü, araç takımı (Qt, GTK), Wayland/X11"],["Rust araçları","clap (CLI), ratatui (TUI), egui / iced (GUI)"]],
+x:["CLI boru hattı","$ cat erisim.log | grep \" 500 \" | wc -l\n42\n$ echo $?\n0"],
+d:{a:["Kabuk","grep","wc"],s:[[0,1,"argv + stdin (log)","q"],[1,2,"stdout → stdin (pipe)","e"],[2,0,"stdout: 42","r"],[2,0,"çıkış kodu 0","r"]]},
+cap:"Küçük CLI araçları stdin/stdout sözleşmesiyle birbirine takılır."},
+
+{id:"ide",c:"arac",a:"IDE",f:"Integrated Development Environment",tr:"Tümleşik Geliştirme Ortamı",y:"araç",
+o:"Editör, derleme, hata ayıklama, test ve sürüm kontrolünü tek pencerede birleştiren geliştirme ortamı.",
+h:"Modern bir IDE, dil bilgisini kendi içine gömmek yerine çoğu zaman dışarıdan alır: otomatik tamamlama ve hata işaretleri için bir dil sunucusuyla LSP konuşur, hata ayıklama için bir debug adaptörüyle DAP konuşur, yapay zekâ ajanlarıyla ACP veya MCP konuşur, Git ile de doğrudan çalışır. Böylece VS Code, Zed, JetBrains veya Neovim aynı rust-analyzer'ı ve aynı debugger'ı kullanabilir. IDE bunların hepsini tek bir arayüzde birleştiren orkestra şefidir.",
+t:[["Örnekler","VS Code, JetBrains (RustRover, CLion), Zed, Neovim"],["Dil zekâsı","LSP üzerinden"],["Hata ayıklama","DAP üzerinden"],["Yapay zekâ","ACP, MCP, tamamlayıcı modeller"]],
+d:{a:["Dil sunucusu","IDE","Debugger","Ajan"],s:[[1,0,"LSP: tamamla?","q"],[0,1,"öneriler","r"],[1,2,"DAP: kesme noktası","q"],[2,1,"durdu: satır 12","e"],[1,3,"ACP: testi düzelt","q"],[3,1,"diff","r"]]},
+cap:"IDE, her biri kendi protokolünü konuşan uzman süreçleri birleştirir."},
+
+{id:"lsp",c:"arac",a:"LSP",f:"Language Server Protocol",tr:"Dil Sunucusu Protokolü",y:"Microsoft · 2016",
+o:"Editör ile dil sunucusu arasında tamamlama, tanıma git, hata gösterme gibi özellikleri standartlaştıran protokol.",
+h:"Eskiden her editörün her dil için ayrı eklentisi gerekirdi (M editör × N dil). LSP bunu M + N'ye indirir: dil uzmanlığı tek bir sunucuda (rust-analyzer, clangd, pyright) toplanır, her editör aynı protokolle konuşur. Editör dosyayı açınca textDocument/didOpen, her tuşta didChange bildirimi gönderir. Sunucu kodu ayrıştırır, hataları publishDiagnostics ile kendiliğinden yollar. Kullanıcı tamamlama istediğinde completion, tanıma gitmek istediğinde definition isteği gider. Mesajlar JSON-RPC'dir ve Content-Length başlığıyla çerçevelenip genelde stdio üzerinden akar. MCP bu tasarımdan esinlenmiştir.",
+t:[["Mesajlar","JSON-RPC 2.0, Content-Length başlıklı çerçeve"],["Taşıma","Genelde stdio; soket de olur"],["Yöntemler","didOpen, didChange, completion, hover, definition, references, rename"],["Sunucular","rust-analyzer, clangd, pyright, gopls"]],
+x:["Çerçevelenmiş mesaj","Content-Length: 132\r\n\r\n{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"textDocument/definition\",\n \"params\":{\"textDocument\":{\"uri\":\"file:///src/main.rs\"},\n            \"position\":{\"line\":11,\"character\":8}}}"],
+d:{a:["Editör","rust-analyzer"],s:[[0,1,"initialize","q"],[0,1,"didOpen main.rs","e"],[1,0,"publishDiagnostics: 1 hata","e"],[0,1,"completion (satır 12)","q"],[1,0,"[push, pop, len…]","r"],[0,1,"definition","q"],[1,0,"vec.rs:340","r"]]},
+cap:"Bildirimler (turuncu) yanıt beklemez; istekler (mavi) id ile eşleşir."},
+
+{id:"dap",c:"arac",a:"DAP",f:"Debug Adapter Protocol",tr:"Hata Ayıklama Adaptörü Protokolü",y:"Microsoft · 2016",
+o:"Editör ile hata ayıklayıcılar (gdb, lldb, debugpy) arasındaki iletişimi standartlaştıran protokol.",
+h:"Her debugger'ın kendi komut dili vardır. Debug adaptörü, editörün standart DAP mesajlarını o debugger'ın diline çevirir. Editör initialize ile başlar, setBreakpoints ile kesme noktalarını bildirir, launch veya attach ile programı başlatır. Program bir kesme noktasına gelince adaptör stopped olayı gönderir. Editör stackTrace, scopes ve variables isteğiyle çağrı yığınını ve değişkenleri çeker ve ekrana çizer. next, stepIn ve continue komutlarıyla adım adım ilerlenir. LSP'ye benzer ama JSON-RPC değil, kendi seq/type tabanlı JSON mesajlarını kullanır.",
+t:[["Mesaj tipleri","request, response, event (seq numaralı JSON)"],["Akış","initialize → setBreakpoints → launch → stopped → variables"],["Adaptörler","codelldb, cppdbg, debugpy, delve"],["Çerçeve","Content-Length başlığı (LSP gibi)"]],
+d:{a:["Editör","Debug adaptörü","lldb"],s:[[0,1,"setBreakpoints main.rs:12","q"],[0,1,"launch","q"],[1,2,"run","q"],[2,1,"durdu","e"],[1,0,"event: stopped","e"],[0,1,"variables","q"],[1,0,"x=5, v=[1,2]","r"],[0,1,"next","q"]]},
+cap:"Adaptör, standart DAP mesajlarını debugger'ın kendi komutlarına çevirir."},
+
+{id:"repl",c:"arac",a:"REPL",f:"Read-Eval-Print Loop",tr:"Oku-Değerlendir-Yazdır Döngüsü",y:"Lisp · 1960'lar",
+o:"Yazdığın her ifadeyi anında çalıştırıp sonucunu gösteren etkileşimli kabuk.",
+h:"Adı çalışma biçimini anlatır: girdiyi oku (read), ifadeyi ayrıştırıp çalıştır (eval), sonucu ekrana yazdır (print) ve başa dön (loop). Önceki satırlarda tanımlanan değişkenler oturum boyunca bellekte kalır. Python, Node.js, Ruby (irb) ve Lisp'in kendi REPL'leri vardır; Jupyter defterleri de hücre hücre çalışan bir REPL'dir. Rust gibi derlenen dillerde evcxr gibi araçlar bu deneyimi taklit eder. Bir API'yi veya kütüphaneyi denemenin en hızlı yoludur.",
+t:[["Örnekler","python, node, irb, ghci, evcxr (Rust)"],["Durum","Oturum boyunca kalıcı değişkenler"],["Gelişmiş","IPython, Jupyter çekirdekleri"],["Kullanım","Keşif, deneme, veri analizi"]],
+x:["Python REPL",">>> x = [3, 1, 2]\n>>> sorted(x)\n[1, 2, 3]\n>>> sum(x) / len(x)\n2.0"],
+d:{k:"stack",l:["Read|>>> sum(x)","Eval|ayrıştır, çalıştır","Print|6","Loop|yeni girdi bekle"]},
+cap:"Dört adım, her satırda yeniden."},
+
+{id:"vcs",c:"arac",a:"VCS · Git",f:"Version Control System · Git",tr:"Sürüm Kontrol Sistemi",y:"Git: Linus Torvalds · 2005",
+o:"Kodun tüm geçmişini, dallarını ve kimin neyi değiştirdiğini saklayan sistem; en yaygını Git.",
+h:"Git içerik adreslemeli bir nesne veritabanıdır. Her dosya içeriği bir blob, her klasör bir tree, her kayıt bir commit nesnesidir ve hepsi içeriklerinin özetiyle (SHA-1, isteğe bağlı SHA-256) adlandırılır. Commit, kök tree'yi, ebeveyn commit'leri, yazarı ve mesajı içerir; böylece geçmiş değiştirilemez bir zincir olur. Dal (branch) sadece bir commit'i gösteren hafif bir işaretçidir. push ve fetch, eksik nesneleri sıkıştırılmış paketler halinde uzak depoyla takas eder. GitHub ve GitLab bunun üstüne pull request, CI ve webhook ekler.",
+t:[["Nesneler","blob, tree, commit, tag"],["Adlandırma","İçeriğin SHA-1 / SHA-256 özeti"],["Referanslar","Dallar ve etiketler (.git/refs)"],["Taşıma","SSH veya HTTPS üzerinden pack dosyaları"]],
+x:["Bir commit nesnesi","$ git cat-file -p HEAD\ntree 9c1f…\nparent a41b…\nauthor Efe <…> 1791000000 +0300\n\nREADME güncellendi"],
+d:{k:"stack",l:["Çalışma dizini|düzenlenen dosyalar","git add|staging alanı (index)","git commit|blob + tree + commit nesneleri","Yerel depo|.git/objects","git push|uzak depo (GitHub)"]},
+cap:"Değişiklik, çalışma dizininden uzak depoya kadar katmanlardan geçer."},
+
+{id:"cicd",c:"arac",a:"CI/CD",f:"Continuous Integration / Continuous Delivery (Deployment)",tr:"Sürekli Entegrasyon / Sürekli Teslim (Dağıtım)",y:"süreç",
+o:"Her kod değişikliğinin otomatik olarak derlenip test edildiği ve onaydan sonra otomatik yayına alındığı süreç.",
+h:"Geliştirici kodu push eder. Git sunucusu bir webhook ile CI sistemine haber verir. CI, temiz bir konteyner veya sanal makine açar, depo içindeki YAML iş akışı dosyasına göre bağımlılıkları kurar, derler, testleri ve linter'ları çalıştırır, sonucu commit'in yanına yeşil tik veya kırmızı çarpı olarak yazar. CD aşaması başarılı yapıyı bir artefakt (Docker imajı, ikili dosya) olarak saklar ve ortamlara dağıtır. Continuous Delivery'de son adım için bir insan onayı beklenir, Continuous Deployment'ta her şey otomatiktir.",
+t:[["Tetikleyici","push, pull request, zamanlayıcı (webhook ile)"],["Tanım","YAML iş akışı (.github/workflows, .gitlab-ci.yml)"],["Aşamalar","build → test → paketle → dağıt"],["Araçlar","GitHub Actions, GitLab CI, Jenkins, Woodpecker"]],
+x:[".github/workflows/ci.yml","on: [push]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: cargo test --all"],
+d:{a:["Geliştirici","GitHub","CI runner","Sunucu"],s:[[0,1,"git push","q"],[1,2,"webhook: push olayı","e"],[2,2,"derle + test","n"],[2,1,"durum: başarılı","r"],[2,3,"deploy imaj:v42","q"],[3,2,"sağlık kontrolü OK","r"]]},
+cap:"Push'tan yayına kadar her adım bir otomasyon tetikler."}
+];
+
+/* ============ SVG ÇİZİM ============ */
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(t,a,p,s){const e=el(t,a,p);e.textContent=s;return e}
+
+function seqSVG(d){
+  const n=d.a.length, cw=n<=2?300:n===3?205:n===4?165:140, px=82;
+  const labelMax=Math.max(...d.s.map(s=>s[2].length));
+  const W=Math.max(px*2+cw*(n-1), labelMax*6.9+40), top=58, rh=40, H=top+d.s.length*rh+14;
+  const off=(W-(px*2+cw*(n-1)))/2;
+  const X=i=>off+px+i*cw;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.72)}px`,"aria-label":"Akış şeması: "+d.a.join(", ")});
+  d.a.forEach((name,i)=>{
+    el("line",{x1:X(i),y1:36,x2:X(i),y2:H-4,class:"life"},svg);
+    const w=Math.max(96,name.length*7.4+20);
+    el("rect",{x:X(i)-w/2,y:6,width:w,height:30,rx:6,class:"actor"},svg);
+    txt("text",{x:X(i),y:25.5,class:"actor-t","text-anchor":"middle"},svg,name);
+  });
+  const segs=d.s.map((s,i)=>{
+    const [f,t,label,k]=s, kind=k==="n"?"n":(k||"q"), y=top+i*rh+16;
+    const g=el("g",{class:"step k-"+kind},svg);
+    if(f===t){
+      const w=Math.max(104,label.length*6.8+18);
+      el("rect",{x:X(f)-w/2,y:y-13,width:w,height:24,rx:5,class:"note"},g);
+      txt("text",{x:X(f),y:y+3.5,"text-anchor":"middle",class:"lbl"},g,label);
+      return {g,x1:X(f)-w/2-9,y1:y-1,x2:X(f)-w/2-9,y2:y-1,note:true};
+    }
+    const x1=X(f),x2=X(t),dir=x2>x1?1:-1;
+    el("line",{x1:x1+dir*3,y1:y+6,x2:x2-dir*3,y2:y+6,class:"arrow","marker-end":`url(#m-${kind})`},g);
+    txt("text",{x:(x1+x2)/2,y:y-1,"text-anchor":"middle",class:"lbl"},g,label);
+    return {g,x1,y1:y+6,x2,y2:y+6};
+  });
+  const dot=el("circle",{r:5.5,class:"pkt",cx:segs[0].x1,cy:segs[0].y1},svg);
+  return {svg,segs,dot};
+}
+
+function stackSVG(d,wide){
+  const items=d.l.map(s=>s.split("|"));
+  const W=wide?520:440, bw=W-40, bh=40, gap=14, top=12;
+  const H=top+items.length*(bh+gap)-gap+12;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.7)}px`,"aria-label":"Katman şeması: "+items.map(i=>i[0]).join(" → ")});
+  const cx=W/2;
+  const pts=items.map((it,i)=>{
+    const y=top+i*(bh+gap), g=el("g",{class:"step"},svg);
+    el("rect",{x:20,y,width:bw,height:bh,rx:7,class:"layer"},g);
+    txt("text",{x:36,y:y+25,class:"layer-t"},g,it[0]);
+    if(it[1]) txt("text",{x:W-36,y:y+25,class:"layer-c","text-anchor":"end"},g,it[1]);
+    if(i<items.length-1) el("line",{x1:cx,y1:y+bh+2,x2:cx,y2:y+bh+gap-2,class:"arrow",stroke:"var(--muted)","stroke-width":1.4},svg);
+    return {g,y:y+bh/2};
+  });
+  const segs=[];
+  for(let i=0;i<pts.length;i++){segs.push({g:pts[i].g,x1:cx,y1:i?pts[i-1].y:pts[0].y,x2:cx,y2:pts[i].y});}
+  for(let i=pts.length-2;i>=0;i--){segs.push({g:pts[i].g,x1:cx,y1:pts[i+1].y,x2:cx,y2:pts[i].y});}
+  const dot=el("circle",{r:6,class:"pkt",cx,cy:pts[0].y},svg);
+  return {svg,segs,dot};
+}
+
+/* ============ ANİMASYON ============ */
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const live=new Set();
+function animate(diag){
+  if(reduce) return;
+  diag.i=0;diag.t0=performance.now();diag.pause=0;
+  live.add(diag);
+}
+function frame(now){
+  live.forEach(d=>{
+    if(!d.visible) return;
+    const DUR=d.segs===undefined?1000:(d.stack?650:1050);
+    let el=now-d.t0;
+    if(d.i>=d.segs.length){ if(el>1300){d.i=0;d.t0=now;} return;}
+    const s=d.segs[d.i];
+    if(!d.root.classList.contains("playing")) d.root.classList.add("playing");
+    d.segs.forEach((x,j)=>x.g.classList.toggle("on",j===d.i));
+    const p=Math.min(1,el/DUR), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    d.dot.setAttribute("cx",s.x1+(s.x2-s.x1)*e);
+    d.dot.setAttribute("cy",s.y1+(s.y2-s.y1)*e);
+    d.dot.setAttribute("r",s.note?5.5+2*Math.sin(p*Math.PI):(d.stack?6:5.5));
+    if(p>=1){d.i++;d.t0=now; if(d.i>=d.segs.length){d.segs.forEach(x=>x.g.classList.remove("on"));d.root.classList.remove("playing");}}
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{const d=e.target.__diag;if(d)d.visible=e.isIntersecting}),{rootMargin:"60px"}):null;
+
+function mount(box,spec,wide){
+  const r=spec.k==="stack"?stackSVG(spec,wide):seqSVG(spec);
+  box.appendChild(r.svg);
+  const d={root:r.svg,segs:r.segs,dot:r.dot,stack:spec.k==="stack",visible:!io};
+  box.__diag=d; if(io) io.observe(box);
+  animate(d);
+}
+
+/* ============ SAYFA ============ */
+const content=document.getElementById("content"), nav=document.getElementById("nav"), idx=document.getElementById("index");
+CATS.forEach((c,ci)=>{
+  const items=T.filter(t=>t.c===c.id);
+  const sec=document.createElement("section");sec.className="cat";sec.id=c.id;
+  sec.innerHTML=`<div class="cat-head"><h2>${c.n}</h2><span class="num">${items.length} terim</span></div><p class="cat-intro">${c.i}</p>`;
+  items.forEach(t=>{
+    const art=document.createElement("article");art.className="term";art.id=t.id;
+    art.dataset.s=(t.a+" "+t.f+" "+t.tr+" "+t.o+" "+t.h+" "+t.t.map(x=>x.join(" ")).join(" ")).toLocaleLowerCase("tr");
+    const hd=document.createElement("header");
+    hd.innerHTML=`<span class="abbr"></span><h3></h3><span class="meta"></span><p class="tr"></p>`;
+    hd.querySelector(".abbr").textContent=t.a;hd.querySelector("h3").textContent=t.f;hd.querySelector(".meta").textContent=t.y;hd.querySelector(".tr").textContent=t.tr;
+    art.appendChild(hd);
+    const one=document.createElement("p");one.className="one";one.textContent=t.o;art.appendChild(one);
+    const body=document.createElement("div");body.className="body";
+    const left=document.createElement("div");
+    const h4a=document.createElement("h4");h4a.textContent="Nasıl çalışır";left.appendChild(h4a);
+    const p=document.createElement("p");p.textContent=t.h;left.appendChild(p);
+    const h4b=document.createElement("h4");h4b.textContent="Teknik altyapı";left.appendChild(h4b);
+    const dl=document.createElement("dl");dl.className="tech";
+    t.t.forEach(([k,v])=>{const dt=document.createElement("dt");dt.textContent=k;const dd=document.createElement("dd");dd.textContent=v;dl.append(dt,dd)});
+    left.appendChild(dl);
+    const fig=document.createElement("figure");
+    const box=document.createElement("div");box.className="diag-box";fig.appendChild(box);
+    const fc=document.createElement("figcaption");fc.textContent=t.cap;fig.appendChild(fc);
+    body.append(left,fig);art.appendChild(body);
+    if(t.x){const pre=document.createElement("pre");pre.className="code";const cl=document.createElement("span");cl.className="cl";cl.textContent=t.x[0];pre.appendChild(cl);pre.appendChild(document.createTextNode(t.x[1]));art.appendChild(pre);}
+    sec.appendChild(art);
+    mount(box,t.d,false);
+    const a=document.createElement("a");a.href="#"+t.id;a.textContent=t.a;idx.appendChild(a);
+  });
+  content.appendChild(sec);
+  const na=document.createElement("a");na.href="#"+c.id;na.innerHTML=`${c.n}<span>${items.length}</span>`;nav.appendChild(na);
+});
+{const na=document.createElement("a");na.href="#karsilastirma";na.innerHTML=`Karşılaştırma<span>tablo</span>`;nav.appendChild(na);}
+
+mount(document.getElementById("hero-diag"),{k:"stack",l:[
+ "Senin kodun|client.messages.create()","SDK|JSON gövde + API anahtarı","Web API (REST)|POST /v1/messages","HTTP/2|başlık + veri çerçeveleri","TLS 1.3|şifreleme","TCP / QUIC|güvenilir taşıma","IP · DNS · CDN|adresleme ve yönlendirme"]},true);
+
+/* arama */
+const q=document.getElementById("q"), empty=document.getElementById("empty");
+q.addEventListener("input",()=>{
+  const v=q.value.trim().toLocaleLowerCase("tr");let any=false;
+  document.querySelectorAll("section.cat[id]:not(#karsilastirma)").forEach(sec=>{
+    let n=0;sec.querySelectorAll(".term").forEach(a=>{const ok=!v||a.dataset.s.includes(v);a.hidden=!ok;if(ok)n++});
+    sec.hidden=n===0;if(n)any=true;
+  });
+  empty.style.display=any?"none":"block";
+});
+</script>
+
+</body></html>
