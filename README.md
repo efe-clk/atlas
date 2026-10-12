@@ -13,6 +13,7 @@ Yayın adresi: **https://efe-clk.github.io/atlas/**
 | [Dijital Diller Atlası](https://efe-clk.github.io/atlas/dijital-diller-atlasi/) | Devre tanımlamadan SQL'e kadar bilgisayar dili ailelerini soyutlama katmanlarına göre alt türleri ve kod örnekleriyle haritalayan rehber. |
 | [Bilgisayar Mimarisi Atlası](https://efe-clk.github.io/atlas/bilgisayar-mimarisi-atlasi/) | İşlemci çekirdeğinden önbelleklere, sanal bellekten kesmelere kadar bilgisayar mimarisini canlı akış şemaları ve boru hattı çizelgeleriyle anlatan rehber. |
 | [Linux Önyükleme Atlası](https://efe-clk.github.io/atlas/linux-onyukleme-atlasi/) | Güç düğmesinden masaüstüne: UEFI, önyükleyiciler, çekirdek, initramfs, systemd ve gömülü kartlarda önyüklemeyi adım adım, canlı şemalarla anlatan rehber. |
+| [Linux Dosya Sistemi Atlası](https://efe-clk.github.io/atlas/linux-dosya-sistemi-atlasi/) | Inode'dan btrfs anlık görüntülerine: VFS, sayfa önbelleği, ext4, XFS, btrfs, ZFS, bağlama, izinler ve sanal dosya sistemlerini canlı şemalarla anlatan rehber. |
 
 ## Yapı
 
@@ -31,7 +32,9 @@ atlas/
 │   └── index.html
 ├── bilgisayar-mimarisi-atlasi/
 │   └── index.html
-└── linux-onyukleme-atlasi/
+├── linux-onyukleme-atlasi/
+│   └── index.html
+└── linux-dosya-sistemi-atlasi/
     └── index.html
 ```
 
