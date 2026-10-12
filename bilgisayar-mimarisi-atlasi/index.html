@@ -1,0 +1,900 @@
+<!doctype html><html lang="tr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Bilgisayar Mimarisi Atlası</title>
+<meta name="description" content="İşlemci çekirdeğinden önbelleklere, sanal bellekten kesmelere kadar bilgisayar mimarisinin temel kavramlarını canlı şemalarla anlatan Türkçe rehber.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Düzen: veri sayfası + mantık analizörü — solda kategori rayı, sağda kavram kartları; her kartta metin | canlı şema (akış, katman yığını ya da boru hattı çizelgesi) */
+:root{
+  --bg:#eef1f3; --panel:#fbfcfc; --ink:#14202a; --muted:#56636e; --line:#cfd6dc;
+  --accent:#1d55c9; --resp:#14866d; --event:#c47a06; --note:#e4e9ef; --soft:#e3e9f2;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.9em}
+.rail,main{min-width:0}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:0 80px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:0;padding-inline:16px}}
+
+/* ray */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-block:28px;max-height:100vh;overflow:auto}
+.brand{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01em;line-height:1.1}
+.brand small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
+.search{margin-top:18px;width:100%;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.search:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.rail nav{margin-top:18px;display:flex;flex-direction:column;gap:2px}
+.rail nav a{display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);font-size:14px;padding:6px 10px;border-radius:6px}
+.rail nav a:hover,.rail nav a:focus-visible{background:var(--soft);outline:none}
+.rail nav a span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend{margin-top:22px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:8px}
+.legend b{display:inline-block;width:22px;height:12px;border-radius:3px;vertical-align:middle;margin-right:8px;border:1px solid var(--accent);background:var(--soft)}
+.legend b.bub{border:1px dashed var(--event);background:var(--note)}
+@media (max-width:900px){
+  .rail{position:sticky;max-height:none;padding-block:12px;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+  .brand small,.legend{display:none}
+  .rail nav{flex-direction:row;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+  .rail nav a{white-space:nowrap;background:var(--panel);border:1px solid var(--line)}
+  .search{margin-top:10px}
+}
+
+/* hero */
+.hero{padding-block:40px 24px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5.4vw,60px);line-height:1.02;letter-spacing:-.025em;margin:10px 0 16px;text-wrap:balance;max-width:16ch}
+.hero p.lead{font-size:18px;max-width:62ch;color:var(--muted);margin:0}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:center;margin-top:26px}
+@media (max-width:1050px){.hero-grid{grid-template-columns:minmax(0,1fr)}}
+.hero-notes{display:flex;flex-direction:column;gap:14px;font-size:15px}
+.hero-notes div{padding-left:14px;border-left:2px solid var(--line)}
+.hero-notes b{font-family:var(--mono);font-weight:600}
+
+.index{display:flex;flex-wrap:wrap;gap:6px;margin-top:26px}
+.index a{font-family:var(--mono);font-size:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);padding:3px 8px;border-radius:5px}
+.index a:hover,.index a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+
+/* bölümler */
+section.cat{padding-top:48px}
+.cat-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:6px}
+.cat-head h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;margin:0;line-height:1.1;text-wrap:balance}
+.cat-head .num{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.cat-intro{color:var(--muted);max-width:68ch;margin:0 0 22px}
+
+.term{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px;scroll-margin-top:90px}
+@media (max-width:600px){.term{padding:18px 16px}}
+.term header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.abbr{font-family:var(--mono);font-weight:600;font-size:26px;color:var(--accent);letter-spacing:-.01em}
+.term h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0;line-height:1.2}
+.term .tr{font-size:14px;color:var(--muted);margin:0;flex-basis:100%}
+.term .meta{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 7px;margin-left:auto}
+.one{font-size:17px;font-weight:500;margin:12px 0 0;max-width:70ch}
+.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;margin-top:16px}
+@media (max-width:1150px){.body{grid-template-columns:minmax(0,1fr)}}
+.body h4{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.body p{margin:0 0 16px;max-width:66ch}
+dl.tech{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:0;font-size:14px}
+dl.tech dt{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:2px}
+dl.tech dd{margin:0}
+@media (max-width:500px){dl.tech{grid-template-columns:minmax(0,1fr)}dl.tech dd{margin-bottom:6px}}
+figure{margin:0;min-width:0}
+.diag-box{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+pre.code{margin:16px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55}
+pre.code .cl{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+/* svg diyagram */
+svg.diag{display:block;font-family:var(--mono);width:100%;height:auto;margin:0 auto}
+.actor{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.actor-t{fill:var(--ink);font-size:11.5px;font-weight:600}
+.life{stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
+.arrow{stroke-width:1.6;fill:none}
+.k-q .arrow{stroke:var(--accent)} .k-r .arrow{stroke:var(--resp);stroke-dasharray:5 3} .k-e .arrow{stroke:var(--event)}
+.lbl{fill:var(--ink);font-size:11px}
+.note{fill:var(--note);stroke:var(--line)}
+.step{transition:opacity .25s}
+.playing .step{opacity:.45} .playing .step.on{opacity:1}
+.step.on .lbl{font-weight:600}
+.pkt{fill:var(--event);stroke:var(--panel);stroke-width:2}
+.mq{fill:var(--accent)} .mr{fill:var(--resp)} .me{fill:var(--event)}
+.layer{fill:var(--panel);stroke:var(--ink);stroke-width:1.1}
+.layer-t{fill:var(--ink);font-size:12px;font-weight:600}
+.layer-c{fill:var(--muted);font-size:10.5px}
+.step.on .layer{fill:var(--soft);stroke:var(--accent);stroke-width:2}
+/* boru hattı çizelgesi */
+.cyc{fill:var(--muted);font-size:10.5px}
+.rowl{fill:var(--ink);font-size:11px}
+.cell{fill:var(--panel);stroke:var(--line);stroke-width:1}
+.cell-t{fill:var(--ink);font-size:10.5px;font-weight:600}
+.bub{fill:var(--note);stroke:var(--event);stroke-width:1.1;stroke-dasharray:3 2}
+.bub-t{fill:var(--event);font-size:10.5px;font-weight:600}
+.step.on .cell{fill:var(--soft);stroke:var(--accent);stroke-width:1.8}
+.step.on .bub{stroke-width:1.8}
+.grid-l{stroke:var(--line);stroke-width:1}
+
+/* karşılaştırma */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td:first-child{font-family:var(--mono);font-weight:600;color:var(--accent)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.tbl-note{font-size:13px;color:var(--muted);margin:10px 0 0;max-width:72ch}
+.empty{display:none;padding:40px 0;color:var(--muted)}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.pkt{display:none}.step{transition:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="m-q" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mq" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mr" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="me" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand">Bilgisayar Mimarisi Atlası<small>ISA · çekirdek · bellek · G/Ç</small></div>
+    <input id="q" class="search" type="search" placeholder="Ara: TLB, önbellek, DMA…" aria-label="Kavram ara">
+    <nav id="nav" aria-label="Kategoriler"></nav>
+    <div class="legend" aria-label="Şema renkleri">
+      <span><i style="border-color:var(--accent)"></i>istek / komut</span>
+      <span><i style="border-color:var(--resp);border-top-style:dashed"></i>yanıt / sonuç</span>
+      <span><i style="border-color:var(--event)"></i>olay / kesme / sinyal</span>
+      <span><b></b>boru hattı aşaması</span>
+      <span><b class="bub"></b>duraklama (kabarcık)</span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">İşlemci, bellek ve aralarındaki her şey</div>
+      <h1>Bir komut silikonda nasıl yürür?</h1>
+      <p class="lead">Yazdığın tek satır kod, derleyiciden geçip komutlara dönüşür; çekirdek bu komutları getirir, çözer, yürütür ve sonucu bir yazmaca ya da belleğe yazar. Bu atlas o yolculuğun her durağını anlatır. Şemalardaki turuncu nokta, o anda olan adımı gösterir; boru hattı çizelgelerinde her sütun bir saat çevrimidir.</p>
+      <div class="hero-grid">
+        <figure>
+          <div class="diag-box" id="hero-diag"></div>
+          <figcaption><code>x = a + b;</code> satırı aşağı doğru katman katman somutlaşır: C kodundan komutlara, komutlardan boru hattına, oradan bellek hiyerarşisine.</figcaption>
+        </figure>
+        <div class="hero-notes">
+          <div><b>ISA</b> yazılımın gördüğü sözleşmedir: hangi komutlar ve yazmaçlar var. <b>Mikromimari</b> ise bu sözleşmenin silikondaki gerçekleşmesidir.</div>
+          <div>Performansın denklemi basittir: <b>süre = komut sayısı × CPI × çevrim süresi</b>. Her teknik bu üç çarpandan birini küçültmeye çalışır.</div>
+          <div>Çekirdek hızlı, bellek yavaştır. Bir DRAM erişimi, yüzlerce toplama işlemi kadar sürer. Önbellekler bu farkı kapatmak için vardır.</div>
+          <div>Atlas üç ISA ailesini yan yana tutar: bilgisayardaki <b>x86-64</b>, telefondan STM32'ye kadar <b>ARM</b> ve açık standart <b>RISC-V</b>.</div>
+        </div>
+      </div>
+      <div class="index" id="index" aria-label="Hızlı dizin"></div>
+    </header>
+
+    <div id="content"></div>
+    <p class="empty" id="empty">Bu aramaya uyan kavram yok. Kısaltma, İngilizce ad ya da Türkçe karşılık deneyebilirsin.</p>
+
+    <section class="cat" id="karsilastirma">
+      <div class="cat-head"><h2>Yan yana: dört komut kümesi</h2><span class="num">özet tablo</span></div>
+      <p class="cat-intro">Bu atlasta en sık geçen dört mimarinin temel özellikleri. Hepsi aynı C kodunu çalıştırabilir; farklar derleyicinin ürettiği komutlarda ve donanımın karmaşıklığındadır.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Mimari</th><th>Tür</th><th>Komut uzunluğu</th><th>Genel amaçlı yazmaç</th><th>Bayt sırası</th><th>Tipik kullanım</th></tr></thead>
+        <tbody>
+          <tr><td>x86-64</td><td>CISC, bellek işlenenli komutlar</td><td>1–15 bayt, değişken</td><td>16 (APX uzantısıyla 32)</td><td>Little-endian</td><td>Masaüstü, dizüstü, sunucu</td></tr>
+          <tr><td>AArch64</td><td>RISC, load/store</td><td>4 bayt, sabit</td><td>31 (X0–X30) + SP, sıfır yazmacı</td><td>Little (bi-endian destekli)</td><td>Telefon, Apple Mac, bulut sunucusu, Raspberry Pi</td></tr>
+          <tr><td>ARMv7-M / v8-M</td><td>RISC, yalnızca Thumb-2</td><td>2 veya 4 bayt</td><td>13 (R0–R12) + SP, LR, PC</td><td>Genelde little</td><td>STM32, nRF, RP2350 gibi mikrodenetleyiciler</td></tr>
+          <tr><td>RISC-V RV64GC</td><td>RISC, modüler, açık</td><td>4 bayt (C uzantısıyla 2)</td><td>31 + x0 (her zaman 0)</td><td>Little (BE isteğe bağlı)</td><td>ESP32-C serisi MCU'lardan Linux kartlarına</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="cat" id="gecikmeler">
+      <div class="cat-head"><h2>Yan yana: erişim süreleri</h2><span class="num">yaklaşık değerler</span></div>
+      <p class="cat-intro">Bellek hiyerarşisinin her katmanı bir öncekinden yaklaşık bir büyüklük mertebesi yavaştır. Çevrim sütunu 4 GHz'lik bir çekirdek varsayar (1 çevrim = 0,25 ns).</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Katman</th><th>Tipik boyut</th><th>Gecikme</th><th>Çevrim (4 GHz)</th><th>Teknoloji</th></tr></thead>
+        <tbody>
+          <tr><td>Yazmaç</td><td class="num">yüzlerce bayt</td><td class="num">&lt; 0,3 ns</td><td class="num">0–1</td><td>Flip-flop / SRAM</td></tr>
+          <tr><td>L1 önbellek</td><td class="num">32–64 KB / çekirdek</td><td class="num">~1 ns</td><td class="num">~4–5</td><td>SRAM</td></tr>
+          <tr><td>L2 önbellek</td><td class="num">0,5–2 MB / çekirdek</td><td class="num">~3–4 ns</td><td class="num">~12–16</td><td>SRAM</td></tr>
+          <tr><td>L3 önbellek</td><td class="num">8–64+ MB, paylaşımlı</td><td class="num">~10–20 ns</td><td class="num">~40–80</td><td>SRAM</td></tr>
+          <tr><td>DRAM</td><td class="num">8–128 GB</td><td class="num">~70–100 ns</td><td class="num">~300–400</td><td>DDR4 / DDR5</td></tr>
+          <tr><td>NVMe SSD</td><td class="num">0,5–4 TB</td><td class="num">~20–100 µs</td><td class="num">~10⁵</td><td>NAND flash</td></tr>
+          <tr><td>Sabit disk</td><td class="num">1–20+ TB</td><td class="num">~5–10 ms</td><td class="num">~10⁷</td><td>Manyetik plaka</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tbl-note">Değerler mimariye ve modele göre değişir; kesin rakamlar için işlemcinin optimizasyon kılavuzuna bak. Kendi makinendeki önbellek boyutlarını <code>lscpu --caches</code> gösterir.</p>
+    </section>
+
+    <footer>Kaynak olarak Hennessy &amp; Patterson'ın <i>Computer Architecture: A Quantitative Approach</i> ve <i>Computer Organization and Design (RISC-V Edition)</i> kitapları, Intel 64 and IA-32 Architectures Software Developer's Manual, Arm Architecture Reference Manual (A ve M profilleri), RISC-V Unprivileged ve Privileged şartnameleri, ST RM0090 (STM32F4 başvuru kılavuzu) ve Linux çekirdek belgeleri temel alınmıştır. Gecikme ve boyut rakamları yaklaşıktır ve nesilden nesile değişir.</footer>
+  </main>
+</div>
+
+<script>
+/* ============ VERİ ============ */
+const CATS=[
+ {id:"temel",n:"Temel kavramlar",i:"Bir bilgisayarı tarif etmenin iki katmanı vardır: yazılımın gördüğü sözleşme (ISA) ve bu sözleşmenin silikondaki gerçekleşmesi (mikromimari). Burada ikisinin ortak dili var."},
+ {id:"cekirdek",n:"İşlemci çekirdeği",i:"Bir komutu gerçekten çalıştıran parçalar: hesap yapan ALU, en hızlı depolama olan yazmaçlar ve hepsini yöneten kontrol birimi."},
+ {id:"isa",n:"Komut kümesi mimarileri",i:"Derleyicinin hedeflediği sözleşmeler. x86-64, ARM ve RISC-V aynı işi farklı komutlarla, farklı kurallarla yapar."},
+ {id:"boru",n:"Boru hattı ve paralellik",i:"Tek bir komutu hızlandırmak zordur; modern çekirdekler bunun yerine aynı anda çok sayıda komutu farklı aşamalarda ilerletir."},
+ {id:"bellek",n:"Bellek hiyerarşisi",i:"Çekirdek ile ana bellek arasındaki hız farkını kapatan katmanlar. Performansın büyük kısmı burada kazanılır ya da kaybedilir."},
+ {id:"sanal",n:"Sanal bellek ve koruma",i:"Her sürecin kendi adres uzayını görmesini ve birbirine dokunamamasını sağlayan donanım ile işletim sistemi iş birliği."},
+ {id:"gc",n:"Kesmeler ve giriş/çıkış",i:"İşlemcinin dış dünyayla konuşma biçimleri: kesmeler, sistem çağrıları, cihaz yazmaçları ve işlemciyi yormadan veri taşıyan DMA."},
+ {id:"cok",n:"Çok çekirdek ve sistem düzeyi",i:"Tek çekirdeğin hızı sınıra dayanınca çekirdek sayısı arttı. Bu bölüm çekirdeklerin birlikte çalışmasını ve tek yonga üzerindeki sistemi anlatır."},
+ {id:"olcum",n:"Performans ölçümü",i:"Hızı neyin belirlediğini anlamak için kullanılan denklemler ve yasalar."}
+];
+
+const T=[
+/* ---------- TEMEL ---------- */
+{id:"von-neumann",c:"temel",a:"Von Neumann",f:"Von Neumann Architecture",tr:"Von Neumann mimarisi",y:"mimari modeli",
+o:"Komutların ve verinin aynı bellekte durduğu, işlemcinin ikisine de aynı yoldan eriştiği bilgisayar modeli.",
+h:"Adını 1945 tarihli EDVAC raporundan alır. Program da bir veri gibi bellekte saklanır (stored-program); bu sayede program yüklemek, derleyici çalıştırmak ya da çalışırken kod üretmek mümkündür. İşlemci her adımda bellekten bir komut okur, çözer, gerekirse yine bellekten veri okur ya da yazar. Komut ve veri aynı yolu paylaştığı için ikisi aynı anda taşınamaz. Buna \"Von Neumann darboğazı\" denir ve önbelleklerin varlık nedeni büyük ölçüde budur.",
+t:[["Parçalar","CPU (ALU, kontrol birimi, yazmaçlar), bellek, G/Ç, ortak yol"],["Bellek","Komut ve veri için tek adres uzayı"],["Darboğaz","İşlemci hızı belleğin bant genişliğini aşar"],["Bugün","Masaüstü ve sunucu CPU'ları programcıya Von Neumann makinesi gibi görünür"]],
+d:{k:"seq",a:["CPU","Bellek"],s:[[0,1,"komut oku (adres = PC)","q"],[1,0,"komut","r"],[0,0,"çöz ve yürüt","n"],[0,1,"veri oku","q"],[1,0,"veri","r"]]},
+cap:"Komut ve veri aynı yoldan sırayla gelir; ikisi aynı anda taşınamaz."},
+
+{id:"harvard",c:"temel",a:"Harvard",f:"Harvard Architecture",tr:"Harvard mimarisi",y:"mimari modeli",
+o:"Komutlar ve veri için ayrı bellekler ve ayrı yollar kullanan model.",
+h:"Ayrı yollar sayesinde işlemci aynı saat çevriminde hem sıradaki komutu hem de veriyi getirebilir. Saf Harvard yapısı DSP'lerde ve küçük mikrodenetleyicilerde görülür; örneğin AVR'de program Flash'ta, veri SRAM'dedir ve ayrı adres uzaylarıdır. Modern CPU'lar \"değiştirilmiş Harvard\" kullanır: bellek tek bir adres uzayıdır ama L1 önbellek komut (L1i) ve veri (L1d) olarak ikiye ayrılır. ARM Cortex-M çekirdeklerinde de Flash'a giden ayrı I-Code ve D-Code yolları ile bir System yolu vardır.",
+t:[["Ayrı yollar","Komut yolu ve veri yolu"],["Avantaj","Aynı çevrimde komut ve veri erişimi"],["Örnekler","AVR (ATmega), DSP'ler, Cortex-M (I-Code, D-Code, System)"],["Modern hali","Tek adres uzayı + ayrı L1i ve L1d önbellekleri"]],
+d:{k:"seq",a:["Komut belleği","CPU","Veri belleği"],s:[[1,0,"komut oku","q"],[1,2,"veri oku","q"],[0,1,"komut","r"],[2,1,"veri","r"],[1,1,"aynı çevrimde yürüt","n"]]},
+cap:"İki ayrı yol, komut ve veriyi paralel taşır."},
+
+{id:"isa",c:"temel",a:"ISA",f:"Instruction Set Architecture",tr:"Komut kümesi mimarisi",y:"sözleşme",
+o:"Yazılım ile işlemci arasındaki sözleşme: hangi komutlar var, kaç yazmaç var, bellek nasıl adreslenir.",
+h:"ISA işlemcinin dış yüzüdür; derleyici ve işletim sistemi yalnızca ISA'ya bakarak kod üretir. Aynı ISA'yı uygulayan çok farklı çipler olabilir: x86-64'ü hem Intel hem AMD üretir ve ikisi aynı ikili programı çalıştırır. ISA; komutların kodlanışını, yazmaç kümesini, veri türlerini, adresleme modlarını, ayrıcalık seviyelerini, kesme ve istisna davranışını ve bellek sıralama modelini tanımlar. Bunları ne kadar hızlı çalıştıracağın (boru hattı derinliği, önbellek boyutu, frekans) ise ISA'nın değil mikromimarinin konusudur.",
+t:[["Tanımlar","Komutlar, yazmaçlar, adresleme, istisnalar, bellek modeli"],["Tanımlamaz","Önbellek boyutu, boru hattı, saat hızı"],["Örnekler","x86-64, AArch64, RISC-V, ARMv7-M (Thumb-2)"],["Belgeler","Intel SDM, Arm ARM, RISC-V Unprivileged ve Privileged şartnameleri"]],
+d:{k:"stack",l:["Uygulama|C, Rust kodu","Derleyici|kodu ISA komutlarına çevirir","ISA|sözleşme: add, ld, beq…","Mikromimari|boru hattı, önbellek, tahminci","Devre|transistörler, mantık kapıları"]},
+cap:"ISA, yazılımla donanım arasındaki çizgidir. Üstündeki katmanlar altındakilerin ayrıntısını bilmek zorunda değildir."},
+
+{id:"mikromimari",c:"temel",a:"µarch",f:"Microarchitecture",tr:"Mikromimari",y:"tasarım",
+o:"Bir ISA'nın silikonda nasıl gerçekleştirildiği: boru hattı, önbellekler, yürütme birimleri.",
+h:"Aynı ISA'yı uygulayan iki çip, mikromimarileri farklı olduğu için çok farklı performans verebilir. Örneğin Cortex-A55 komutları programdaki sırayla çalıştıran küçük ve verimli bir çekirdektir; Cortex-A78 ise komutları sırası dışında çalıştıran, çok daha büyük ve hızlı bir tasarımdır. İkisi de aynı AArch64 programını çalıştırır. Mikromimari kararları programın doğruluğunu değiştirmez, hızını değiştirir: önbellek boyutları, dal tahmincisinin kalitesi, kaç ALU olduğu gibi. Spectre gibi zafiyetler, görünmez olması gereken mikromimari durumunun zamanlama yoluyla dışarı sızmasıdır.",
+t:[["Kararlar","Boru hattı derinliği ve genişliği, önbellekler, tahminci, yürütme birimleri"],["Örnek aileler","Intel Core, AMD Zen, Arm Cortex-A/X/M, SiFive"],["Görünürlük","Sonucu değil, hızı etkiler"],["Yan etki","Zamanlama yan kanalları (Spectre, Meltdown)"]],
+d:{k:"stack",l:["ISA: AArch64|iki çekirdek de aynı programı çalıştırır","Cortex-A55|sırayla yürütme, küçük, verimli","Cortex-A78|sırası dışı yürütme, büyük, hızlı"]},
+cap:"Aynı sözleşme, iki farklı gerçekleştirme. Telefonlar ikisini aynı çipte birlikte kullanır."},
+
+{id:"saat",c:"temel",a:"Clock",f:"Clock signal",tr:"Saat sinyali",y:"zamanlama",
+o:"Sayısal devrenin bütün parçalarını aynı ritimde ilerleten kare dalga.",
+h:"Senkron devrelerde flip-floplar yalnızca saatin kenarında (genelde yükselen kenar) yeni değer alır. İki kenar arasındaki süre, en yavaş mantık yolunun (kritik yol) sinyali tamamlamasına yetmelidir; frekansın üst sınırını bu belirler. 4 GHz'lik bir işlemcide bir çevrim 0,25 ns'dir ve ışık bu sürede yaklaşık 7,5 cm yol alır. Dinamik güç kabaca kapasitans × gerilim² × frekans ile orantılı olduğundan modern çipler yüke göre frekansı ve gerilimi birlikte değiştirir (DVFS). STM32 gibi mikrodenetleyicilerde saat ağacı (RCC) her çevre birimine ayrı saat dağıtır.",
+t:[["Birim","Hz; çevrim süresi = 1 / frekans"],["Sınır","Kritik yolun gecikmesi"],["Güç","Dinamik güç ≈ C · V² · f"],["DVFS","Yük azalınca frekans ve gerilim düşer (Linux: cpufreq)"],["MCU","STM32 RCC: HSE/HSI → PLL → SYSCLK → AHB/APB bölücüleri"]],
+d:{k:"seq",a:["Saat","Flip-flop","Mantık"],s:[[0,1,"yükselen kenar","e"],[1,2,"yeni değer çıkar","q"],[2,2,"sinyal kapılardan geçer","n"],[2,1,"sonuç hazır","r"],[0,1,"sonraki kenar: yakala","e"]]},
+cap:"Bir çevrim, en uzun mantık yolunun bitmesine yetecek kadar uzun olmalıdır."},
+
+{id:"endian",c:"temel",a:"Endian",f:"Endianness",tr:"Bayt sırası",y:"veri gösterimi",
+o:"Çok baytlı bir sayının bellekte hangi baytından başlanarak yazıldığı.",
+h:"0x12345678 sayısı little-endian sistemde bellekte 78 56 34 12, big-endian sistemde 12 34 56 78 olarak durur. x86-64 little-endian'dır; ARM ve RISC-V iki sırayı da tanımlar ama pratikte hemen her zaman little-endian kullanılır. Ağ protokolleri ise big-endian kullanır (\"network byte order\"); C'deki htonl ve ntohl fonksiyonları bu yüzden vardır. Bayt sırası yalnızca belleğe, dosyaya ya da ağa bayt bayt bakıldığında önemlidir. Yazmacın içindeki sayının bir bayt sırası yoktur.",
+t:[["Little-endian","En düşük anlamlı bayt en düşük adreste (x86, pratikte ARM ve RISC-V)"],["Big-endian","En yüksek anlamlı bayt en düşük adreste (ağ protokolleri)"],["Bi-endian","ARM ve RISC-V iki modu da tanımlar"],["Dönüşüm","C: htonl(), ntohl() · Rust: u32::to_be_bytes()"]],
+d:{k:"stack",l:["adres +0|LE: 78 · BE: 12","adres +1|LE: 56 · BE: 34","adres +2|LE: 34 · BE: 56","adres +3|LE: 12 · BE: 78"]},
+cap:"0x12345678 sayısının dört baytı, iki farklı sırayla."
+,x:["C — bayt sırasını görmek",`uint32_t x = 0x12345678;
+uint8_t *p = (uint8_t *)&x;
+printf("%02x %02x %02x %02x\\n", p[0], p[1], p[2], p[3]);
+// x86-64 çıktısı: 78 56 34 12`]},
+
+/* ---------- ÇEKİRDEK ---------- */
+{id:"alu",c:"cekirdek",a:"ALU",f:"Arithmetic Logic Unit",tr:"Aritmetik mantık birimi",y:"yürütme birimi",
+o:"Toplama, çıkarma, AND/OR/XOR, kaydırma ve karşılaştırma yapan devre.",
+h:"ALU iki girdi alır, kontrol biriminden gelen işlem koduna göre bir sonuç ve durum bayrakları üretir. Toplayıcının hızı (carry-lookahead gibi tekniklerle) çekirdeğin ulaşabileceği frekansı doğrudan etkiler. Modern çekirdeklerde birden çok tamsayı ALU'su bulunur; çarpma, bölme, kayan nokta (FPU) ve vektör işlemleri ayrı yürütme birimlerinde yapılır. Bölme pahalıdır: bir toplama tek çevrimde biterken 64 bitlik tamsayı bölme mimariye göre onlarca çevrim sürebilir. Derleyiciler bu yüzden sabite bölmeyi çarpma ve kaydırmaya çevirir.",
+t:[["Girdi","İki işlenen + işlem kodu"],["Çıktı","Sonuç + bayraklar (Z, N, C, V)"],["Kardeş birimler","Çarpıcı, bölücü, FPU, vektör birimi, adres üretici (AGU)"],["Gecikme","add ≈ 1 çevrim; tamsayı bölme çok daha uzun"]],
+d:{k:"seq",a:["Yazmaç dosyası","ALU","Bayraklar"],s:[[0,1,"A = 7, B = 5","q"],[1,1,"işlem: SUB","n"],[1,0,"sonuç: 2","r"],[1,2,"Z = 0, N = 0","e"]]},
+cap:"Yazmaçlardan iki değer gelir, sonuç ve bayraklar geri döner."},
+
+{id:"yazmac",c:"cekirdek",a:"Register",f:"Register / Register file",tr:"Yazmaç",y:"depolama",
+o:"Çekirdeğin içindeki, tek çevrimde okunup yazılabilen en hızlı ve en küçük depolama.",
+h:"İşlemler çoğunlukla yazmaçlar üzerinde yapılır; bellekteki veri önce bir yazmaca yüklenir. ISA'nın tanımladığı mimari yazmaçlar azdır: x86-64'te 16 genel amaçlı yazmaç (RAX…R15; APX uzantısı bunu 32'ye çıkarır), AArch64'te 31 (X0–X30), RISC-V'de 32 (x0 her zaman sıfırdır). Sırası dışı çalışan çekirdeklerde bunların arkasında yüzlerce fiziksel yazmaç bulunur ve yazmaç yeniden adlandırma ile eşlenir. Program sayacı (PC), yığın işaretçisi (SP) ve durum yazmacı gibi özel yazmaçlar da vardır.",
+t:[["x86-64","16 GPR (APX ile 32), RIP, RFLAGS, XMM/YMM/ZMM"],["AArch64","X0–X30, SP, PC, NZCV, V0–V31"],["RISC-V","x0–x31 (x0 = 0), pc, f0–f31"],["Cortex-M","R0–R12, SP (R13), LR (R14), PC (R15), xPSR"]],
+d:{k:"seq",a:["Bellek","Yazmaç","ALU"],s:[[0,1,"ldr x1, [x0]","q"],[1,2,"x1 + x2","q"],[2,1,"x3 ← sonuç","r"],[1,0,"str x3, [x0]","e"]]},
+cap:"Load/store mimarisinde veri yazmaca alınır, işlenir, gerekirse belleğe geri yazılır."},
+
+{id:"pc",c:"cekirdek",a:"PC",f:"Program Counter",tr:"Program sayacı",y:"özel yazmaç",
+o:"Sıradaki çalıştırılacak komutun adresini tutan yazmaç.",
+h:"Her komut getirildiğinde PC komutun boyu kadar ilerler: sabit 4 baytlık komutlu RISC'lerde 4, x86'da 1 ile 15 bayt arası. Dallanma, çağrı ve dönüş komutları PC'ye yeni bir değer yazarak akışı değiştirir. x86-64'te adı RIP'tir ve RIP'e göreli adresleme sayesinde konumdan bağımsız kod (PIC) kolayca üretilir. Kesme ya da istisna geldiğinde donanım PC'yi saklar ki işleyici bitince kalınan yerden devam edilsin. Dönüş adresi x86'da yığına itilir, ARM ve RISC-V'de ise bağlantı yazmacına (LR, ra) yazılır.",
+t:[["İsimler","x86-64: RIP · AArch64: PC · RISC-V: pc · Cortex-M: R15"],["İlerleme","Sıralı komutta + komut boyu, dalda hedef adres"],["Dönüş adresi","x86: yığına; ARM: LR; RISC-V: ra (x1)"],["Kullanım","PC'ye göreli adresleme, konumdan bağımsız kod"]],
+d:{k:"seq",a:["PC","Komut belleği","Çözücü"],s:[[0,1,"0x1000","q"],[1,2,"addi x1, x1, 1","r"],[0,0,"PC ← 0x1004","n"],[0,1,"0x1004","q"],[1,2,"j 0x2000","r"],[2,0,"PC ← 0x2000 (atlama)","e"]]},
+cap:"PC normalde 4'er ilerler; atlama komutu ona yeni bir hedef yazar."},
+
+{id:"fde",c:"cekirdek",a:"F-D-E",f:"Fetch–Decode–Execute cycle",tr:"Getir–çöz–yürüt çevrimi",y:"çalışma döngüsü",
+o:"İşlemcinin her komut için tekrarladığı temel döngü.",
+h:"Getir (fetch): PC'deki adresten komut okunur. Çöz (decode): komutun ne olduğu ve hangi yazmaçları kullandığı belirlenir, yazmaçlar okunur. Yürüt (execute): ALU işlemi yapılır ya da bellek adresi hesaplanır. Bellek (memory): yükleme ve saklama komutları belleğe erişir. Geri yaz (write-back): sonuç hedef yazmaca yazılır. Klasik beş aşamalı RISC boru hattı bu adımları ayrı donanım aşamalarına böler ve her aşamada farklı bir komut bulunabilir. x86 çekirdeklerinde çözme adımı değişken uzunluklu komutları önce µop adı verilen iç işlemlere böler.",
+t:[["Aşamalar","IF, ID, EX, MEM, WB"],["Boru hattı olmadan","Komut başına birkaç çevrim"],["Boru hattıyla","İdealde her çevrimde bir komut tamamlanır"],["x86","Komutlar µop'lara çözülür; sık kullanılanlar µop önbelleğinde tutulur"]],
+d:{k:"stack",l:["Getir (IF)|PC → komut belleği","Çöz (ID)|opcode, yazmaç numaraları","Yürüt (EX)|ALU ya da adres hesabı","Bellek (MEM)|load / store","Geri yaz (WB)|sonuç → yazmaç"]},
+cap:"Bir komutun beş aşaması. Nokta her aşamadan geçip başa döner."},
+
+{id:"kontrol",c:"cekirdek",a:"CU",f:"Control Unit",tr:"Kontrol birimi",y:"denetim",
+o:"Çözülen komuta göre veri yolundaki çoklayıcıları, ALU'yu ve belleği yöneten birim.",
+h:"Kontrol birimi komutun bitlerine bakarak hangi yazmacın okunacağını, ALU'nun hangi işlemi yapacağını, belleğe yazılıp yazılmayacağını belirleyen kontrol sinyallerini üretir. İki yaklaşım vardır. Kablolu (hardwired) kontrol bu sinyalleri doğrudan mantık kapılarıyla üretir ve hızlıdır. Mikroprogramlı kontrol ise her komutu küçük bir ROM'daki mikro komut dizisine çevirir; esnektir ve güncellenebilir. x86 çekirdekleri karmaşık komutlar için hâlâ mikrokod kullanır; Intel ve AMD'nin mikrokod güncellemeleri bu yüzden BIOS veya işletim sistemi açılışında yüklenebilir.",
+t:[["Kablolu","Hızlı, sabit; çoğu RISC çekirdeği"],["Mikroprogramlı","Esnek, güncellenebilir; x86'nın karmaşık komutları"],["Linux","intel-ucode, amd-ucode paketleri; dmesg | grep microcode"],["Sinyaller","RegWrite, MemRead, MemWrite, ALUOp, Branch…"]],
+d:{k:"seq",a:["Çözücü","Kontrol birimi","Veri yolu"],s:[[0,1,"opcode: LOAD","q"],[1,2,"ALUOp = ADD (adres)","e"],[1,2,"MemRead = 1","e"],[1,2,"RegWrite = 1","e"]]},
+cap:"Bir yükleme komutu için üretilen kontrol sinyalleri."},
+
+{id:"bayrak",c:"cekirdek",a:"Flags",f:"Condition flags / Status register",tr:"Durum bayrakları",y:"özel yazmaç",
+o:"Son işlemin sonucu hakkında tek bitlik bilgiler: sıfır mı, negatif mi, taşma oldu mu.",
+h:"ALU bir işlem yaptığında bayrakları günceller; ardından gelen koşullu dal komutu bu bayraklara bakarak karar verir. Örneğin cmp komutu aslında bir çıkarma yapar, sonucu atar ve yalnızca bayrakları ayarlar; beq ya da je ise Z bayrağı 1 ise dallanır. İşaretsiz ve işaretli karşılaştırmalar farklı bayraklara bakar: işaretsizde C, işaretlide N ve V. RISC-V'de bayrak yazmacı yoktur: karşılaştırma ve dallanma tek komutta yapılır. Bu, sırası dışı yürütmede gereksiz bağımlılıkları azaltır.",
+t:[["Z","Sonuç sıfır"],["N / S","Sonuç negatif"],["C","Elde ya da borç (işaretsiz taşma)"],["V / O","İşaretli taşma"],["Yazmaçlar","x86: RFLAGS · ARM: NZCV / xPSR · RISC-V: yok"]],
+d:{k:"seq",a:["ALU","NZCV","Dal birimi"],s:[[0,0,"cmp x0, #10 → x0 − 10","n"],[0,1,"N = 1, V = 0","e"],[2,1,"b.lt: N ≠ V mi?","q"],[1,2,"evet → dallan","r"]]},
+cap:"cmp yalnızca bayrakları ayarlar; koşullu dal onlara bakar."
+,x:["AArch64 ve RISC-V — aynı karşılaştırma",`// AArch64: bayraklı
+cmp  x0, #10       // x0 - 10, sonuç atılır
+b.lt kucuk         // N != V ise dallan
+
+# RISC-V: bayraksız
+li   t0, 10
+blt  a0, t0, kucuk`]},
+
+/* ---------- ISA ---------- */
+{id:"cisc-risc",c:"isa",a:"CISC / RISC",f:"Complex vs. Reduced Instruction Set Computer",tr:"Karmaşık ve indirgenmiş komut kümeleri",y:"tasarım felsefesi",
+o:"Az ama güçlü komutlar mı, çok ama basit komutlar mı sorusunun iki cevabı.",
+h:"CISC (x86 gibi) tek komutla bellekten okuyup işlem yapıp geri yazabilir ve komut uzunlukları değişkendir. RISC (ARM, RISC-V) load/store mimarisidir: işlemler yalnızca yazmaçlar üzerinde yapılır, bellek erişimi ayrı komutlarla olur ve komutlar sabit uzunluktadır; bu da çözmeyi ve boru hattını basitleştirir. Bugün ayrım bulanıklaştı. Modern x86 çekirdekleri komutları içeride RISC benzeri µop'lara çevirir, ARM ise zamanla zengin komutlar kazandı. Asıl farklar artık kod yoğunluğu, çözücünün karmaşıklığı, enerji ve ekosistemdir.",
+t:[["CISC","Değişken uzunluk (x86: 1–15 bayt), bellek işlenenli komutlar"],["RISC","Sabit uzunluk (genelde 4 bayt), load/store"],["Sıkıştırma","Thumb-2 ve RISC-V C uzantısı 16 bitlik komutlar ekler"],["Modern x86","Önce µop'a çözer, sonra RISC gibi yürütür"]],
+d:{k:"seq",a:["Program","Çözücü","µop kuyruğu"],s:[[0,1,"add dword [rdi], 1","q"],[1,2,"µop: load","e"],[1,2,"µop: add","e"],[1,2,"µop: store","e"]]},
+cap:"Modern x86 çekirdeği bir CISC komutunu içeride RISC benzeri parçalara böler."
+,x:["Aynı iş: bellekteki sayıya 1 ekle",`; x86-64 (CISC) — tek komut
+add dword ptr [rdi], 1
+
+# RISC-V (RISC) — üç komut
+lw   t0, 0(a0)
+addi t0, t0, 1
+sw   t0, 0(a0)`]},
+
+{id:"x86-64",c:"isa",a:"x86-64",f:"x86-64 / AMD64 / Intel 64",tr:"x86-64 mimarisi",y:"ISA",
+o:"Masaüstü ve sunucuların baskın komut kümesi; 1978'deki 8086'nın 64 bitlik devamı.",
+h:"Intel 8086 ile başlayan aile 1985'te 80386 ile 32 bite (IA-32), 2003'te AMD'nin tasarladığı AMD64 ile 64 bite geçti; Intel aynı genişlemeyi Intel 64 adıyla benimsedi. Geriye dönük uyumluluk ailenin en belirgin özelliğidir: işlemci hâlâ 16 bitlik gerçek kipte (real mode) açılır ve yazılım onu long mode'a geçirir. Değişken uzunluklu kodlama, önekler (REX, VEX, EVEX) ve SSE, AVX, AVX-512 gibi vektör uzantılarıyla çok zengin ama çözmesi zor bir ISA'dır. Linux'ta System V AMD64 ABI kullanılır.",
+t:[["Yazmaçlar","16 GPR, 16 ya da 32 vektör yazmacı (XMM/YMM/ZMM)"],["Kipler","Real, protected, long mode"],["Vektör","SSE, AVX2, AVX-512, AVX10"],["Üreticiler","Intel, AMD"],["ABI","System V AMD64 (Linux, macOS), Microsoft x64 (Windows)"]],
+d:{k:"stack",l:["8086 (1978)|16 bit","80386 (1985)|32 bit, IA-32, sayfalama","AMD64 (2003)|64 bit, long mode, 16 GPR","Bugün|AVX-512 / AVX10, APX"]},
+cap:"Her yeni nesil eskisinin üstüne eklenir; eski programlar hâlâ çalışır."},
+
+{id:"arm",c:"isa",a:"ARM",f:"Arm architecture (AArch32 / AArch64)",tr:"ARM mimarisi",y:"ISA ailesi",
+o:"Telefonlardan sunuculara ve mikrodenetleyicilere kadar en yaygın işlemci mimarisi ailesi.",
+h:"Arm şirketi çip üretmez; ISA'yı ve çekirdek tasarımlarını lisanslar. Üç profil vardır. A (Application) profili telefon, bilgisayar ve sunucu içindir, MMU'su vardır ve Linux çalıştırır. R (Real-time) profili araç ve disk denetleyicileri gibi zamanlamanın kritik olduğu yerlerde kullanılır. M (Microcontroller) profili STM32 gibi mikrodenetleyicilerdedir; MMU yoktur, isteğe bağlı bir MPU vardır. ARMv8-A ile gelen AArch64; 31 genel yazmaç, sabit 32 bitlik komutlar ve temizlenmiş bir tasarım sunar. Cortex-M çekirdekleri yalnızca 16 ve 32 bitlik komutların karıştığı Thumb-2 kodlamasını çalıştırır.",
+t:[["Profiller","A: Cortex-A, Neoverse · R: Cortex-R · M: Cortex-M"],["Sürümler","ARMv7, ARMv8-A (AArch64), ARMv9-A, ARMv8-M, ARMv8.1-M"],["Vektör","NEON (ASIMD), SVE/SVE2, M profilinde Helium (MVE)"],["Lisans","Çekirdek lisansı ya da mimari lisansı (Apple, Qualcomm kendi çekirdeklerini tasarlar)"]],
+d:{k:"stack",l:["Arm ISA|Arm tasarlar, lisanslar","A profili|Cortex-A, Neoverse: Linux, telefon, sunucu","R profili|Cortex-R: gerçek zamanlı denetim","M profili|Cortex-M: STM32, nRF, RP2350"]},
+cap:"Tek bir mimari ailesi, üç farklı kullanım alanı."},
+
+{id:"risc-v",c:"isa",a:"RISC-V",f:"RISC-V",tr:"RISC-V",y:"açık ISA",
+o:"Herkesin lisans ücreti ödemeden kullanabildiği, modüler, açık standart komut kümesi.",
+h:"2010'da UC Berkeley'de başladı, bugün RISC-V International tarafından yönetiliyor. Küçük bir temel tamsayı kümesinin (RV32I veya RV64I) üstüne isteğe bağlı uzantılar eklenir: M (çarpma/bölme), A (atomik), F ve D (kayan nokta), C (16 bitlik sıkıştırılmış komutlar), V (vektör). Linux çalıştıracak genel amaçlı işlemciler için RVA22 ve RVA23 gibi profiller hangi uzantıların zorunlu olduğunu belirler. Açık olduğu için akademide ve ticari çiplerde hızla yayıldı: Espressif'in ESP32-C serisi, SiFive çekirdekleri ve Raspberry Pi RP2350'deki Hazard3 çekirdekleri bunlara örnektir.",
+t:[["Temel","RV32I, RV64I, RV32E (16 yazmaç)"],["Uzantılar","M, A, F, D, C, V, Zicsr, Zifencei…"],["Kısaltma","RV64GC = RV64IMAFD + Zicsr + Zifencei + C"],["Kipler","M (machine), S (supervisor), U (user)"],["Şartname","riscv.org: Unprivileged ve Privileged ISA"]],
+d:{k:"stack",l:["RV64I|temel tamsayı komutları","+ M + A|çarpma, bölme, atomik","+ F + D|tek ve çift duyarlıklı kayan nokta","+ C|16 bitlik sıkıştırılmış komutlar","+ V|vektör"]},
+cap:"İhtiyaç kadar uzantı eklenir; küçük bir MCU yalnızca RV32IMC kullanabilir."},
+
+{id:"adresleme",c:"isa",a:"Addressing",f:"Addressing modes",tr:"Adresleme modları",y:"ISA özelliği",
+o:"Bir komutun işlenenini nereden bulacağını tarif etme biçimleri.",
+h:"Anlık (immediate) modda değer komutun içindedir. Yazmaç modunda işlenen bir yazmaçtadır. Taban + öteleme modunda adres, bir yazmaç ile sabit bir sayının toplamıdır. Dizi erişimi için taban + indeks × ölçek kullanılır. PC'ye göreli adreslemede adres, o anki komutun adresine göre hesaplanır. x86 tek komutta [taban + indeks × ölçek + öteleme] hesaplayabilir; RISC-V ise bilerek yalnızca taban + 12 bitlik öteleme sunar ve gerisini ayrı komutlarla yaptırır. Adres hesabını çekirdekteki adres üretim birimi (AGU) yapar.",
+t:[["Anlık","addi x1, x1, 5"],["Yazmaç","add x1, x2, x3"],["Taban + öteleme","ld x1, 8(x2)"],["İndeksli (x86)","mov eax, [rbx + rcx*4 + 16]"],["PC'ye göreli","auipc (RISC-V), adrp (AArch64), [rip + disp] (x86-64)"]],
+d:{k:"seq",a:["Komut","AGU","Bellek"],s:[[0,1,"taban = rdi, indeks = rsi, ölçek = 4","q"],[1,1,"adres = rdi + rsi × 4","n"],[1,2,"oku [adres]","q"],[2,0,"arr[i]","r"]]},
+cap:"x86 dizi elemanının adresini tek komutta hesaplar."
+,x:["C dizisi → x86-64",`int a = arr[i];
+// rdi = arr, rsi = i
+mov eax, DWORD PTR [rdi + rsi*4]`]},
+
+{id:"abi",c:"isa",a:"ABI",f:"Application Binary Interface / Calling convention",tr:"İkili uygulama arayüzü, çağrı kuralı",y:"sözleşme",
+o:"Derlenmiş kodların birbirini doğru çağırabilmesi için uyulan kurallar: argümanlar hangi yazmaçta, yığın nasıl düzenlenir.",
+h:"ISA hangi komutların olduğunu söyler; ABI ise bu komutların ortak bir şekilde nasıl kullanılacağına dair anlaşmadır. Argümanların hangi yazmaçlardan geçirileceği, dönüş değerinin nerede olacağı, hangi yazmaçları çağrılan fonksiyonun koruması gerektiği (callee-saved), yığın hizalaması (x86-64'te çağrı anında 16 bayt), veri türlerinin boyutu ve yapıların bellekteki yerleşimi ABI'de tanımlıdır. C ile Rust'ı ya da assembly'yi birlikte kullanırken extern \"C\" yazdığında bu kurala uyulmasını istersin.",
+t:[["x86-64 SysV","Argümanlar RDI, RSI, RDX, RCX, R8, R9 · dönüş RAX"],["AArch64 AAPCS64","Argümanlar X0–X7 · dönüş X0"],["RISC-V","Argümanlar a0–a7 · dönüş a0 (a1)"],["Cortex-M AAPCS","Argümanlar R0–R3 · dönüş R0"],["Rust","extern \"C\" fn, #[repr(C)]"]],
+d:{k:"seq",a:["Çağıran","Yazmaçlar","Çağrılan"],s:[[0,1,"a0 = 3, a1 = 4","q"],[0,2,"call topla","q"],[2,1,"a0 ← 7","r"],[2,0,"ret","r"]]},
+cap:"RISC-V çağrı kuralı: argümanlar ve dönüş değeri a yazmaçlarında."
+,x:["C fonksiyonu ve RISC-V karşılığı",`long topla(long a, long b) { return a + b; }
+
+topla:
+    add  a0, a0, a1   # a0 = a, a1 = b
+    ret               # sonuç a0'da`]},
+
+/* ---------- BORU HATTI ---------- */
+{id:"pipeline",c:"boru",a:"Pipeline",f:"Instruction pipelining",tr:"Boru hattı",y:"teknik",
+o:"Komutu aşamalara bölüp her aşamada farklı bir komut çalıştırarak verimi artırma tekniği.",
+h:"Çamaşırhaneyi düşün: ilk yıkama bitince makine boş kalmaz, sıradaki çamaşır girer, ilki kurutucuya geçer. Beş aşamalı boru hattında ideal durumda her çevrimde bir komut tamamlanır. Tek bir komutun süresi kısalmaz ama verim beş katına yaklaşır. Aşama sayısı arttıkça her aşama kısalır ve frekans yükselebilir, ancak dal yanlış tahmin edildiğinde boşa giden iş de artar. Pentium 4'ün 31 aşamalı boru hattı bu dengenin uç örneğiydi.",
+t:[["Klasik 5 aşama","IF, ID, EX, MEM, WB"],["Cortex-M","M0+: 2 aşama · M0, M3, M4: 3 aşama · M7: 6 aşama"],["Uç örnek","Pentium 4 (Prescott): 31 aşama"],["Kazanç","Verim artar; tek komutun gecikmesi aynı kalır ya da artar"]],
+d:{k:"pipe",r:[["add x1,x2,x3",0],["sub x4,x5,x6",1],["and x7,x8,x9",2],["or  x10,x11,x12",3]]},
+cap:"Her sütun bir saat çevrimi. Boru hattı dolduktan sonra her çevrimde bir komut tamamlanır."},
+
+{id:"hazard",c:"boru",a:"Hazard",f:"Pipeline hazards",tr:"Boru hattı tehlikeleri",y:"sorun",
+o:"Boru hattındaki bir komutun bir sonraki çevrimde ilerleyememesine yol açan çakışmalar.",
+h:"Üç türü vardır. Veri tehlikesi: bir komut, henüz sonucu hazır olmayan önceki bir komutun sonucuna ihtiyaç duyar (read-after-write). Kontrol tehlikesi: bir dalın nereye gideceği belli olmadan sonraki komutlar getirilmiştir. Yapısal tehlike: iki komut aynı anda aynı donanım birimini ister, örneğin tek portlu bir belleği. Çözüm yoksa boru hattı durdurulur ve araya bir kabarcık (bubble) girer. Yönlendirme, dal tahmini ve kaynakları çoğaltmak bu duraklamaları azaltır.",
+t:[["Veri","RAW (gerçek bağımlılık); WAR ve WAW (isim bağımlılıkları)"],["Kontrol","Dallar, atlamalar, istisnalar"],["Yapısal","Paylaşılan birim ya da port"],["Çözümler","Yönlendirme, duraklatma, dal tahmini, yazmaç yeniden adlandırma"]],
+d:{k:"pipe",r:[["ld  x1,0(x2)",0],["add x3,x1,x4",1,["IF","ID","·","EX","MEM","WB"]],["sub x5,x6,x7",2,["IF","·","ID","EX","MEM","WB"]]]},
+cap:"Yükle-kullan tehlikesi: add, x1'in bellekten gelmesi için bir çevrim bekler; arkasındaki komut da onunla birlikte durur."},
+
+{id:"forwarding",c:"boru",a:"Forwarding",f:"Data forwarding / bypassing",tr:"Yönlendirme (baypas)",y:"teknik",
+o:"Bir sonucu yazmaca yazılmasını beklemeden doğrudan bir sonraki komutun ALU girişine taşıyan kısayol.",
+h:"add x1, … komutunun sonucu EX aşamasının sonunda hazırdır ama normalde ancak WB aşamasında yazmaca yazılır. Hemen ardından gelen sub …, x1, … komutu x1'i ID aşamasında okursa eski değeri alır. Yönlendirme devresi, EX/MEM ve MEM/WB aşama yazmaçlarındaki taze sonucu çoklayıcılarla ALU girişine geri besler; böylece duraklamaya gerek kalmaz. İstisna yükleme komutudur: veri ancak MEM aşamasının sonunda geldiği için hemen arkasındaki bağımlı komut yine bir çevrim beklemek zorundadır.",
+t:[["Kaynak","EX/MEM ve MEM/WB boru hattı yazmaçları"],["Hedef","ALU girişlerindeki çoklayıcılar"],["Çözdüğü","ALU → ALU RAW bağımlılıkları"],["Çözemediği","Yükle-kullan durumu (1 çevrim duraklama)"]],
+d:{k:"seq",a:["add (EX)","Yönlendirme","sub (EX)"],s:[[0,0,"x1 = 9 hesaplandı","n"],[0,1,"EX/MEM: x1 = 9","e"],[1,2,"ALU girişi ← 9","r"],[2,2,"sub duraklamadan yürür","n"]]},
+cap:"Sonuç yazmaca uğramadan bir sonraki komuta ulaşır."},
+
+{id:"dal-tahmini",c:"boru",a:"Branch prediction",f:"Branch prediction",tr:"Dal tahmini",y:"teknik",
+o:"Koşullu bir dalın sonucu belli olmadan hangi yöne gideceğini tahmin edip o yoldan komut getirmeye devam etme.",
+h:"Dalın koşulu ancak yürütme aşamasında belli olur ve kodda yaklaşık her beş-altı komuttan biri daldır; her seferinde beklemek büyük kayıp olur. Tahminci geçmiş davranışa bakar. En basiti 2 bitlik doymuş sayaçtır (güçlü ya da zayıf alınır/alınmaz). Modern çekirdekler global dal geçmişini kullanan TAGE benzeri tahminciler, hedef adresler için BTB (Branch Target Buffer) ve fonksiyon dönüşleri için bir dönüş adresi yığını (RAS) kullanır. Doğru tahmin bedavadır; yanlış tahminde getirilen komutlar atılır ve derin boru hatlarında 15–20 çevrim kaybedilir.",
+t:[["Statik","Geri dallar alınır, ileri dallar alınmaz varsayımı"],["Dinamik","2 bit sayaç, gshare, TAGE, perceptron"],["BTB","Dal hedef adresi önbelleği"],["RAS","Fonksiyon dönüş adresleri yığını"],["Ceza","Modern çekirdekte yanlış tahmin başına ~15–20 çevrim"]],
+d:{k:"seq",a:["Getirme","Tahminci","Yürütme"],s:[[0,1,"0x40: beq?","q"],[1,0,"alınır → 0x80","r"],[0,0,"0x80'den getirmeye devam","n"],[2,1,"gerçek: alınmadı","e"],[1,0,"temizle, 0x44'ten başla","e"]]},
+cap:"Yanlış tahminde boru hattı temizlenir ve doğru adresten yeniden başlanır."
+,x:["Tahmin edilmesi zor dal",`// rastgele veride bu döngü, aynı veri sıralıyken
+// belirgin şekilde daha yavaş çalışır
+for (int i = 0; i < n; i++)
+    if (data[i] >= 128)   // sıralıysa tahmin kolay
+        sum += data[i];`]},
+
+{id:"superskaler",c:"boru",a:"Superscalar",f:"Superscalar execution",tr:"Süperskaler yürütme",y:"teknik",
+o:"Her çevrimde birden fazla komutu aynı anda başlatabilen çekirdek tasarımı.",
+h:"Süperskaler çekirdekte birden fazla çözücü ve birden fazla yürütme birimi vardır. Birbirine bağımlı olmayan komutlar aynı çevrimde farklı birimlere gönderilir. Çekirdeğin genişliği, yani çevrim başına çözülebilen ya da başlatılabilen komut sayısı, bu yüzden önemli bir ölçüdür ve çevrim başına komut (IPC) ancak böyle 1'in üzerine çıkabilir. Genişliği sınırlayan şey, komutlar arasındaki bağımlılıklar ve programın içindeki doğal paralelliktir (ILP).",
+t:[["Küçük örnekler","Cortex-M7 ve Cortex-A55: çift çıkışlı (2 geniş), sırayla"],["Büyük çekirdekler","6–10 geniş çözme ve yürütme"],["Gerekenler","Çoklu çözücü, çoklu ALU, çok portlu yazmaç dosyası"],["Sınır","Komut düzeyi paralellik (ILP)"]],
+d:{k:"pipe",r:[["add x1,x2,x3",0],["mul x4,x5,x6",0],["ld  x7,0(x8)",1],["sub x9,x1,x4",1]]},
+cap:"İki geniş çekirdek: bağımsız komut çiftleri aynı çevrimde ilerler."},
+
+{id:"ooo",c:"boru",a:"OoO",f:"Out-of-order execution",tr:"Sırası dışı yürütme",y:"teknik",
+o:"Komutları programdaki sırayla değil, girdileri hazır oldukça çalıştırıp sonuçları yine program sırasıyla teslim etme.",
+h:"Bir yükleme komutu önbellekte veriyi bulamayıp yüzlerce çevrim beklerken, ona bağımlı olmayan sonraki komutların beklemesine gerek yoktur. Komutlar çözüldükten sonra yazmaç yeniden adlandırma ile sahte bağımlılıklardan (WAR, WAW) arındırılır, rezervasyon istasyonlarında girdilerini bekler ve hazır olan bir yürütme birimine gönderilir; bu, Tomasulo algoritmasının modern halidir. Yeniden sıralama tamponu (ROB) ise komutları program sırasıyla emekliye ayırır (retire). Böylece istisnalar kesin kalır ve yazılım sıranın bozulduğunu fark etmez.",
+t:[["Ön uç","Getir, çöz, yeniden adlandır (sırayla)"],["Arka uç","Rezervasyon istasyonları ve yürütme (sırası dışı)"],["Emeklilik","ROB üzerinden program sırasıyla"],["ROB","Büyük çekirdeklerde yüzlerce girdi"],["Sırayla çalışanlar","Cortex-M serisi, Cortex-A53/A55"]],
+d:{k:"seq",a:["Ön uç","Rezervasyon","Yürütme","ROB"],s:[[0,1,"1: ld x1 (önbellek ıskası)","q"],[0,1,"2: add x5, x6, x7","q"],[1,2,"2 hazır → önce yürür","e"],[2,3,"2 bitti, 1'i bekler","r"],[2,3,"1 bitti","r"],[3,3,"önce 1, sonra 2 emekli","n"]]},
+cap:"İkinci komut önce çalışır ama program sırası emeklilikte korunur."},
+
+{id:"simd",c:"boru",a:"SIMD",f:"Single Instruction, Multiple Data",tr:"Tek komut, çoklu veri",y:"paralellik",
+o:"Tek bir komutla geniş bir yazmaçtaki birden çok sayıya aynı işlemi uygulama.",
+h:"256 bitlik bir AVX2 yazmacında sekiz adet 32 bitlik sayı bulunabilir ve tek bir vpaddd komutu sekiz toplamayı birden yapar. Görüntü işleme, ses, kriptografi, sıkıştırma ve makine öğrenmesi gibi aynı işlemin çok veriye uygulandığı yerlerde büyük hızlanma sağlar. Derleyiciler döngüleri otomatik vektörleştirebilir; daha fazla denetim için C'de intrinsics (_mm256_add_epi32 gibi), Rust'ta std::arch kullanılır. ARM'ın SVE'si ve RISC-V'nin V uzantısı vektör uzunluğunu koda gömmeyen, uzunluktan bağımsız bir model kullanır.",
+t:[["x86","SSE (128 bit) → AVX/AVX2 (256) → AVX-512 (512)"],["ARM","NEON (128), SVE/SVE2 (128–2048), Cortex-M'de Helium"],["RISC-V","V uzantısı (vektör uzunluğu uygulamaya bağlı)"],["Derleyici","-O3 -march=native ile otomatik vektörleştirme"]],
+d:{k:"seq",a:["Bellek","Vektör yazmacı","Vektör ALU"],s:[[0,1,"8 × int32 yükle","q"],[1,2,"vpaddd ymm0, ymm1, ymm2","q"],[2,2,"8 toplama, tek komut","n"],[2,1,"8 sonuç","r"]]},
+cap:"Sekiz şeritli bir toplama: komut sayısı sekizde bire iner."},
+
+{id:"spekulatif",c:"boru",a:"Speculation",f:"Speculative execution",tr:"Spekülatif yürütme",y:"teknik / güvenlik",
+o:"Kesinleşmemiş bir tahmine dayanarak komutları önceden çalıştırma; tahmin yanlışsa sonuçlar atılır.",
+h:"Dal tahmini ve sırası dışı yürütme birlikte çalışınca çekirdek, tahmin edilen yolda onlarca hatta yüzlerce komutu önceden yürütür. Tahmin yanlış çıkarsa mimari durum (yazmaçlar, bellek) geri alınır ama önbellek içeriği gibi mikromimari izler kalabilir. 2018'de açıklanan Spectre ve Meltdown bu izlerin zamanlama ölçülerek okunabildiğini gösterdi. Linux'ta /sys/devices/system/cpu/vulnerabilities/ dizini, işlemcinin hangi zafiyetlerden etkilendiğini ve hangi önlemlerin açık olduğunu listeler.",
+t:[["Geri alınan","Yazmaçlar, bellek yazımları"],["Geri alınmayan","Önbellek içeriği, TLB, tahminci durumu"],["Saldırılar","Spectre (v1, v2…), Meltdown, MDS, Retbleed"],["Önlemler","Retpoline, IBRS/eIBRS, KPTI, lfence, mikrokod güncellemeleri"]],
+d:{k:"seq",a:["Tahminci","Çekirdek","Önbellek"],s:[[0,1,"dal alınır (tahmin)","q"],[1,2,"spekülatif yükleme","q"],[2,1,"satır önbelleğe girdi","r"],[0,1,"tahmin yanlıştı","e"],[1,1,"yazmaçlar geri alındı","n"],[2,2,"önbellek izi kaldı","n"]]},
+cap:"Mimari durum geri alınır, önbellekteki iz kalır. Spectre bu izi ölçer."
+,x:["Linux — zafiyet durumu (örnek çıktı)",`$ grep -r . /sys/devices/system/cpu/vulnerabilities/
+.../meltdown:Not affected
+.../spectre_v1:Mitigation: usercopy/swapgs barriers ...
+.../spectre_v2:Mitigation: Enhanced / Automatic IBRS ...`]},
+
+/* ---------- BELLEK ---------- */
+{id:"hiyerarsi",c:"bellek",a:"Hierarchy",f:"Memory hierarchy",tr:"Bellek hiyerarşisi",y:"düzen",
+o:"Küçük ve hızlıdan büyük ve yavaşa doğru dizilen depolama katmanları.",
+h:"Hızlı bellek pahalı ve küçük, büyük bellek ucuz ve yavaştır. Hiyerarşi, programların çoğu zaman yakın zamanda kullandıkları veriye tekrar eriştiği gerçeğinden (yerellik) yararlanır: sık kullanılan veri üst katmanlarda tutulur. Her katman bir alttakinin önbelleği gibi davranır: yazmaçlar, L1, L2, L3, DRAM, SSD ve disk. Sayfanın sonundaki gecikme tablosu, bir önbellek ıskasının neden bu kadar önemsendiğini gösterir: DRAM'e gitmek, L1'e göre yaklaşık yüz kat daha uzun sürer.",
+t:[["Gecikme (çevrim)","L1 ~4–5 · L2 ~12–16 · L3 ~40–80 · DRAM ~300–400"],["Boyut (tipik)","L1 32–64 KB · L2 0,5–2 MB · L3 8–64+ MB · DRAM GB'lar"],["İlke","Yerellik: zamansal ve uzamsal"],["Sınır","\"Bellek duvarı\": çekirdek hızı bellekten çok daha hızlı arttı"]],
+d:{k:"stack",l:["Yazmaçlar|< 1 ns · yüzlerce bayt","L1 önbellek|~1 ns · 32–64 KB","L2 önbellek|~3–4 ns · 0,5–2 MB","L3 önbellek|~10–20 ns · 8–64+ MB","DRAM|~70–100 ns · GB'lar","NVMe SSD|~20–100 µs · TB'lar"]},
+cap:"Aşağı indikçe katmanlar büyür ve yavaşlar."},
+
+{id:"onbellek",c:"bellek",a:"Cache",f:"CPU cache",tr:"Önbellek",y:"bellek",
+o:"Ana belleğin sık kullanılan kısımlarının kopyasını çekirdeğe yakın tutan küçük, hızlı SRAM bellek.",
+h:"İşlemci bir adrese eriştiğinde önce L1'e bakar. Veri oradaysa isabet (hit), değilse ıska (miss) olur ve bir alt katmana sorulur. Gelen veri tek bayt değil, bütün bir önbellek satırı olarak getirilir (genelde 64 bayt). Yer açmak için eski bir satır çıkarılır; politika genellikle LRU'ya yakın bir yaklaşımdır. L1 komut ve veri olarak ikiye ayrılır ve her çekirdeğe özeldir; L2 genelde çekirdeğe özel, L3 ise çekirdekler arasında paylaşılır. Iskaların üç kaynağı vardır: zorunlu (ilk erişim), kapasite (veri sığmıyor) ve çakışma (aynı kümeye çok satır düşüyor).",
+t:[["Satır boyu","Genelde 64 bayt (Apple M serisinde 128)"],["Düzen","L1i + L1d, L2, paylaşımlı L3 (LLC)"],["Iska türleri","Zorunlu, kapasite, çakışma (3C)"],["Ön getirme","Donanım ön getiricisi erişim desenini tahmin edip satırları önceden getirir"],["Linux","lscpu --caches, /sys/devices/system/cpu/cpu0/cache/"]],
+d:{k:"seq",a:["Çekirdek","L1","L2","DRAM"],s:[[0,1,"oku 0x7f10","q"],[1,2,"ıska → sor","q"],[2,3,"ıska → sor","q"],[3,2,"64 baytlık satır","r"],[2,1,"satır","r"],[1,0,"veri (sonrakiler isabet)","r"]]},
+cap:"İlk erişim aşağıya kadar iner; aynı satırdaki sonraki erişimler L1'den döner."
+,x:["Linux — önbellek bilgisi (örnek, kısaltılmış)",`$ lscpu --caches
+NAME ONE-SIZE ALL-SIZE WAYS TYPE        LEVEL
+L1d       48K     384K   12 Data            1
+L1i       32K     256K    8 Instruction     1
+L2       1.3M      10M   10 Unified         2
+L3        18M      18M   12 Unified         3`]},
+
+{id:"kume",c:"bellek",a:"Associativity",f:"Cache line & set associativity",tr:"Önbellek satırı ve küme ilişkilendirme",y:"yapı",
+o:"Bir bellek adresinin önbellekte hangi yerlere yerleşebileceğini belirleyen düzen.",
+h:"Adres üç parçaya bölünür: satır içi ofset (64 baytlık satırda en düşük 6 bit), küme indeksi ve etiket (tag). İndeks, adresin hangi kümeye düşeceğini belirler; bir kümede N yol (way) varsa satır o N yerden birine yerleşebilir. Doğrudan eşlemeli (1 yollu) önbellek basit ama çakışmaya açıktır; tam ilişkilendirmeli önbellek satırı her yere koyabilir ama bütün etiketleri aynı anda karşılaştırmak pahalıdır. Gerçek önbellekler arada durur: 8, 12 ya da 16 yollu. Örnek: 32 KB, 8 yollu, 64 baytlık satır → 32768 / (8 × 64) = 64 küme, yani indeks 6 bittir.",
+t:[["Adres","[ etiket | indeks | ofset ]"],["Ofset","log2(satır boyu) bit"],["Küme sayısı","boyut / (yol sayısı × satır boyu)"],["Yaygın değerler","L1d 8–12 yol, L3 12–16 yol"]],
+d:{k:"stack",l:["Adres|…0x4A3C","Ofset (bit 5–0)|0x3C → satırın 60. baytı","İndeks (bit 11–6)|0x28 → 40. küme","Etiket (üst bitler)|kümenin 8 yolundaki etiketlerle karşılaştır","Sonuç|eşleşen yol varsa isabet"]},
+cap:"32 KB, 8 yollu, 64 baytlık satırlı bir L1'de 0x4A3C adresinin yolculuğu."},
+
+{id:"yazma",c:"bellek",a:"Write-back",f:"Write-back vs. write-through",tr:"Yazma politikaları",y:"politika",
+o:"Önbellekteki bir veri değiştiğinde ana belleğin ne zaman güncelleneceği.",
+h:"Write-through politikasında her yazma hem önbelleğe hem alt katmana gider; basittir ama bant genişliğini çok kullanır. Write-back politikasında yazma yalnızca önbellekteki satırı değiştirir ve satır kirli (dirty) olarak işaretlenir; alt katmana ancak satır çıkarılırken yazılır. Modern CPU önbellekleri çoğunlukla write-back'tir. Gömülü sistemlerde DMA ile çalışırken bu ayrım hayati olabilir: Cortex-M7'de DMA tamponu önbellekteyse, önbelleği temizlemeden (clean) ya da geçersiz kılmadan (invalidate) DMA ve çekirdek birbirinin eski verisini görebilir.",
+t:[["Write-through","Her yazma alt katmana iner"],["Write-back","Kirli bit; satır çıkarılırken yazılır"],["Yazma ıskası","Write-allocate ya da no-write-allocate"],["Cortex-M7 (CMSIS)","SCB_CleanDCache_by_Addr(), SCB_InvalidateDCache_by_Addr()"]],
+d:{k:"seq",a:["Çekirdek","Önbellek","DRAM"],s:[[0,1,"yaz x = 5","q"],[1,1,"satır kirli","n"],[0,1,"yaz x = 6","q"],[1,1,"yine yalnızca önbellek","n"],[1,2,"çıkarılırken: x = 6","e"]]},
+cap:"Write-back: iki yazma, belleğe tek bir yazım."},
+
+{id:"mesi",c:"bellek",a:"MESI",f:"Cache coherence (MESI protocol)",tr:"Önbellek tutarlılığı",y:"protokol",
+o:"Birden çok çekirdeğin özel önbelleklerindeki kopyaların birbiriyle çelişmemesini sağlayan protokol.",
+h:"İki çekirdek aynı adresi okuduğunda iki kopya oluşur; biri yazarsa diğerinin kopyası bayatlar. MESI'de her satır dört durumdan birindedir: Modified (değiştirilmiş, tek sahip), Exclusive (temiz, tek sahip), Shared (temiz, başkalarında da var), Invalid (geçersiz). Bir çekirdek yazmak istediğinde diğerlerindeki kopyaları geçersiz kılar. Bu trafik bedava değildir: farklı çekirdeklerin aynı 64 baytlık satırdaki farklı değişkenlere yazması yanlış paylaşım (false sharing) yaratır ve performansı ciddi düşürür.",
+t:[["Durumlar","M, E, S, I"],["Mekanizma","Dinleme (snooping) ya da dizin (directory)"],["Türevler","MESIF (Intel), MOESI (AMD)"],["Yanlış paylaşım","Değişkenleri ayrı satırlara hizala: C alignas(64), Rust #[repr(align(64))]"]],
+d:{k:"seq",a:["Çekirdek 0","Tutarlılık","Çekirdek 1"],s:[[0,1,"oku A → E","q"],[2,1,"oku A","q"],[1,0,"A: E → S","e"],[1,2,"A: S","r"],[2,1,"yaz A","q"],[1,0,"A geçersiz (I)","e"],[1,2,"A: M","r"]]},
+cap:"Çekirdek 1 yazınca çekirdek 0'daki kopya geçersiz kılınır."},
+
+{id:"dram",c:"bellek",a:"DRAM",f:"Dynamic Random-Access Memory",tr:"Dinamik rastgele erişimli bellek",y:"bellek teknolojisi",
+o:"Her biti bir kapasitörde yük olarak tutan, ucuz ve yoğun ana bellek.",
+h:"Bir DRAM hücresi bir transistör ve bir kapasitörden oluşur (1T1C). Kapasitör zamanla yük kaybettiği için her satır düzenli olarak yenilenmelidir; tipik olarak bütün hücreler 64 ms içinde. Bellek bank, satır ve sütunlara bölünmüştür. Denetleyici önce bir satırı açar (ACTIVATE) ve satır, satır tamponuna okunur; ardından sütunlar okunur (READ). Başka bir satıra geçmek için önce açık satır kapatılır (PRECHARGE). Bellek modüllerindeki CL gibi zamanlama değerleri bu adımların kaç çevrim sürdüğünü gösterir.",
+t:[["Hücre","1 transistör + 1 kapasitör"],["Yenileme","Tipik 64 ms (yüksek sıcaklıkta 32 ms)"],["Komutlar","ACT, RD/WR, PRE, REF"],["Zamanlamalar","tCL, tRCD, tRP, tRAS"],["Standartlar","JEDEC DDR4, DDR5, LPDDR5/5X"]],
+d:{k:"seq",a:["Denetleyici","Bank","Satır tamponu"],s:[[0,1,"ACT satır 812","q"],[1,2,"satır tampona okunur","e"],[0,2,"RD sütun 40 (tCL sonra)","q"],[2,0,"veri patlaması (burst)","r"],[0,1,"PRE: satırı kapat","q"]]},
+cap:"Bir DRAM okuması: satırı aç, sütunu oku, satırı kapat."},
+
+{id:"sram",c:"bellek",a:"SRAM",f:"Static Random-Access Memory",tr:"Statik rastgele erişimli bellek",y:"bellek teknolojisi",
+o:"Her biti birbirini besleyen iki eviricide tutan, yenileme gerektirmeyen hızlı bellek.",
+h:"Klasik SRAM hücresi altı transistörden oluşur (6T): çapraz bağlı iki evirici biti kararlı tutar, iki erişim transistörü okuma ve yazmayı sağlar. Yenileme gerekmez ve çok hızlıdır, ama hücre başına DRAM'den çok daha fazla alan kaplar. Bu yüzden yazmaç dosyaları, önbellekler ve mikrodenetleyicilerin dahili RAM'i SRAM'dir. Bir STM32'nin veri sayfasındaki \"192 KB SRAM\" ifadesi doğrudan çipin içindeki bu belleği anlatır. Güç kesildiğinde içerik kaybolur.",
+t:[["Hücre","6T: 2 evirici + 2 erişim transistörü"],["Yenileme","Gerekmez"],["Kullanım","Yazmaçlar, L1/L2/L3, MCU dahili RAM"],["DRAM'e göre","Daha hızlı, daha pahalı, daha az yoğun"]],
+d:{k:"seq",a:["Kelime hattı","Hücre (6T)","Bit hatları"],s:[[0,1,"WL = 1: hücreyi seç","q"],[1,2,"BL ve BL̄ arasında fark","r"],[2,2,"algılama yükselteci okur","n"]]},
+cap:"Okuma: satır seçilir, iki bit hattı arasındaki küçük fark yükseltilir."},
+
+{id:"yerellik",c:"bellek",a:"Locality",f:"Locality of reference",tr:"Erişim yerelliği",y:"ilke",
+o:"Programların yakın zamanda ve yakın adreslerde eriştikleri veriye tekrar erişme eğilimi.",
+h:"Zamansal yerellik: bir kez kullanılan veri yakında yine kullanılır, döngü sayacı gibi. Uzamsal yerellik: bir adrese erişildiyse yanındaki adreslere de erişilir, dizi taraması gibi. Önbellek satırları ve donanım ön getiricisi bunun üzerine kuruludur. Aynı algoritma, belleği nasıl dolaştığına göre birkaç kat hızlı ya da yavaş çalışabilir. C'de iki boyutlu bir diziyi satır satır dolaşmak, sütun sütun dolaşmaktan genellikle çok daha hızlıdır, çünkü C dizileri bellekte satır sırasıyla (row-major) durur.",
+t:[["Zamansal","Aynı veri yeniden kullanılır"],["Uzamsal","Komşu adreslere erişilir"],["Destekleyenler","Önbellek satırı, ön getirici, TLB"],["Kötü desenler","Bağlı liste gezmek, büyük adımla (stride) erişim"]],
+d:{k:"seq",a:["Döngü","Önbellek","DRAM"],s:[[0,1,"a[0][0]","q"],[1,2,"ıska","q"],[2,1,"a[0][0..15] (64 B)","r"],[0,1,"a[0][1]","q"],[1,0,"isabet","r"],[0,1,"a[0][2]","q"],[1,0,"isabet","r"]]},
+cap:"Bir ıska 16 int'i birden getirir; sonraki 15 erişim isabet olur."
+,x:["C — aynı toplam, farklı hız",`// hızlı: bellekte sırayla ilerler
+for (i = 0; i < N; i++)
+    for (j = 0; j < N; j++) s += a[i][j];
+
+// yavaş: her erişim N * 4 bayt atlar
+for (j = 0; j < N; j++)
+    for (i = 0; i < N; i++) s += a[i][j];`]},
+
+/* ---------- SANAL BELLEK ---------- */
+{id:"sanal-bellek",c:"sanal",a:"VM",f:"Virtual memory",tr:"Sanal bellek",y:"soyutlama",
+o:"Her sürece kendine ait, büyük ve kesintisiz bir adres uzayı varmış gibi gösteren donanım ve işletim sistemi mekanizması.",
+h:"Programın kullandığı adresler sanaldır; donanım her erişimde bunları fiziksel adrese çevirir. Böylece süreçler birbirinin belleğini göremez, aynı sanal adres farklı süreçlerde farklı fiziksel yerlere gider, az kullanılan sayfalar diske taşınabilir ve dosyalar belleğe eşlenebilir (mmap). Bellek sayfa adı verilen sabit bloklara bölünür; genelde 4 KB, büyük sayfalar 2 MB ya da 1 GB. x86-64'te bugün sanal adreslerin 48 biti, 5 seviyeli tablolarla 57 biti kullanılır.",
+t:[["Sayfa","4 KB (büyük: 2 MB, 1 GB; AArch64'te 16 ve 64 KB granül de var)"],["Adres genişliği","x86-64: 48 bit (LA57 ile 57)"],["Faydalar","Yalıtım, paylaşım, takas, mmap, copy-on-write"],["Linux","/proc/<pid>/maps, pmap"]],
+d:{k:"seq",a:["Süreç A","Süreç B","MMU","RAM"],s:[[0,2,"oku 0x400000","q"],[2,3,"→ fiziksel 0x1a2000","q"],[1,2,"oku 0x400000","q"],[2,3,"→ fiziksel 0x7f3000","q"]]},
+cap:"Aynı sanal adres, iki süreçte iki farklı fiziksel yere gider."
+,x:["Linux — bir sürecin sanal haritası (örnek)",`$ cat /proc/self/maps
+55d0c8a1e000-55d0c8a20000 r--p 00000000 ... /usr/bin/cat
+55d0c8a20000-55d0c8a25000 r-xp 00002000 ... /usr/bin/cat
+...
+7ffd4a3c1000-7ffd4a3e2000 rw-p 00000000 00:00 0   [stack]`]},
+
+{id:"sayfa-tablosu",c:"sanal",a:"Page table",f:"Multi-level page table",tr:"Sayfa tablosu",y:"veri yapısı",
+o:"Sanal sayfa numaralarını fiziksel çerçevelere eşleyen, işletim sisteminin bellekte tuttuğu ağaç yapısı.",
+h:"x86-64'te 48 bitlik sanal adres beş parçaya bölünür: dört adet 9 bitlik indeks ve 12 bitlik sayfa içi ofset. CR3 yazmacı en üst tablonun (PML4) fiziksel adresini tutar; her indeks bir sonraki seviyedeki tabloyu seçer ve en sonda 4 KB'lık fiziksel çerçeve bulunur. Bu yürüyüşü (page walk) donanım yapar. Her girdi ayrıca izin bitleri taşır: yazılabilir mi, kullanıcı erişebilir mi, çalıştırılabilir mi (NX). AArch64'te aynı rolü TTBR0 ve TTBR1 yazmaçları, RISC-V'de satp yazmacı üstlenir.",
+t:[["x86-64","CR3 → PML4 → PDPT → PD → PT (4 seviye, LA57 ile 5)"],["AArch64","TTBR0_EL1 (kullanıcı), TTBR1_EL1 (çekirdek)"],["RISC-V","satp; Sv39, Sv48, Sv57"],["İzin bitleri","Present, R/W, U/S, NX, Accessed, Dirty"]],
+d:{k:"stack",l:["CR3|PML4 tablosunun fiziksel adresi","PML4 · bit 47–39|→ PDPT","PDPT · bit 38–30|→ PD (ya da 1 GB sayfa)","PD · bit 29–21|→ PT (ya da 2 MB sayfa)","PT · bit 20–12|→ 4 KB çerçeve","Ofset · bit 11–0|çerçeve içindeki bayt"]},
+cap:"Dört seviyeli yürüyüş: her seviye 9 bitlik bir indeks kullanır."},
+
+{id:"tlb",c:"sanal",a:"TLB",f:"Translation Lookaside Buffer",tr:"Adres çeviri önbelleği",y:"önbellek",
+o:"Son yapılan sanaldan fiziksele adres çevirilerini tutan küçük, çok hızlı önbellek.",
+h:"Her bellek erişiminde dört seviyeli bir tablo yürüyüşü yapmak, dört ek bellek erişimi demektir. TLB son çevirileri saklar ve isabet halinde çeviri neredeyse bedavadır. Genelde iki seviyelidir: küçük L1 TLB'ler (komut ve veri ayrı) ve daha büyük birleşik bir L2 TLB. Büyük sayfalar aynı sayıda girdiyle çok daha fazla belleği kapsadığı için veritabanları ve sanal makineler onları tercih eder (Linux: hugetlbfs, Transparent Huge Pages). Sayfa tablosu değiştiğinde ilgili TLB girdileri geçersiz kılınmalıdır.",
+t:[["İsabet","~1 çevrim"],["Iska","Sayfa yürüyüşü: onlarca ile yüzlerce çevrim"],["ASID / PCID","Süreç değişiminde TLB'yi tümden boşaltmamak için etiket"],["Geçersiz kılma","x86: invlpg · ARM: tlbi · RISC-V: sfence.vma"]],
+d:{k:"seq",a:["Çekirdek","TLB","Yürüyücü","RAM"],s:[[0,1,"VA 0x7ffd4a3c?","q"],[1,2,"ıska","q"],[2,3,"4 tablo okuması","q"],[3,2,"fiziksel çerçeve","r"],[2,1,"girdiyi ekle","r"],[1,0,"PA (sonrakiler isabet)","r"]]},
+cap:"Bir TLB ıskası sayfa yürüyüşünü tetikler; sonuç bir sonraki sefer için saklanır."},
+
+{id:"mmu",c:"sanal",a:"MMU",f:"Memory Management Unit",tr:"Bellek yönetim birimi",y:"donanım birimi",
+o:"Adres çevirisini ve bellek erişim izinlerini her erişimde denetleyen donanım birimi.",
+h:"MMU; TLB'yi, sayfa yürüyücüsünü ve izin denetimini içerir. Bir erişim izinlere uymazsa, örneğin salt okunur sayfaya yazılırsa, çalıştırılamaz sayfadan komut getirilirse ya da kullanıcı kipinde çekirdek sayfasına erişilirse istisna üretir; işletim sistemi bunu SIGSEGV gibi bir sinyale çevirebilir. Linux çalıştıran her işlemcide (Cortex-A, x86-64, Linux sınıfı RISC-V) MMU bulunur. Cortex-M gibi mikrodenetleyicilerde MMU yoktur; bu yüzden üzerlerinde tam Linux çalışmaz, FreeRTOS ya da Zephyr gibi RTOS'lar kullanılır.",
+t:[["İçerik","TLB, sayfa yürüyücü, izin denetleyici"],["Hatalar","Sayfa hatası, izin hatası → istisna"],["Var","Cortex-A, x86-64, Linux sınıfı RISC-V"],["Yok","Cortex-M (yerine MPU), küçük RISC-V MCU'lar"]],
+d:{k:"seq",a:["Çekirdek","MMU","İşletim sistemi"],s:[[0,1,"yaz 0x401000","q"],[1,1,"sayfa salt okunur","n"],[1,2,"istisna: izin hatası","e"],[2,0,"SIGSEGV","e"]]},
+cap:"İzinsiz bir yazma, donanımdan işletim sistemine giden bir istisnaya dönüşür."},
+
+{id:"sayfa-hatasi",c:"sanal",a:"Page fault",f:"Page fault",tr:"Sayfa hatası",y:"istisna",
+o:"Erişilen sanal sayfanın o an geçerli bir fiziksel karşılığı olmadığında oluşan, çoğu zaman tamamen normal istisna.",
+h:"Sayfa hatası her zaman bir hata değildir. Linux belleği tembel ayırır: malloc ile alınan bellek ilk kez yazıldığında sayfa hatası oluşur ve çekirdek o anda fiziksel bir çerçeve bağlar (minor fault). Sayfa diske taşınmışsa ya da mmap ile eşlenmiş bir dosyadan okunacaksa disk erişimi gerekir (major fault) ve bu çok daha yavaştır. fork sonrasındaki copy-on-write da sayfa hatasıyla çalışır. Erişim izinsizse ya da adres hiç eşlenmemişse çekirdek süreci SIGSEGV ile sonlandırır.",
+t:[["Minor","Çerçeve bağlanır, disk erişimi yok"],["Major","Diskten okunur (swap, dosya)"],["Geçersiz","SIGSEGV"],["Ölçüm","/usr/bin/time -v, perf stat -e page-faults"]],
+d:{k:"seq",a:["Süreç","MMU","Çekirdek (OS)","Disk"],s:[[0,1,"oku p[0]","q"],[1,2,"sayfa yok: hata","e"],[2,3,"swap'tan oku (major)","q"],[3,2,"sayfa","r"],[2,2,"tabloyu güncelle","n"],[2,0,"komutu yeniden dene","r"]]},
+cap:"Major sayfa hatası: işletim sistemi sayfayı diskten getirip komutu yeniden çalıştırır."},
+
+{id:"mpu",c:"sanal",a:"MPU",f:"Memory Protection Unit",tr:"Bellek koruma birimi",y:"donanım birimi",
+o:"Adres çevirisi yapmadan yalnızca bellek bölgelerine erişim iznini denetleyen, mikrodenetleyicilerdeki basit koruma birimi.",
+h:"MPU'da sayfa tablosu yoktur; az sayıda bölge tanımlanır (genelde 8 ya da 16) ve her bölgeye başlangıç adresi, boyut, okuma/yazma/çalıştırma izni ve önbellek özellikleri verilir. Sanal adres yoktur, adresler fizikseldir. RTOS'lar MPU ile görevlerin birbirinin yığınına yazmasını, yığın taşmalarını ya da veri alanından kod çalıştırılmasını engeller. İhlalde Cortex-M'de MemManage istisnası (etkin değilse HardFault) oluşur. ARMv8-M'de (Cortex-M33 gibi) bölgeler taban ve limit adresleriyle tanımlanır, bu da hizalama kısıtlarını gevşetir.",
+t:[["Bölge sayısı","Tipik 8 ya da 16"],["ARMv7-M","Boyut 2'nin kuvveti, adres boyuta hizalı"],["ARMv8-M","Taban/limit adresleri, 32 bayt granül"],["İhlal","MemManage ya da HardFault"],["Kullananlar","FreeRTOS-MPU, Zephyr userspace"]],
+d:{k:"seq",a:["Görev","MPU","Bellek"],s:[[0,1,"yaz 0x20008000","q"],[1,1,"bölge 3: salt okunur","n"],[1,0,"MemManage istisnası","e"]]},
+cap:"MPU erişimi belleğe ulaşmadan durdurur."},
+
+/* ---------- KESMELER VE G/Ç ---------- */
+{id:"kesme",c:"gc",a:"IRQ",f:"Interrupt request",tr:"Kesme",y:"olay",
+o:"Bir donanımın işlemciye \"şimdi beni dinle\" demesi; çekirdek o anki işi bırakıp bir işleyici fonksiyon çalıştırır.",
+h:"Kesmeler sayesinde işlemci bir cihazı sürekli yoklamak (polling) zorunda kalmaz. Kesme geldiğinde donanım o anki durumu saklar, vektör tablosundan işleyicinin adresini bulur ve oraya atlar; işleyici bitince kalınan yere dönülür. Cortex-M'de NVIC kesmeleri önceliklendirir ve iç içe geçmelerine izin verir. Donanım R0–R3, R12, LR, PC ve xPSR'yi yığına kendisi iter; bu yüzden işleyici sıradan bir C fonksiyonu olabilir. x86'da APIC, ARM'ın A profilinde GIC, RISC-V'de PLIC ya da AIA aynı rolü üstlenir.",
+t:[["Denetleyiciler","NVIC (Cortex-M), GIC (Cortex-A), APIC (x86), PLIC/CLIC/AIA (RISC-V)"],["Vektör tablosu","İşleyici adreslerinin dizisi"],["Gecikme","Cortex-M3/M4: 12 çevrim"],["Linux","/proc/interrupts"]],
+d:{k:"seq",a:["Buton","NVIC","Çekirdek","İşleyici"],s:[[0,1,"kenar algılandı (EXTI0)","e"],[1,2,"IRQ 6 bekliyor","e"],[2,2,"8 yazmaç yığına","n"],[2,3,"vektör → EXTI0_IRQHandler","q"],[3,2,"dönüş (EXC_RETURN)","r"]]},
+cap:"STM32F4'te bir buton kesmesi: EXTI0, NVIC'te 6 numaralı kesmedir."
+,x:["STM32F4 (CMSIS) — kesme işleyicisi",`void EXTI0_IRQHandler(void) {
+    if (EXTI->PR & EXTI_PR_PR0) {
+        EXTI->PR = EXTI_PR_PR0;   // bayrağı 1 yazarak temizle
+        led_toggle();
+    }
+}`]},
+
+{id:"istisna",c:"gc",a:"Exception",f:"Exceptions, traps & system calls",tr:"İstisnalar ve sistem çağrıları",y:"olay",
+o:"Komutun kendisinin yol açtığı, akışı işletim sistemine ya da bir işleyiciye devreden olaylar.",
+h:"Kesme dışarıdan gelir; istisna ise çalışan komuttan doğar: sıfıra bölme, tanımsız komut, sayfa hatası, hizalama hatası gibi. Sistem çağrısı bilerek tetiklenen bir istisnadır. Kullanıcı programı syscall (x86-64), svc (ARM) ya da ecall (RISC-V) komutuyla çekirdeğe kontrollü bir kapıdan girer. Böylece uygulama donanıma doğrudan dokunamaz ama dosya açmak gibi işleri çekirdekten isteyebilir. Kesin (precise) istisnalarda, istisnaya yol açan komuttan önceki her şey tamamlanmış, sonraki hiçbir şey görünür olmamıştır.",
+t:[["Fault","Komut yeniden denenebilir (sayfa hatası)"],["Trap","Bilerek tetiklenir (sistem çağrısı, kesme noktası)"],["Abort","Kurtarılamaz (makine hatası)"],["Komutlar","syscall · svc #0 · ecall"],["Linux x86-64","Numara RAX'te; argümanlar RDI, RSI, RDX, R10, R8, R9"]],
+d:{k:"seq",a:["Uygulama (EL0)","Çekirdek (EL1)","Sürücü"],s:[[0,1,"svc #0 (write)","q"],[1,1,"x8 = 64 → sys_write","n"],[1,2,"veriyi gönder","q"],[2,1,"tamam","r"],[1,0,"eret, x0 = 6","r"]]},
+cap:"AArch64 Linux'ta bir write sistem çağrısı: kullanıcı kipinden çekirdeğe ve geri."
+,x:["Linux AArch64 — write(1, msg, 6)",`mov x0, #1      // fd = stdout
+adr x1, msg     // tampon
+mov x2, #6      // uzunluk
+mov x8, #64     // __NR_write
+svc #0`]},
+
+{id:"ayricalik",c:"gc",a:"Privilege",f:"Privilege levels (rings / exception levels / modes)",tr:"Ayrıcalık seviyeleri",y:"koruma",
+o:"Hangi kodun hangi komutları çalıştırıp hangi kaynaklara erişebileceğini belirleyen donanım katmanları.",
+h:"Kullanıcı programları en düşük ayrıcalıkta çalışır; sayfa tablolarını değiştirmek, kesmeleri kapatmak ya da cihaz yazmaçlarına doğrudan erişmek yalnızca üst seviyelere açıktır. x86 dört halka tanımlar ama pratikte Ring 0 (çekirdek) ve Ring 3 (kullanıcı) kullanılır. AArch64'te EL0 uygulama, EL1 işletim sistemi, EL2 hipervizör, EL3 güvenli izleyicidir (TrustZone). RISC-V'de U, S ve M kipleri vardır; M kipinde OpenSBI gibi ürün yazılımları çalışır. Cortex-M'de ayrıcalıklı ve ayrıcalıksız thread kipi ile handler kipi bulunur.",
+t:[["x86","Ring 0–3 (+ sanallaştırma için VMX root/non-root)"],["AArch64","EL0, EL1, EL2, EL3"],["RISC-V","U, S, M (+ H uzantısı)"],["Cortex-M","Thread (ayrıcalıklı / ayrıcalıksız), Handler"],["Geçiş","Yukarı istisna ile; aşağı eret, sret, mret, iretq ile"]],
+d:{k:"stack",l:["EL3|güvenli izleyici (Trusted Firmware-A)","EL2|hipervizör (KVM, Xen)","EL1|işletim sistemi çekirdeği","EL0|uygulamalar"]},
+cap:"AArch64'ün dört istisna seviyesi. Nokta yukarı çıkıp geri iner: sistem çağrısı ve dönüş."},
+
+{id:"dma",c:"gc",a:"DMA",f:"Direct Memory Access",tr:"Doğrudan bellek erişimi",y:"veri taşıma",
+o:"Bir çevre birimi ile bellek arasında, işlemciyi meşgul etmeden veri taşıyan donanım.",
+h:"UART'tan gelen her baytı işlemcinin tek tek okuması zaman kaybıdır. DMA denetleyicisine kaynak adres, hedef adres ve uzunluk verilir; aktarım arka planda yapılır ve bitince bir kesmeyle haber verilir. STM32'lerde DMA akışları belirli çevre birimi isteklerine bağlanır; dairesel ve çift tampon kipleri sürekli ses ya da ADC örneklemesi için kullanılır. Bilgisayarlarda PCIe cihazları (NVMe, ağ kartı, GPU) bus mastering ile belleğe doğrudan yazar. DMA kullanırken önbellek tutarlılığını da hesaba katmak gerekir.",
+t:[["Ayarlar","Kaynak, hedef, uzunluk, veri genişliği, adres artırma"],["Kipler","Normal, dairesel, çift tampon"],["Bitti haberi","Transfer complete kesmesi"],["Bilgisayarda","PCIe bus mastering, IOMMU ile korunur"]],
+d:{k:"seq",a:["CPU","DMA","UART","RAM"],s:[[0,1,"kaynak UART, hedef buf, n = 256","q"],[2,1,"bayt hazır (istek)","e"],[1,3,"buf[i] ← bayt","q"],[1,0,"aktarım bitti kesmesi","e"]]},
+cap:"CPU yalnızca başta ayar yapar ve sonda haber alır; arada başka işle meşguldür."},
+
+{id:"mmio",c:"gc",a:"MMIO",f:"Memory-mapped I/O",tr:"Belleğe eşlenmiş G/Ç",y:"erişim yöntemi",
+o:"Cihaz yazmaçlarının sıradan bellek adresleri gibi görünmesi; bir adrese yazmak bir cihaza komut vermek demektir.",
+h:"STM32'de GPIOA'nın çıkış yazmacına yazmak, belirli bir adrese 32 bitlik bir değer yazmaktır. Bu adresler RAM'e değil çevre birimlerinin yazmaçlarına gider ve okuma ya da yazmanın yan etkisi olabilir; okununca temizlenen bir bayrak gibi. Bu yüzden C'de volatile kullanılır: derleyici erişimi silmez, birleştirmez ya da sırasını değiştirmez. Bu bölgeler önbelleğe alınmaz (device bellek türü). x86 bunun yanında ayrı bir G/Ç adres uzayı da sunar (port-mapped I/O: in ve out komutları).",
+t:[["Örnek (STM32F4)","GPIOA tabanı 0x40020000, ODR ofseti 0x14"],["C","volatile uint32_t *"],["Önbellek","Kapalı (device memory)"],["Rust","core::ptr::write_volatile; svd2rust ile üretilen PAC'ler"],["x86 ek olarak","Port G/Ç: in, out"]],
+d:{k:"seq",a:["CPU","Veri yolu","GPIOA"],s:[[0,1,"STR 0x40020014 ← 0x20","q"],[1,2,"ODR yazmacına yaz","q"],[2,2,"PA5 pini 3,3 V","n"]]},
+cap:"Bir bellek yazımı, bir pinin gerilimini değiştirir."
+,x:["C — LED'i yak (STM32F4, PA5)",`#define GPIOA_ODR (*(volatile uint32_t *)0x40020014u)
+
+GPIOA_ODR |= (1u << 5);   // PA5 = 1`]},
+
+{id:"veri-yolu",c:"gc",a:"Bus",f:"Buses & interconnects (AMBA, PCIe)",tr:"Veri yolları ve bağlantı ağları",y:"bağlantı",
+o:"Çekirdek, bellek ve çevre birimlerinin birbiriyle veri alışverişi yaptığı yollar.",
+h:"Mikrodenetleyicilerde Arm'ın AMBA ailesi kullanılır: yüksek hızlı AHB (bellek, DMA, GPIO) ve basit, düşük güçlü APB (UART, I2C, zamanlayıcılar). STM32 saat ağacında AHB ile APB1 ve APB2 için ayrı bölücüler bulunmasının ve bir çevre biriminin saati RCC'den açılmadan yazmaçlarına erişilememesinin nedeni budur. Büyük SoC'lerde AXI ve tutarlı bağlantılar (CHI) kullanılır. Bilgisayarda ise çip dışındaki ana bağlantı PCIe'dir: noktadan noktaya seri hatlar (lane) kullanır ve her nesilde hat başına hız iki katına çıkar.",
+t:[["AMBA","AXI (yüksek bant), AHB (sistem), APB (çevre birimleri)"],["STM32","RCC->AHB1ENR, APB1ENR, APB2ENR saat açma bitleri"],["PCIe","x1, x4, x8, x16 hat · Gen4 16 GT/s · Gen5 32 GT/s · Gen6 64 GT/s"],["Çip içi","Halka, örgü (mesh), AMD Infinity Fabric"]],
+d:{k:"stack",l:["Cortex-M çekirdeği|komut, veri ve sistem yolları","AHB matrisi|Flash, SRAM, DMA, GPIO","AHB → APB köprüsü|hız ve protokol dönüşümü","APB1 · APB2|UART, SPI, I2C, TIM, ADC"]},
+cap:"Bir STM32F4'te çekirdekten çevre birimine giden yol."},
+
+{id:"iommu",c:"gc",a:"IOMMU",f:"Input–Output Memory Management Unit",tr:"G/Ç bellek yönetim birimi",y:"koruma",
+o:"Cihazların DMA ile yaptığı bellek erişimlerine de MMU benzeri çeviri ve koruma uygulayan birim.",
+h:"DMA güçlüdür ama tehlikelidir: hatalı ya da kötü niyetli bir PCIe cihazı belleğin her yerine yazabilir. IOMMU, cihazın gördüğü adresleri (IOVA) sayfa tablolarıyla fiziksel adreslere çevirir ve yalnızca izin verilen bölgelere erişim tanır. Bir GPU'yu ya da ağ kartını sanal makineye doğrudan vermek (PCI passthrough, VFIO) IOMMU sayesinde güvenli hale gelir. Intel'de VT-d, AMD'de AMD-Vi, Arm'da SMMU adıyla geçer.",
+t:[["Intel","VT-d"],["AMD","AMD-Vi"],["Arm","SMMU"],["Linux","intel_iommu=on, /sys/kernel/iommu_groups, VFIO"],["Kullanım","DMA saldırılarına karşı koruma, PCI passthrough"]],
+d:{k:"seq",a:["NVMe","IOMMU","RAM"],s:[[0,1,"DMA yaz IOVA 0x1000","q"],[1,1,"izinli → PA 0x9a000","n"],[1,2,"yaz 0x9a000","q"],[0,1,"DMA yaz IOVA 0x8000","q"],[1,0,"engellendi (hata)","e"]]},
+cap:"İzin verilmeyen bir DMA yazımı belleğe ulaşmaz."},
+
+/* ---------- ÇOK ÇEKİRDEK ---------- */
+{id:"cok-cekirdek",c:"cok",a:"Multicore",f:"Multicore processor",tr:"Çok çekirdekli işlemci",y:"yapı",
+o:"Tek bir çipte birden fazla bağımsız işlemci çekirdeği.",
+h:"2000'lerin ortasında frekans artışı güç ve ısı duvarına çarptı; transistörler küçüldükçe güç yoğunluğunun sabit kalması (Dennard ölçeklemesi) sona erdi. Üreticiler aynı alanı tek bir çekirdeği hızlandırmak yerine çekirdek sayısını artırmaya harcamaya başladı. Her çekirdeğin kendi yazmaçları, boru hattı ve L1'i vardır; L3 ve bellek denetleyicisi paylaşılır. Hızlanma ancak yazılımın işi iş parçacıklarına bölebildiği kadardır. Heterojen tasarımlar (Arm big.LITTLE ve DynamIQ, Intel P ve E çekirdekleri) güçlü ve verimli çekirdekleri aynı çipte birleştirir.",
+t:[["Çekirdeğe özel","Yazmaçlar, boru hattı, L1, çoğunlukla L2"],["Paylaşılan","L3, bellek denetleyicisi, bağlantı ağı"],["Heterojen","big.LITTLE / DynamIQ, Intel P ve E çekirdekleri"],["Linux","nproc, lscpu, taskset"]],
+d:{k:"stack",l:["Çekirdek 0 · Çekirdek 1 · …|her biri: yazmaçlar, boru hattı, L1, L2","Paylaşılan L3 (LLC)|bütün çekirdekler","Bağlantı ağı|halka ya da örgü","Bellek denetleyicisi|DDR5 kanalları"]},
+cap:"Tipik bir masaüstü işlemcide çekirdekten belleğe giden katmanlar."},
+
+{id:"smt",c:"cok",a:"SMT",f:"Simultaneous Multithreading (Hyper-Threading)",tr:"Eşzamanlı çoklu iş parçacığı",y:"teknik",
+o:"Tek bir fiziksel çekirdeğin işletim sistemine iki (ya da daha fazla) mantıksal çekirdek gibi görünmesi.",
+h:"Sırası dışı bir çekirdeğin yürütme birimleri çoğu zaman tam dolmaz; bir iş parçacığı önbellek ıskası beklerken birimler boşta kalır. SMT, iki iş parçacığının mimari durumunu (yazmaçlar, PC) ayrı tutar ama yürütme birimlerini, önbellekleri ve tahmincileri paylaştırır. Kazanç iş yüküne bağlıdır: çoğu zaman yüzde birkaç ile yüzde otuz arasında ek verim sağlar, bazen hiç sağlamaz. Kaynak paylaşımı bir güvenlik yan kanalı da olabildiği için bazı ortamlarda kapatılır.",
+t:[["Intel adı","Hyper-Threading"],["Paylaşılan","Yürütme birimleri, önbellekler, TLB, tahminci"],["Ayrı","Mimari yazmaçlar, PC"],["Linux","lscpu (Thread(s) per core), /sys/devices/system/cpu/smt/control"]],
+d:{k:"seq",a:["İş parçacığı A","Yürütme birimleri","İş parçacığı B"],s:[[0,1,"add, mul","q"],[0,0,"ıska: ~300 çevrim bekle","n"],[2,1,"bu arada: ld, add, sub","q"],[1,2,"sonuçlar","r"],[1,0,"A veri gelince devam eder","r"]]},
+cap:"Bir iş parçacığının beklediği sürede diğeri boş birimleri kullanır."},
+
+{id:"numa",c:"cok",a:"NUMA",f:"Non-Uniform Memory Access",tr:"Tek tip olmayan bellek erişimi",y:"yapı",
+o:"Belleğin bir kısmının bir işlemciye yakın, diğer kısmının uzak olduğu çok soketli ya da çok yongalı sistemler.",
+h:"Çok soketli sunucularda her işlemcinin kendi bellek denetleyicisi ve kendine bağlı bellek modülleri vardır. Bir çekirdek kendi düğümündeki belleğe hızlı, başka soketteki belleğe ise soketler arası bağlantı (Intel UPI, AMD Infinity Fabric) üzerinden daha yavaş erişir. İşletim sistemi bir sürecin belleğini mümkünse o sürecin çalıştığı düğümden ayırır (first-touch). Yüksek performanslı yazılımlar iş parçacıklarını ve belleklerini aynı düğüme sabitler.",
+t:[["Düğüm","Çekirdekler + yakın bellek"],["Uzak erişim","Yerel erişimden belirgin şekilde yavaş"],["Linux","numactl --hardware, numastat, lscpu"],["Politikalar","first-touch, interleave, bind"]],
+d:{k:"seq",a:["Düğüm 0 çekirdeği","Düğüm 0 RAM","Düğüm 1 RAM"],s:[[0,1,"yerel okuma","q"],[1,0,"veri (hızlı)","r"],[0,2,"uzak okuma (UPI / IF)","q"],[2,0,"veri (daha geç)","r"]]},
+cap:"Aynı okuma, belleğin hangi düğümde durduğuna göre farklı sürer."},
+
+{id:"atomik",c:"cok",a:"Atomics",f:"Atomic operations & memory ordering",tr:"Atomik işlemler ve bellek sıralaması",y:"eşzamanlılık",
+o:"Çok çekirdekli sistemde ortak veriyi bozmadan güncellemeyi sağlayan bölünemez komutlar ve sıralama kuralları.",
+h:"sayac++ aslında oku-artır-yaz olmak üzere üç adımdır; iki çekirdek aynı anda yaparsa bir artış kaybolur. Donanım bunu tek parça halinde yapan komutlar sunar: x86'da lock önekli komutlar (lock xadd, lock cmpxchg), ARM'da LL/SC çifti (ldxr/stxr) ve ARMv8.1'den itibaren LSE komutları (ldadd, cas), RISC-V'de A uzantısı (amoadd, lr/sc). Ayrıca işlemciler ve derleyiciler bellek erişimlerini yeniden sıralayabilir. x86'nın modeli görece katıdır (TSO); ARM ve RISC-V zayıf sıralıdır ve doğru davranış için bariyerler ya da acquire/release anlamları gerekir.",
+t:[["x86","lock önekli komutlar, mfence · TSO modeli"],["ARM","ldxr/stxr, LSE (ldadd, cas), ldar/stlr, dmb"],["RISC-V","lr/sc, amo*, fence · RVWMO modeli"],["Diller","C11/C++ memory_order, Rust Ordering: Relaxed, Acquire, Release, AcqRel, SeqCst"]],
+d:{k:"seq",a:["Çekirdek 0","Bellek: sayac","Çekirdek 1"],s:[[0,1,"oku 41","q"],[2,1,"oku 41","q"],[0,1,"yaz 42","q"],[2,1,"yaz 42: bir artış kayboldu","e"],[0,0,"çözüm: atomik fetch_add","n"]]},
+cap:"Atomik olmayan artış: iki çekirdek de 41 okur, sonuç 43 yerine 42 olur."
+,x:["Rust — kayıpsız sayaç",`use std::sync::atomic::{AtomicU64, Ordering};
+
+static SAYAC: AtomicU64 = AtomicU64::new(0);
+
+SAYAC.fetch_add(1, Ordering::Relaxed);
+// x86-64'te lock önekli tek bir komuta derlenir`]},
+
+{id:"soc",c:"cok",a:"SoC",f:"System on Chip",tr:"Yonga üzerinde sistem",y:"entegrasyon",
+o:"İşlemci çekirdeklerini, GPU'yu, bellek denetleyicisini ve çevre birimlerini tek bir çipte toplayan tasarım.",
+h:"Telefonlardaki işlemciler, Raspberry Pi 5'teki BCM2712 ve STM32'ler birer SoC'dir: CPU çekirdeklerinin yanında GPU, video kodlayıcı, görüntü işlemci (ISP), DMA, USB, Ethernet ve onlarca çevre birimi aynı yongadadır. Bileşenler AXI ya da CHI gibi bağlantı ağlarıyla birbirine bağlanır. Bir mikrodenetleyici daha küçük bir SoC'dir; Flash ve SRAM de çipin içindedir. Linux, SoC'deki donanımı cihaz ağacından (device tree) öğrenir. Cortex-M tarafında aynı bilgi SVD dosyalarında ve başvuru kılavuzunda (reference manual) bulunur.",
+t:[["Tipik bloklar","CPU, GPU, NPU, ISP, video, DMA, bellek denetleyicisi, G/Ç"],["Bağlantı","AXI, CHI, yonga üstü ağ (NoC)"],["Tanımlama","Device tree (Linux), SVD (Cortex-M), ACPI (x86 PC)"],["Belgeler","Datasheet (elektriksel), reference manual (yazmaçlar)"]],
+d:{k:"stack",l:["CPU kümesi|4 × Cortex-A76","GPU · video · ISP|grafik ve medya","Bağlantı ağı|AXI","Bellek denetleyicisi|LPDDR4X","G/Ç|PCIe, USB, Ethernet (RP1 üzerinden)"]},
+cap:"Raspberry Pi 5'in BCM2712 SoC'sinin kabaca blok yapısı."},
+
+{id:"gpu",c:"cok",a:"GPU",f:"Graphics Processing Unit",tr:"Grafik işlem birimi",y:"hızlandırıcı",
+o:"Aynı işi binlerce veri üzerinde paralel yapan, verimi gecikmeye tercih eden yüksek paralel işlemci.",
+h:"CPU çekirdeği az sayıda iş parçacığını olabildiğince çabuk bitirmeye odaklanır: büyük önbellekler, dal tahmini, sırası dışı yürütme. GPU ise binlerce basit şeridi gruplar halinde aynı komutla çalıştırır; NVIDIA'da 32 iş parçacıklık warp, AMD'de 32 ya da 64'lük wavefront. Buna SIMT modeli denir. Bir grup bellek beklerken başka bir grup çalıştırılarak gecikme gizlenir. Grafiğin yanında makine öğrenmesi ve bilimsel hesaplamada da kullanılır; CUDA, ROCm/HIP, Vulkan compute, OpenCL ya da Metal ile programlanır.",
+t:[["Model","SIMT (tek komut, çok iş parçacığı)"],["Grup","NVIDIA warp = 32 · AMD wavefront = 32/64"],["Dallanma","Grup içinde farklı yollar maskelenir, verim düşer"],["Bellek","Yüksek bant genişlikli GDDR ya da HBM"],["API'ler","CUDA, HIP, Vulkan, OpenCL, Metal"]],
+d:{k:"seq",a:["CPU","Sürücü","GPU"],s:[[0,1,"çekirdeği başlat (1M iş parçacığı)","q"],[1,2,"komut tamponu","q"],[2,2,"32'lik gruplar halinde yürüt","n"],[2,0,"bitti (fence)","r"]]},
+cap:"CPU işi tanımlar ve gönderir; GPU onu binlerce şeritte yürütür."},
+
+/* ---------- ÖLÇÜM ---------- */
+{id:"ipc",c:"olcum",a:"IPC / CPI",f:"Instructions per Cycle / Cycles per Instruction",tr:"Çevrim başına komut",y:"ölçü",
+o:"Bir çekirdeğin bir saat çevriminde ortalama kaç komut tamamladığı.",
+h:"Performansın temel denklemi şudur: süre = komut sayısı × CPI × çevrim süresi. Frekans tek başına hız göstergesi değildir; daha düşük frekanslı ama daha yüksek IPC'li bir çekirdek daha hızlı olabilir. IPC önbellek ıskaları, dal yanlış tahminleri ve bağımlılık zincirleri yüzünden düşer. Linux'ta perf stat komutu IPC'yi doğrudan gösterir. 1'in altındaki bir değer genellikle belleğe takılmış bir koda, 3–4 civarı ise çekirdeği iyi kullanan bir koda işaret eder.",
+t:[["Denklem","T = N × CPI × (1 / f)"],["İlişki","IPC = 1 / CPI"],["Düşürenler","Önbellek ıskaları, yanlış tahminler, bağımlılık zincirleri"],["Ölçüm araçları","perf stat, Intel VTune, AMD uProf"]],
+d:{k:"stack",l:["Süre|= komut sayısı × CPI × çevrim süresi","Komut sayısı|algoritma, derleyici, ISA","CPI|mikromimari, önbellekler, dal tahmini","Çevrim süresi|1 / frekans: üretim süreci, güç"]},
+cap:"Her çarpanı farklı bir katman belirler."
+,x:["Linux — perf stat (örnek, kısaltılmış)",`$ perf stat ./program
+  3,812,445,120  cycles
+ 10,104,512,880  instructions   #  2.65  insn per cycle
+     12,301,554  branch-misses  #  0.61% of all branches`]},
+
+{id:"amdahl",c:"olcum",a:"Amdahl",f:"Amdahl's law",tr:"Amdahl yasası",y:"yasa",
+o:"Bir programın yalnızca bir kısmı hızlandırıldığında toplam hızlanmanın nerede tıkanacağını veren formül.",
+h:"Programın p oranı paralelleştirilebiliyor ve n çekirdeğe bölünüyorsa hızlanma S = 1 / ((1 − p) + p / n) olur. p = 0,9 ise sonsuz çekirdekle bile hızlanma 10 katı geçemez, çünkü seri kalan yüzde 10 tıkar. Aynı ilke her optimizasyon için geçerlidir: toplam sürenin yüzde 5'ini harcayan bir kodu iki kat hızlandırmak programı en fazla yaklaşık yüzde 2,5 hızlandırır. Önce nereye zaman harcandığını ölçmek bu yüzden önemlidir. Gustafson yasası ise problem boyutu çekirdek sayısıyla büyüdüğünde tabloyu daha iyimser gösterir.",
+t:[["Formül","S(n) = 1 / ((1 − p) + p / n)"],["Üst sınır","n → ∞ iken S → 1 / (1 − p)"],["Örnek","p = 0,95, n = 8 → S ≈ 5,9"],["Tamamlayıcı","Gustafson yasası (ölçeklenen iş yükü)"]],
+d:{k:"stack",l:["1 çekirdek|seri 10 + paralel 90 = 100 birim","2 çekirdek|10 + 45 = 55 → 1,8 kat","4 çekirdek|10 + 22,5 = 32,5 → 3,1 kat","16 çekirdek|10 + 5,6 = 15,6 → 6,4 kat","sonsuz çekirdek|10 + 0 = 10 → 10 kat"]},
+cap:"p = 0,9 için çekirdek eklendikçe kazanç azalır ve 10 katta durur."},
+
+{id:"gecikme-verim",c:"olcum",a:"Latency / Throughput",f:"Latency vs. throughput",tr:"Gecikme ve verim",y:"ölçü",
+o:"Bir işin ne kadar sürdüğü ile birim zamanda kaç işin bittiği arasındaki fark.",
+h:"Gecikme, tek bir işlemin başından sonuna geçen süredir; verim ise birim zamanda tamamlanan işlem sayısıdır. Boru hatları, SIMD, çok çekirdek ve bellek paralelliği çoğunlukla verimi artırır, gecikmeyi değil. Örneğin bir DRAM erişimi yaklaşık 80 ns sürer, ama bellek denetleyicisi aynı anda birçok isteği uçuşta tutarak saniyede onlarca GB taşıyabilir. Little yasası ikisini birbirine bağlar: uçuştaki iş miktarı = verim × gecikme. Yüksek verim için çok sayıda bağımsız istek gerekir.",
+t:[["Gecikme","ns, çevrim"],["Verim","Komut/çevrim, GB/s, IOPS"],["Little yasası","L = λ × W"],["Örnek","DDR5-6000, tek 64 bitlik kanal: 6000 MT/s × 8 B ≈ 48 GB/s teorik"]],
+d:{k:"seq",a:["Çekirdek","Denetleyici","DRAM"],s:[[0,1,"istek 1","q"],[0,1,"istek 2","q"],[0,1,"istek 3","q"],[1,2,"üç istek aynı anda uçuşta","q"],[2,0,"yanıtlar ~80 ns sonra","r"]]},
+cap:"Her isteğin gecikmesi aynı kalır; aynı anda daha çok istek verimi artırır."}
+];
+
+/* ============ SVG ÇİZİM ============ */
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(t,a,p,s){const e=el(t,a,p);e.textContent=s;return e}
+
+function seqSVG(d){
+  const n=d.a.length, cw=n<=2?300:n===3?205:n===4?165:140, px=82;
+  const labelMax=Math.max(...d.s.map(s=>s[2].length));
+  const W=Math.max(px*2+cw*(n-1), labelMax*6.9+40), top=58, rh=40, H=top+d.s.length*rh+14;
+  const off=(W-(px*2+cw*(n-1)))/2;
+  const X=i=>off+px+i*cw;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.72)}px`,"aria-label":"Akış şeması: "+d.a.join(", ")});
+  d.a.forEach((name,i)=>{
+    el("line",{x1:X(i),y1:36,x2:X(i),y2:H-4,class:"life"},svg);
+    const w=Math.max(96,name.length*7.4+20);
+    el("rect",{x:X(i)-w/2,y:6,width:w,height:30,rx:6,class:"actor"},svg);
+    txt("text",{x:X(i),y:25.5,class:"actor-t","text-anchor":"middle"},svg,name);
+  });
+  const segs=d.s.map((s,i)=>{
+    const [f,t,label,k]=s, kind=k==="n"?"n":(k||"q"), y=top+i*rh+16;
+    const g=el("g",{class:"step k-"+kind},svg);
+    if(f===t){
+      const w=Math.max(104,label.length*6.8+18);
+      el("rect",{x:X(f)-w/2,y:y-13,width:w,height:24,rx:5,class:"note"},g);
+      txt("text",{x:X(f),y:y+3.5,"text-anchor":"middle",class:"lbl"},g,label);
+      return {g,x1:X(f)-w/2-9,y1:y-1,x2:X(f)-w/2-9,y2:y-1,note:true};
+    }
+    const x1=X(f),x2=X(t),dir=x2>x1?1:-1;
+    el("line",{x1:x1+dir*3,y1:y+6,x2:x2-dir*3,y2:y+6,class:"arrow","marker-end":`url(#m-${kind})`},g);
+    txt("text",{x:(x1+x2)/2,y:y-1,"text-anchor":"middle",class:"lbl"},g,label);
+    return {g,x1,y1:y+6,x2,y2:y+6};
+  });
+  const dot=el("circle",{r:5.5,class:"pkt",cx:segs[0].x1,cy:segs[0].y1},svg);
+  return {svg,segs,dot};
+}
+
+function stackSVG(d,wide){
+  const items=d.l.map(s=>s.split("|"));
+  const longest=Math.max(...items.map(i=>i[0].length*7.2+(i[1]?i[1].length*6.3:0)));
+  const W=Math.max(wide?520:440,Math.round(longest+90)), bw=W-40, bh=40, gap=14, top=12;
+  const H=top+items.length*(bh+gap)-gap+12;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.7)}px`,"aria-label":"Katman şeması: "+items.map(i=>i[0]).join(" → ")});
+  const cx=W/2;
+  const pts=items.map((it,i)=>{
+    const y=top+i*(bh+gap), g=el("g",{class:"step"},svg);
+    el("rect",{x:20,y,width:bw,height:bh,rx:7,class:"layer"},g);
+    txt("text",{x:36,y:y+25,class:"layer-t"},g,it[0]);
+    if(it[1]) txt("text",{x:W-36,y:y+25,class:"layer-c","text-anchor":"end"},g,it[1]);
+    if(i<items.length-1) el("line",{x1:cx,y1:y+bh+2,x2:cx,y2:y+bh+gap-2,class:"arrow",stroke:"var(--muted)","stroke-width":1.4},svg);
+    return {g,y:y+bh/2};
+  });
+  const segs=[];
+  for(let i=0;i<pts.length;i++){segs.push({g:pts[i].g,x1:cx,y1:i?pts[i-1].y:pts[0].y,x2:cx,y2:pts[i].y});}
+  for(let i=pts.length-2;i>=0;i--){segs.push({g:pts[i].g,x1:cx,y1:pts[i+1].y,x2:cx,y2:pts[i].y});}
+  const dot=el("circle",{r:6,class:"pkt",cx,cy:pts[0].y},svg);
+  return {svg,segs,dot};
+}
+
+/* boru hattı çizelgesi: satırlar komut, sütunlar saat çevrimi */
+function pipeSVG(d){
+  const ST=d.st||["IF","ID","EX","MEM","WB"];
+  const rows=d.r.map(r=>({label:r[0],start:r[1],seq:r[2]||ST}));
+  const ncol=Math.max(...rows.map(r=>r.start+r.seq.length));
+  const lw=Math.max(...rows.map(r=>r.label.length))*6.9+20, cw=46, rh=32, top=34;
+  const W=Math.round(lw+ncol*cw+12), H=top+rows.length*rh+10;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.75)}px`,"aria-label":"Boru hattı çizelgesi: "+rows.map(r=>r.label).join(", ")});
+  const X=c=>lw+c*cw;
+  const cols=[];
+  for(let c=0;c<ncol;c++){
+    txt("text",{x:X(c)+cw/2,y:14,class:"cyc","text-anchor":"middle"},svg,String(c+1));
+    cols.push(el("g",{class:"step"},svg));
+  }
+  el("line",{x1:lw-6,y1:top-8,x2:W-6,y2:top-8,class:"grid-l"},svg);
+  rows.forEach((r,i)=>{
+    const y=top+i*rh;
+    txt("text",{x:8,y:y+rh/2+2,class:"rowl"},svg,r.label);
+    r.seq.forEach((s,k)=>{
+      const c=r.start+k, g=cols[c], bub=s==="·";
+      el("rect",{x:X(c)+3,y:y+3,width:cw-6,height:rh-8,rx:4,class:bub?"bub":"cell"},g);
+      txt("text",{x:X(c)+cw/2,y:y+rh/2+1,"text-anchor":"middle",class:bub?"bub-t":"cell-t"},g,bub?"dur":s);
+    });
+  });
+  const cy=22;
+  const segs=cols.map((g,c)=>({g,x1:X(Math.max(0,c-1))+cw/2,y1:cy,x2:X(c)+cw/2,y2:cy}));
+  const dot=el("circle",{r:5,class:"pkt",cx:segs[0].x1,cy},svg);
+  return {svg,segs,dot};
+}
+
+/* ============ ANİMASYON ============ */
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const live=new Set();
+function animate(diag){
+  if(reduce) return;
+  diag.i=0;diag.t0=performance.now();
+  live.add(diag);
+}
+function frame(now){
+  live.forEach(d=>{
+    if(!d.visible) return;
+    const DUR=d.pipe?750:(d.stack?650:1050);
+    const elapsed=now-d.t0;
+    if(d.i>=d.segs.length){ if(elapsed>1300){d.i=0;d.t0=now;} return;}
+    const s=d.segs[d.i];
+    if(!d.root.classList.contains("playing")) d.root.classList.add("playing");
+    d.segs.forEach((x,j)=>x.g.classList.toggle("on",j===d.i));
+    const p=Math.min(1,elapsed/DUR), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    d.dot.setAttribute("cx",s.x1+(s.x2-s.x1)*e);
+    d.dot.setAttribute("cy",s.y1+(s.y2-s.y1)*e);
+    d.dot.setAttribute("r",s.note?5.5+2*Math.sin(p*Math.PI):(d.stack?6:5.5));
+    if(p>=1){d.i++;d.t0=now; if(d.i>=d.segs.length){d.segs.forEach(x=>x.g.classList.remove("on"));d.root.classList.remove("playing");}}
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{const d=e.target.__diag;if(d)d.visible=e.isIntersecting}),{rootMargin:"60px"}):null;
+
+function mount(box,spec,wide){
+  const r=spec.k==="stack"?stackSVG(spec,wide):spec.k==="pipe"?pipeSVG(spec):seqSVG(spec);
+  box.appendChild(r.svg);
+  const d={root:r.svg,segs:r.segs,dot:r.dot,stack:spec.k==="stack",pipe:spec.k==="pipe",visible:!io};
+  box.__diag=d; if(io) io.observe(box);
+  animate(d);
+}
+
+/* ============ SAYFA ============ */
+const content=document.getElementById("content"), nav=document.getElementById("nav"), idx=document.getElementById("index");
+CATS.forEach(c=>{
+  const items=T.filter(t=>t.c===c.id);
+  const sec=document.createElement("section");sec.className="cat";sec.id=c.id;
+  const head=document.createElement("div");head.className="cat-head";
+  const h2=document.createElement("h2");h2.textContent=c.n;
+  const num=document.createElement("span");num.className="num";num.textContent=items.length+" kavram";
+  head.append(h2,num);
+  const intro=document.createElement("p");intro.className="cat-intro";intro.textContent=c.i;
+  sec.append(head,intro);
+  items.forEach(t=>{
+    const art=document.createElement("article");art.className="term";art.id=t.id;
+    art.dataset.s=(t.a+" "+t.f+" "+t.tr+" "+t.o+" "+t.h+" "+t.t.map(x=>x.join(" ")).join(" ")).toLocaleLowerCase("tr");
+    const hd=document.createElement("header");
+    hd.innerHTML=`<span class="abbr"></span><h3></h3><span class="meta"></span><p class="tr"></p>`;
+    hd.querySelector(".abbr").textContent=t.a;hd.querySelector("h3").textContent=t.f;hd.querySelector(".meta").textContent=t.y;hd.querySelector(".tr").textContent=t.tr;
+    art.appendChild(hd);
+    const one=document.createElement("p");one.className="one";one.textContent=t.o;art.appendChild(one);
+    const body=document.createElement("div");body.className="body";
+    const left=document.createElement("div");
+    const h4a=document.createElement("h4");h4a.textContent="Nasıl çalışır";left.appendChild(h4a);
+    const p=document.createElement("p");p.textContent=t.h;left.appendChild(p);
+    const h4b=document.createElement("h4");h4b.textContent="Teknik ayrıntılar";left.appendChild(h4b);
+    const dl=document.createElement("dl");dl.className="tech";
+    t.t.forEach(([k,v])=>{const dt=document.createElement("dt");dt.textContent=k;const dd=document.createElement("dd");dd.textContent=v;dl.append(dt,dd)});
+    left.appendChild(dl);
+    const fig=document.createElement("figure");
+    const box=document.createElement("div");box.className="diag-box";fig.appendChild(box);
+    const fc=document.createElement("figcaption");fc.textContent=t.cap;fig.appendChild(fc);
+    body.append(left,fig);art.appendChild(body);
+    if(t.x){const pre=document.createElement("pre");pre.className="code";const cl=document.createElement("span");cl.className="cl";cl.textContent=t.x[0];pre.appendChild(cl);pre.appendChild(document.createTextNode(t.x[1]));art.appendChild(pre);}
+    sec.appendChild(art);
+    mount(box,t.d,false);
+    const a=document.createElement("a");a.href="#"+t.id;a.textContent=t.a;idx.appendChild(a);
+  });
+  content.appendChild(sec);
+  const na=document.createElement("a");na.href="#"+c.id;na.textContent=c.n;
+  const sp=document.createElement("span");sp.textContent=items.length;na.appendChild(sp);nav.appendChild(na);
+});
+[["karsilastirma","ISA karşılaştırması"],["gecikmeler","Erişim süreleri"]].forEach(([id,n])=>{
+  const na=document.createElement("a");na.href="#"+id;na.textContent=n;
+  const sp=document.createElement("span");sp.textContent="tablo";na.appendChild(sp);nav.appendChild(na);
+});
+
+mount(document.getElementById("hero-diag"),{k:"stack",l:[
+ "C kodu|x = a + b;","Derleyici|lw · lw · add · sw","Getir ve çöz|PC → komut → opcode, yazmaçlar","Yürüt|ALU: a + b","Bellek|L1 → L2 → L3 → DRAM","Geri yaz|sonuç → yazmaç"]},true);
+
+/* arama */
+const q=document.getElementById("q"), empty=document.getElementById("empty");
+q.addEventListener("input",()=>{
+  const v=q.value.trim().toLocaleLowerCase("tr");let any=false;
+  document.querySelectorAll("#content section.cat").forEach(sec=>{
+    let n=0;sec.querySelectorAll(".term").forEach(a=>{const ok=!v||a.dataset.s.includes(v);a.hidden=!ok;if(ok)n++});
+    sec.hidden=n===0;if(n)any=true;
+  });
+  document.querySelectorAll("#karsilastirma,#gecikmeler").forEach(s=>s.hidden=!!v);
+  empty.style.display=any?"none":"block";
+});
+</script>
+
+</body></html>
