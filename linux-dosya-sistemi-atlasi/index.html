@@ -1,0 +1,1351 @@
+<!doctype html><html lang="tr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Linux Dosya Sistemi Atlası</title>
+<meta name="description" content="Inode'dan btrfs anlık görüntülerine: VFS, sayfa önbelleği, ext4, XFS, btrfs, ZFS, bağlama, izinler, sanal dosya sistemleri ve blok katmanlarını canlı şemalarla anlatan Türkçe rehber.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Düzen: veri sayfası + mantık analizörü — solda kategori rayı, sağda kavram kartları; her kartta metin | canlı şema (akış, katman yığını ya da boru hattı çizelgesi) */
+:root{
+  --bg:#eef1f3; --panel:#fbfcfc; --ink:#14202a; --muted:#56636e; --line:#cfd6dc;
+  --accent:#1d55c9; --resp:#14866d; --event:#c47a06; --note:#e4e9ef; --soft:#e3e9f2;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.9em}
+.rail,main{min-width:0}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:0 80px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:0;padding-inline:16px}}
+
+/* ray */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-block:28px;max-height:100vh;overflow:auto}
+.brand{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01em;line-height:1.1}
+.brand small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
+.search{margin-top:18px;width:100%;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.search:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.rail nav{margin-top:18px;display:flex;flex-direction:column;gap:2px}
+.rail nav a{display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);font-size:14px;padding:6px 10px;border-radius:6px}
+.rail nav a:hover,.rail nav a:focus-visible{background:var(--soft);outline:none}
+.rail nav a span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend{margin-top:22px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:8px}
+.legend b{display:inline-block;width:22px;height:12px;border-radius:3px;vertical-align:middle;margin-right:8px;border:1px solid var(--accent);background:var(--soft)}
+.legend b.bub{border:1px dashed var(--event);background:var(--note)}
+@media (max-width:900px){
+  .rail{position:sticky;max-height:none;padding-block:12px;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+  .brand small,.legend{display:none}
+  .rail nav{flex-direction:row;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+  .rail nav a{white-space:nowrap;background:var(--panel);border:1px solid var(--line)}
+  .search{margin-top:10px}
+}
+
+/* hero */
+.hero{padding-block:40px 24px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5.4vw,60px);line-height:1.02;letter-spacing:-.025em;margin:10px 0 16px;text-wrap:balance;max-width:16ch}
+.hero p.lead{font-size:18px;max-width:62ch;color:var(--muted);margin:0}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:center;margin-top:26px}
+@media (max-width:1050px){.hero-grid{grid-template-columns:minmax(0,1fr)}}
+.hero-notes{display:flex;flex-direction:column;gap:14px;font-size:15px}
+.hero-notes div{padding-left:14px;border-left:2px solid var(--line)}
+.hero-notes b{font-family:var(--mono);font-weight:600}
+
+.index{display:flex;flex-wrap:wrap;gap:6px;margin-top:26px}
+.index a{font-family:var(--mono);font-size:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);padding:3px 8px;border-radius:5px}
+.index a:hover,.index a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+
+/* bölümler */
+section.cat{padding-top:48px}
+.cat-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:6px}
+.cat-head h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;margin:0;line-height:1.1;text-wrap:balance}
+.cat-head .num{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.cat-intro{color:var(--muted);max-width:68ch;margin:0 0 22px}
+
+.term{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px;scroll-margin-top:90px}
+@media (max-width:600px){.term{padding:18px 16px}}
+.term header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.abbr{font-family:var(--mono);font-weight:600;font-size:26px;color:var(--accent);letter-spacing:-.01em}
+.term h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0;line-height:1.2}
+.term .tr{font-size:14px;color:var(--muted);margin:0;flex-basis:100%}
+.term .meta{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 7px;margin-left:auto}
+.one{font-size:17px;font-weight:500;margin:12px 0 0;max-width:70ch}
+.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;margin-top:16px}
+@media (max-width:1150px){.body{grid-template-columns:minmax(0,1fr)}}
+.body h4{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.body p{margin:0 0 16px;max-width:66ch}
+dl.tech{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:0;font-size:14px}
+dl.tech dt{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:2px}
+dl.tech dd{margin:0}
+@media (max-width:500px){dl.tech{grid-template-columns:minmax(0,1fr)}dl.tech dd{margin-bottom:6px}}
+figure{margin:0;min-width:0}
+.diag-box{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+pre.code{margin:16px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55}
+pre.code .cl{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+/* svg diyagram */
+svg.diag{display:block;font-family:var(--mono);width:100%;height:auto;margin:0 auto}
+.actor{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.actor-t{fill:var(--ink);font-size:11.5px;font-weight:600}
+.life{stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
+.arrow{stroke-width:1.6;fill:none}
+.k-q .arrow{stroke:var(--accent)} .k-r .arrow{stroke:var(--resp);stroke-dasharray:5 3} .k-e .arrow{stroke:var(--event)}
+.lbl{fill:var(--ink);font-size:11px}
+.note{fill:var(--note);stroke:var(--line)}
+.step{transition:opacity .25s}
+.playing .step{opacity:.45} .playing .step.on{opacity:1}
+.step.on .lbl{font-weight:600}
+.pkt{fill:var(--event);stroke:var(--panel);stroke-width:2}
+.mq{fill:var(--accent)} .mr{fill:var(--resp)} .me{fill:var(--event)}
+.layer{fill:var(--panel);stroke:var(--ink);stroke-width:1.1}
+.layer-t{fill:var(--ink);font-size:12px;font-weight:600}
+.layer-c{fill:var(--muted);font-size:10.5px}
+.step.on .layer{fill:var(--soft);stroke:var(--accent);stroke-width:2}
+/* boru hattı çizelgesi */
+.cyc{fill:var(--muted);font-size:10.5px}
+.rowl{fill:var(--ink);font-size:11px}
+.cell{fill:var(--panel);stroke:var(--line);stroke-width:1}
+.cell-t{fill:var(--ink);font-size:10.5px;font-weight:600}
+.bub{fill:var(--note);stroke:var(--event);stroke-width:1.1;stroke-dasharray:3 2}
+.bub-t{fill:var(--event);font-size:10.5px;font-weight:600}
+.step.on .cell{fill:var(--soft);stroke:var(--accent);stroke-width:1.8}
+.step.on .bub{stroke-width:1.8}
+.grid-l{stroke:var(--line);stroke-width:1}
+
+/* karşılaştırma */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td:first-child{font-family:var(--mono);font-weight:600;color:var(--accent)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.tbl-note{font-size:13px;color:var(--muted);margin:10px 0 0;max-width:72ch}
+.empty{display:none;padding:40px 0;color:var(--muted)}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.pkt{display:none}.step{transition:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="m-q" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mq" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mr" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="me" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand">Linux Dosya Sistemi Atlası<small>inode · VFS · ext4 · btrfs · bağlama</small></div>
+    <input id="q" class="search" type="search" placeholder="Ara: inode, fstab, alt birim…" aria-label="Kavram ara">
+    <nav id="nav" aria-label="Kategoriler"></nav>
+    <div class="legend" aria-label="Şema renkleri">
+      <span><i style="border-color:var(--accent)"></i>istek / çağrı / yazma</span>
+      <span><i style="border-color:var(--resp);border-top-style:dashed"></i>yanıt / sonuç</span>
+      <span><i style="border-color:var(--event)"></i>olay / hata / sinyal</span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Diskteki baytlardan dizin ağacına</div>
+      <h1>Bir dosya aslında nedir?</h1>
+      <p class="lead">Ekranda bir simge, terminalde bir yol olarak gördüğün şey; bir dizindeki bir ad, onun gösterdiği bir inode ve diskin çeşitli yerlerine dağılmış bloklardan oluşur. Bir write() çağrısı bu bloklara ulaşana kadar sanal dosya sisteminden, sayfa önbelleğinden, dosya sisteminden, belki bir şifreleme katmanından ve blok katmanından geçer. Bu atlas o yolun her durağını, dizin ağacının düzenini ve dosya sistemlerinin birbirinden nasıl ayrıldığını anlatır.</p>
+      <div class="hero-grid">
+        <figure>
+          <div class="diag-box" id="hero-diag"></div>
+          <figcaption>Bir yazma isteğinin uygulamadan diske iniş yolu. Turuncu nokta isteğin o anda hangi katmanda olduğunu gösterir.</figcaption>
+        </figure>
+        <div class="hero-notes">
+          <div>Bir dosyanın <b>adı</b> dizinde, <b>kimliği</b> inode'da, <b>içeriği</b> veri bloklarında durur. Bu üçlü ayrım; sabit bağlantıyı, silinen ama açık kalan dosyayı ve atomik yeniden adlandırmayı mümkün kılar.</div>
+          <div><b>write()</b> döndüğünde verin henüz diskte değil, RAM'deki sayfa önbelleğindedir. Kalıcı olması için geri yazmayı ya da <b>fsync</b>'i beklemek gerekir.</div>
+          <div><b>ext4</b> veriyi yerinde günceller ve tutarlılığı günlükle korur; <b>btrfs</b> ve <b>ZFS</b> hiçbir bloğu ezmez, bu yüzden anlık görüntü ve sağlama toplamı bedavaya gelir.</div>
+          <div>/proc, /sys, /dev ve /tmp'nin diskte karşılığı yoktur: çekirdek bunları <b>dosya gibi görünen</b> sanal dosya sistemleri olarak sunar.</div>
+        </div>
+      </div>
+      <div class="index" id="index" aria-label="Hızlı dizin"></div>
+    </header>
+
+    <div id="content"></div>
+    <p class="empty" id="empty">Bu aramaya uyan kavram yok. Kısaltma, İngilizce ad ya da Türkçe karşılık deneyebilirsin.</p>
+
+    <section class="cat" id="karsilastirma">
+      <div class="cat-head"><h2>Yan yana: dosya sistemleri</h2><span class="num">özet tablo</span></div>
+      <p class="cat-intro">Hangi dosya sisteminin neyi sunduğuna dair kısa bir rehber. Sınırlar 4 KiB blok boyutu içindir; varsayılanlar sürüme göre değişebilir.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Dosya sistemi</th><th>Tasarım</th><th>En büyük dosya</th><th>Veri sağlaması</th><th>Anlık görüntü</th><th>Sıkıştırma</th><th>Küçültme</th><th>Uygun olduğu iş</th></tr></thead>
+        <tbody>
+          <tr><td>ext4</td><td>Yerinde + günlük</td><td class="num">16 TiB</td><td>Hayır (yalnız üst veri)</td><td>Hayır</td><td>Hayır</td><td>Çevrimdışı</td><td>Genel amaç, sunucu, en kolay onarım</td></tr>
+          <tr><td>XFS</td><td>Yerinde + günlük</td><td class="num">8 EiB</td><td>Hayır (yalnız üst veri)</td><td>Hayır (reflink var)</td><td>Hayır</td><td>Yok</td><td>Büyük dosyalar, paralel yük, RHEL</td></tr>
+          <tr><td>btrfs</td><td>Kopyala-yaz</td><td class="num">16 EiB</td><td>Evet (crc32c…)</td><td>Evet, alt birim</td><td>zstd, lzo, zlib</td><td>Çevrimiçi</td><td>Masaüstü, geri alınabilir güncelleme, NAS</td></tr>
+          <tr><td>ZFS</td><td>Kopyala-yaz + havuz</td><td class="num">16 EiB</td><td>Evet (fletcher4…)</td><td>Evet, veri kümesi</td><td>lz4, zstd, gzip</td><td>Havuz küçülmez</td><td>Depolama sunucusu, çok diskli arşiv</td></tr>
+          <tr><td>bcachefs</td><td>Kopyala-yaz + katmanlama</td><td class="num">16 EiB</td><td>Evet</td><td>Evet</td><td>lz4, zstd, gzip</td><td>Kısıtlı</td><td>SSD + HDD karışık depolama (deneysel)</td></tr>
+          <tr><td>F2FS</td><td>Günlük yapılı</td><td class="num">≈ 3,9 TiB</td><td>Hayır</td><td>Hayır</td><td>lz4, zstd, lzo</td><td>Kısıtlı</td><td>SD kart, telefon, gömülü flash</td></tr>
+          <tr><td>exFAT</td><td>FAT zinciri</td><td class="num">16 EiB</td><td>Hayır</td><td>Hayır</td><td>Hayır</td><td>Hayır</td><td>USB bellek, SD kart, her işletim sistemiyle paylaşım</td></tr>
+          <tr><td>FAT32</td><td>FAT zinciri</td><td class="num">4 GiB</td><td>Hayır</td><td>Hayır</td><td>Hayır</td><td>Hayır</td><td>EFI sistem bölümü, mikrodenetleyici, eski cihazlar</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tbl-note">Hangi dosya sistemini kullandığını <code>findmnt -no FSTYPE /</code>, çekirdeğin tanıdıklarını <code>cat /proc/filesystems</code> gösterir.</p>
+    </section>
+
+    <section class="cat" id="secenekler">
+      <div class="cat-head"><h2>Yan yana: bağlama seçenekleri</h2><span class="num">fstab'ın dördüncü sütunu</span></div>
+      <p class="cat-intro">fstab'da ve mount -o ile en sık kullanılan seçenekler. Dosya sistemine özel olanlar ilgili satırda belirtilmiştir.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Seçenek</th><th>Ne yapar</th><th>Ne zaman kullanılır</th></tr></thead>
+        <tbody>
+          <tr><td><code>defaults</code></td><td>rw, suid, dev, exec, auto, nouser, async</td><td>Özel bir ihtiyaç yoksa yer tutucu olarak</td></tr>
+          <tr><td><code>ro</code> / <code>rw</code></td><td>Salt okunur / okuma-yazma</td><td>Kurtarma, arşiv diski, imza denetimli sistem</td></tr>
+          <tr><td><code>relatime</code></td><td>Erişim zamanını yalnızca mtime'dan eskiyse ya da 24 saatte bir günceller</td><td>Varsayılan; çoğu durum için yeterli</td></tr>
+          <tr><td><code>noatime</code></td><td>Erişim zamanını hiç güncellemez</td><td>SSD, btrfs (anlık görüntülerde gereksiz kopyayı önler)</td></tr>
+          <tr><td><code>lazytime</code></td><td>Zaman damgalarını yalnızca bellekte günceller, seyrek yazar</td><td>Sık değişen dosyalarda yazma azaltma</td></tr>
+          <tr><td><code>nosuid</code>, <code>nodev</code>, <code>noexec</code></td><td>setuid bitlerini, cihaz dosyalarını, programları çalıştırmayı yok sayar</td><td>/tmp, USB bellek, paylaşımlı ve güvenilmeyen diskler</td></tr>
+          <tr><td><code>nofail</code></td><td>Disk bulunamazsa açılışı durdurmaz</td><td>Harici ve ikincil diskler</td></tr>
+          <tr><td><code>x-systemd.automount</code></td><td>Diski ilk erişimde bağlar</td><td>Ağ paylaşımları, nadiren kullanılan diskler</td></tr>
+          <tr><td><code>subvol=@home</code></td><td>Belirli bir btrfs alt birimini bağlar</td><td>btrfs alt birim düzeni</td></tr>
+          <tr><td><code>compress=zstd:1</code></td><td>Yeni yazılan veriyi zstd ile sıkıştırır (btrfs)</td><td>Metin, kod ve program ağırlıklı diskler</td></tr>
+          <tr><td><code>discard=async</code></td><td>Boşalan blokları SSD'ye arka planda bildirir (btrfs)</td><td>SSD; 6.2'den beri btrfs'te varsayılan</td></tr>
+          <tr><td><code>uid=</code>, <code>gid=</code>, <code>umask=</code></td><td>İzni olmayan dosya sistemlerinde sahibi ve izinleri taklit eder</td><td>FAT32, exFAT, NTFS</td></tr>
+          <tr><td><code>size=</code></td><td>Boyut sınırı (tmpfs)</td><td>/tmp ya da RAM diski</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tbl-note">Bir dosya sisteminin şu an hangi seçeneklerle bağlı olduğunu <code>findmnt -o TARGET,OPTIONS</code> gösterir. fstab'ı değiştirdikten sonra <code>sudo findmnt --verify</code> ve <code>sudo mount -a</code> ile yeniden başlatmadan dene.</p>
+    </section>
+
+    <footer>Kaynak olarak Linux çekirdek belgeleri (filesystems/, admin-guide/sysctl/vm, ext4 disk düzeni, overlayfs, cgroup-v2), btrfs, XFS ve OpenZFS belgeleri, util-linux ve e2fsprogs kılavuz sayfaları, systemd kılavuz sayfaları (file-hierarchy(7), systemd.mount(5), tmpfiles.d(5), systemd-cryptenroll(1)), Filesystem Hierarchy Standard 3.0, XDG Base Directory belirtimi, cryptsetup/LUKS2 belgeleri ve ArchWiki dosya sistemi sayfaları temel alınmıştır. Varsayılan değerler dağıtıma ve sürüme göre değişebilir; örnek çıktılar temsilîdir.</footer>
+  </main>
+</div>
+
+<script>
+/* ============ VERİ ============ */
+const CATS=[
+ {id:"temel",n:"Temel kavramlar",i:"Bir dosya sisteminin üzerine kurulduğu birkaç fikir: dosya ile adının ayrı şeyler olması, inode, bağlantılar ve süreçlerin dosyalara tuttuğu tanımlayıcılar."},
+ {id:"hiyerarsi",n:"Dizin hiyerarşisi",i:"Linux'ta her şey tek bir kökten (/) dallanır. Hangi dizinin ne için olduğunu FHS ve systemd'nin file-hierarchy(7) belgesi belirler."},
+ {id:"vfs",n:"Çekirdek: VFS ve G/Ç yolu",i:"Bir read() çağrısının uygulamadan diske kadar izlediği yol: sanal dosya sistemi, sayfa önbelleği, geri yazma ve blok katmanı."},
+ {id:"klasik",n:"ext4, XFS ve diğerleri",i:"Verinin yerinde güncellendiği, tutarlılığın günlükle (journal) korunduğu klasik dosya sistemleri ve taşınabilir biçimler."},
+ {id:"cow",n:"Kopyala-yaz: btrfs ve ZFS",i:"Hiçbir bloğu yerinde değiştirmeyen dosya sistemleri. Anlık görüntü, sağlama toplamı ve sıkıştırma bu tasarımın doğal sonuçlarıdır."},
+ {id:"baglama",n:"Bağlama",i:"Bir dosya sisteminin dizin ağacına nasıl eklendiği: mount, fstab, systemd bağlama birimleri, katmanlı ve kullanıcı alanı dosya sistemleri."},
+ {id:"izin",n:"İzinler ve öznitelikler",i:"Kimin neye erişebileceği: klasik rwx bitleri, özel bitler, ACL'ler, genişletilmiş öznitelikler ve dosya yetenekleri."},
+ {id:"sanal",n:"Sanal ve özel dosya sistemleri",i:"Diskte hiç yer kaplamayan ama dosya gibi görünen sistemler: çekirdeğin durumunu, cihazları ve RAM'i dosya arayüzüyle sunarlar."},
+ {id:"blok",n:"Blok katmanları",i:"Dosya sistemi ile disk arasına girebilen katmanlar: bölümler, aygıt eşleyici, LVM, yazılımsal RAID, şifreleme ve takas alanı."},
+ {id:"arac",n:"Araçlar ve bakım",i:"Dosya sistemi oluşturmak, denetlemek, onarmak, izlemek ve yer sorunlarını çözmek için kullanılan komutlar."}
+];
+
+const T=[
+/* ---------- TEMEL ---------- */
+{id:"her-sey-dosya",c:"temel",a:"Everything is a file",f:"Everything is a file",tr:"Her şey bir dosyadır",y:"tasarım ilkesi",
+o:"Diskteki belgeler, cihazlar, borular ve çekirdek ayarları için aynı open, read, write, close arayüzünün kullanılması.",
+h:"Unix'ten gelen bu ilke, çok farklı kaynakları tek bir isim alanında ve tek bir arayüzle sunar. /home'daki bir metin dosyası, /dev/nvme0n1 diski, /dev/ttyACM0 seri portu, /proc/cpuinfo çekirdek bilgisi ve iki süreç arasındaki bir boru aynı sistem çağrılarıyla açılıp okunur. Bu sayede cat, grep ya da dd gibi araçlar, nereden geldiğini bilmeden her kaynakla çalışabilir. İlke kusursuz değildir: ağ arayüzlerinin /dev altında dosyası yoktur ve birçok cihaz ayarı ioctl gibi özel çağrılar ister. Yine de Linux'un sanal dosya sistemleri (proc, sys, cgroup) bu fikri büyük ölçüde genişletmiştir.",
+t:[["Temel çağrılar","open, read, write, lseek, close"],["Özel denetim","ioctl, fcntl"],["Örnek kaynaklar","Belge, disk, seri port, boru, soket, çekirdek değişkeni"],["İstisna","Ağ arayüzleri (eth0, wlan0) dosya değildir"]],
+d:{k:"seq",a:["Uygulama","Çekirdek (VFS)","ext4","/dev/ttyACM0"],s:[[0,1,"read(fd)","q"],[1,2,"dosya ise","q"],[2,1,"veri","r"],[1,3,"cihaz ise","q"],[3,1,"bayt","r"],[1,0,"aynı arayüz","r"]]},
+cap:"Uygulama aynı read() çağrısını yapar; VFS isteği doğru sürücüye yönlendirir.",
+x:["Aynı araç, farklı kaynaklar",`$ cat ~/notlar.txt          # sıradan dosya
+$ cat /proc/loadavg         # çekirdeğin anlık yük bilgisi
+0.42 0.37 0.31 1/812 20417
+$ cat /sys/class/power_supply/BAT0/capacity
+87
+$ sudo dd if=/dev/nvme0n1 bs=512 count=1 | xxd | head -2   # diskin ilk sektörü`]},
+
+{id:"dosya-turleri",c:"temel",a:"File types",f:"File types",tr:"Dosya türleri",y:"7 tür",
+o:"Linux'un tanıdığı yedi dosya türü ve ls -l çıktısının ilk karakterinde nasıl göründükleri.",
+h:"Bir dosyanın türü, inode'daki mode alanının üst bitlerinde saklanır ve ls -l çıktısının ilk karakteri olarak görünür. Sıradan dosya (-) ve dizin (d) en tanıdık olanlardır. Sembolik bağlantı (l) başka bir yolu gösterir. Karakter (c) ve blok (b) cihaz dosyaları veri tutmaz; çekirdekteki bir sürücüyü major ve minor numaralarıyla işaret eder. İsimli boru (p, FIFO) iki süreç arasında tek yönlü bir kanal, soket (s) ise iki yönlü yerel iletişim uç noktasıdır. Dosya uzantısının Linux için hiçbir anlamı yoktur; türü inode, içeriğin biçimini ise file komutu söyler.",
+t:[["- sıradan","Veri baytları"],["d dizin","Ad → inode eşlemeleri"],["l sembolik bağlantı","Başka bir yol"],["c / b cihaz","Major:minor numarası"],["p / s","İsimli boru / yerel soket"],["Tür nerede","inode'daki st_mode (S_IFMT bitleri)"]],
+d:{k:"stack",l:["- sıradan dosya|veri","d dizin|ad → inode listesi","l sembolik bağlantı|hedef yol","c karakter cihazı|tty, seri port","b blok cihazı|disk, bölüm","p isimli boru|FIFO","s soket|yerel iletişim"]},
+cap:"ls -l'nin ilk sütunu türü, kalan dokuz karakter izinleri gösterir.",
+x:["Her türden bir örnek",`$ ls -ld /etc/hostname /etc /bin /dev/tty /dev/nvme0n1 /run/systemd/notify
+-rw-r--r-- 1 root root    8 /etc/hostname
+drwxr-xr-x 1 root root 4096 /etc
+lrwxrwxrwx 1 root root    7 /bin -> usr/bin
+crw-rw-rw- 1 root tty  5, 0 /dev/tty
+brw-rw---- 1 root disk 259, 0 /dev/nvme0n1
+srwxrwxrwx 1 root root    0 /run/systemd/notify
+$ mkfifo /tmp/boru && ls -l /tmp/boru
+prw-r--r-- 1 efe efe 0 /tmp/boru`]},
+
+{id:"inode",c:"temel",a:"inode",f:"Index node",tr:"Dosyanın kimlik kartı",y:"üst veri",
+o:"Bir dosyanın adı dışındaki her şeyini tutan yapı: türü, izinleri, sahibi, boyutu, zamanları ve verisinin diskte nerede olduğu.",
+h:"Dosya sisteminde her dosyanın bir inode'u ve bir inode numarası vardır. inode; tür ve izinleri (mode), sahip kullanıcı ile grubu, boyutu, bağlantı sayısını, dört zaman damgasını ve veri bloklarının konumunu tutar. Dosyanın adı inode'da değil, onu içeren dizinde durur. Bu ayrım sayesinde bir dosyanın birden fazla adı olabilir ve açık bir dosya silindikten sonra bile okunmaya devam edilebilir: inode, hem bağlantı sayısı hem de açık tanımlayıcı sayısı sıfıra inene kadar yaşar. ext4'te inode sayısı dosya sistemi oluşturulurken sabitlenir; XFS ve btrfs inode'ları gerektikçe üretir.",
+t:[["İçerik","mode, uid, gid, boyut, bağlantı sayısı, zamanlar, blok konumları"],["Zamanlar","atime (erişim), mtime (içerik), ctime (inode değişimi), btime (oluşturma)"],["ext4 inode boyutu","256 bayt (varsayılan)"],["ext4 inode sayısı","mkfs anında sabit; varsayılan her 16 KiB için 1"],["Görmek için","stat dosya · ls -i · df -i"]],
+d:{k:"stack",l:["Dizin girdisi|\"rapor.pdf\" → inode 1835014","inode 1835014|mode, uid, boyut, zamanlar","Kapsam ağacı (extent)|mantıksal blok → fiziksel blok","Veri blokları|dosyanın baytları"]},
+cap:"Ad dizinde, kimlik inode'da, içerik veri bloklarında durur.",
+x:["stat çıktısı",`$ stat rapor.pdf
+  File: rapor.pdf
+  Size: 482113     Blocks: 944     IO Block: 4096   regular file
+Device: 259,2      Inode: 1835014  Links: 1
+Access: (0644/-rw-r--r--)  Uid: ( 1000/ efe)   Gid: ( 1000/ efe)
+Access: 2026-10-11 21:04:12.551 +0300
+Modify: 2026-10-09 14:22:40.118 +0300
+Change: 2026-10-09 14:22:40.118 +0300
+ Birth: 2026-10-09 14:22:39.902 +0300`]},
+
+{id:"dizin-girdisi",c:"temel",a:"dentry",f:"Directory entry",tr:"Dizin girdisi",y:"ad → inode",
+o:"Bir dizinin içinde bir adı bir inode numarasına bağlayan kayıt.",
+h:"Dizin, özel biçimli bir dosyadır ve içeriği bir ad listesidir: her girdide dosyanın adı, inode numarası ve çoğu dosya sisteminde türü bulunur. Bir yolu çözmek, kökten başlayarak her bileşeni sırayla bir dizinde aramak demektir; /home/efe/a.txt için önce /'ın, sonra home'un, sonra efe'nin içinde arama yapılır. Bir dosya adı en fazla 255 bayt, tam bir yol ise çekirdek arayüzlerinde en fazla 4096 bayt olabilir. Adlarda yalnızca / ve NUL karakteri yasaktır; büyük ve küçük harf farklı sayılır. ext4 büyük dizinlerde aramayı hızlandırmak için girdileri bir karma ağacında (htree) tutar. Çekirdek de çözülmüş yolları bellekteki dentry önbelleğinde saklar.",
+t:[["Girdi içeriği","Ad, inode numarası, tür"],["Ad sınırı","255 bayt (NAME_MAX)"],["Yol sınırı","4096 bayt (PATH_MAX)"],["Yasak karakterler","/ ve NUL"],["ext4 büyük dizin","htree (dir_index özelliği)"],["Özel girdiler",". (kendisi), .. (üst dizin)"]],
+d:{k:"seq",a:["Süreç","dentry önbelleği","Dizin: /","Dizin: /home/efe"],s:[[0,1,"/home/efe/a.txt","q"],[1,1,"/home/efe önbellekte","n"],[1,3,"\"a.txt\" ara","q"],[3,1,"inode 4718","r"],[1,0,"inode 4718","r"]]},
+cap:"Yolun önceki kısımları önbellekteyse yalnızca son bileşen diskte aranır."},
+
+{id:"baglantilar",c:"temel",a:"ln / ln -s",f:"Hard and symbolic links",tr:"Sabit ve sembolik bağlantı",y:"birden çok ad",
+o:"Bir dosyaya ikinci bir ad vermenin iki yolu: aynı inode'u gösteren sabit bağlantı ve bir yolu gösteren sembolik bağlantı.",
+h:"Sabit bağlantı (hard link), aynı inode'a işaret eden ikinci bir dizin girdisidir; iki ad arasında asıl ve kopya ayrımı yoktur ve inode'daki bağlantı sayısı bir artar. Dosya, son adı da silinene kadar diskten kalkmaz. Sabit bağlantılar aynı dosya sistemi içinde kalmak zorundadır ve döngü oluşmaması için dizinlere verilemez. Sembolik bağlantı (symlink) ise kendi inode'u olan ayrı bir dosyadır ve içinde yalnızca bir yol metni tutar; hedef silinirse bağlantı kırık kalır, ama başka dosya sistemlerine ve dizinlere işaret edebilir. ext4, 60 bayttan kısa hedefleri ayrı blok ayırmadan doğrudan inode içine yazar (fast symlink).",
+t:[["Sabit bağlantı","Aynı inode, bağlantı sayısı +1"],["Sembolik bağlantı","Ayrı inode, içinde yol metni"],["Dosya sistemi sınırı","Sabit: aynı FS · Sembolik: her yere"],["Dizine bağlantı","Sabit: hayır · Sembolik: evet"],["Hedef silinince","Sabit: veri yaşar · Sembolik: kırık bağlantı"],["Göreli yol","Sembolik bağlantıdaki göreli yol, bağlantının bulunduğu dizine göre çözülür"]],
+d:{k:"seq",a:["ad: a.txt","ad: b.txt","inode 812","ad: s.txt"],s:[[0,2,"sabit bağlantı","q"],[1,2,"sabit bağlantı","q"],[2,2,"bağlantı sayısı = 2","n"],[3,0,"\"a.txt\" yolu","e"],[0,2,"çözülür","q"]]},
+cap:"İki sabit ad aynı inode'u paylaşır; sembolik bağlantı ise önce bir ada, oradan inode'a ulaşır.",
+x:["Bağlantı sayısını izlemek",`$ echo merhaba > a.txt
+$ ln a.txt b.txt          # sabit bağlantı
+$ ln -s a.txt s.txt       # sembolik bağlantı
+$ ls -li a.txt b.txt s.txt
+812 -rw-r--r-- 2 efe efe 8 a.txt
+812 -rw-r--r-- 2 efe efe 8 b.txt
+913 lrwxrwxrwx 1 efe efe 5 s.txt -> a.txt
+$ rm a.txt; cat b.txt; cat s.txt
+merhaba
+cat: s.txt: No such file or directory`]},
+
+{id:"dosya-tanimlayici",c:"temel",a:"fd",f:"File descriptor",tr:"Dosya tanımlayıcı",y:"süreç başına",
+o:"Bir sürecin açtığı dosyayı temsil eden küçük tamsayı; 0, 1 ve 2 standart girdi, çıktı ve hata akışlarıdır.",
+h:"open() başarılı olduğunda çekirdek sürecin tanımlayıcı tablosundaki en küçük boş numarayı döndürür. Bu numara, çekirdekteki bir açık dosya kaydını (open file description) gösterir; konum (offset), erişim kipi ve O_APPEND gibi bayraklar orada tutulur. fork() ya da dup() ile çoğaltılan tanımlayıcılar aynı kaydı paylaştığı için konumları da ortaktır; aynı dosyayı iki kez open() ile açmak ise iki ayrı kayıt üretir. Kabuktaki 2>&1 yönlendirmesi, 2 numaralı tanımlayıcıyı 1'in kopyası yapan bir dup2() çağrısıdır. Bir sürecin açık dosyalarını /proc/PID/fd altında görebilirsin.",
+t:[["Standart akışlar","0 stdin · 1 stdout · 2 stderr"],["Açık dosya kaydı","Konum, kip, bayraklar; dup/fork ile paylaşılır"],["Sınır","ulimit -n (yumuşak varsayılan 1024)"],["İncelemek","ls -l /proc/PID/fd · lsof -p PID"],["Bayrak","O_CLOEXEC: exec sırasında kapat"]],
+d:{k:"seq",a:["Süreç","fd tablosu","Açık dosya kaydı","inode"],s:[[0,1,"open(\"log\")","q"],[1,2,"yeni kayıt, offset=0","q"],[2,3,"inode'a referans","q"],[1,0,"fd = 3","r"],[0,1,"write(3, …)","q"],[2,2,"offset += n","n"]]},
+cap:"Tanımlayıcı numarası süreçe özeldir; konum bilgisi açık dosya kaydında tutulur.",
+x:["Bir sürecin açık dosyaları",`$ ls -l /proc/self/fd
+lrwx------ 1 efe efe 64 0 -> /dev/pts/1
+lrwx------ 1 efe efe 64 1 -> /dev/pts/1
+lrwx------ 1 efe efe 64 2 -> /dev/pts/1
+lr-x------ 1 efe efe 64 3 -> /proc/20811/fd
+$ exec 5> /tmp/deneme.log   # kabukta 5 numaralı tanımlayıcıyı aç
+$ echo selam >&5`]},
+
+{id:"blok-sektor",c:"temel",a:"Block / sector",f:"Blocks and sectors",tr:"Blok ve sektör",y:"birim",
+o:"Diskin okuyup yazdığı en küçük birim (sektör) ile dosya sisteminin yer ayırdığı birim (blok).",
+h:"Diskler veriyi sektörlerle taşır; eski diskler 512 baytlık, modern olanlar 4096 baytlık fiziksel sektörler kullanır ama uyumluluk için çoğu hâlâ 512 baytlık mantıksal sektör bildirir (512e). Dosya sistemi ise yer ayırırken daha büyük bir birim, blok kullanır; ext4 ve XFS'te bu tipik olarak 4 KiB'tır ve x86'daki bellek sayfası boyutuyla aynıdır. 1 baytlık bir dosya bile diskte bir tam blok kaplar; ls'nin gösterdiği boyut ile du'nun gösterdiği kullanım bu yüzden farklıdır. Bölümlerin 1 MiB sınırından başlatılması (hizalama), bloğun iki fiziksel sektöre bölünmesini önler.",
+t:[["Mantıksal sektör","Genelde 512 B (512e) ya da 4096 B (4Kn)"],["Fiziksel sektör","Modern diskte 4096 B"],["Dosya sistemi bloğu","Tipik 4 KiB"],["Bellek sayfası","x86-64: 4 KiB"],["Görmek için","lsblk -t · blockdev --getss --getpbsz"]],
+d:{k:"stack",l:["Dosya|\"a.txt\", 6 KiB","Dosya sistemi blokları|2 × 4 KiB (2 KiB boşa)","Mantıksal sektörler|16 × 512 B","Fiziksel sektörler|2 × 4096 B","NAND sayfaları|SSD denetleyicisi eşler"]},
+cap:"Dosyanın son bloğundaki kullanılmayan kısım iç parçalanma olarak boşa gider.",
+x:["Görünür boyut ve gerçek kullanım",`$ printf x > tek.txt
+$ ls -l tek.txt; du -h tek.txt
+-rw-r--r-- 1 efe efe 1 tek.txt
+4.0K    tek.txt
+$ lsblk -t /dev/nvme0n1 -o NAME,PHY-SEC,LOG-SEC,MIN-IO
+NAME      PHY-SEC LOG-SEC MIN-IO
+nvme0n1       512     512    512`]},
+
+/* ---------- HİYERARŞİ ---------- */
+{id:"fhs",c:"hiyerarsi",a:"FHS",f:"Filesystem Hierarchy Standard",tr:"Dosya sistemi hiyerarşisi standardı",y:"standart",
+o:"Linux'ta hangi dosyanın hangi dizinde duracağını tarif eden ortak düzen.",
+h:"Windows'taki sürücü harflerinin aksine Linux'ta tek bir ağaç vardır ve her disk, bölüm ya da sanal dosya sistemi bu ağaca bir dizinden bağlanır. FHS'nin son sürümü 3.0, 2015'te Linux Foundation tarafından yayımlandı; bugünkü dağıtımlar bunu temel alıp systemd'nin file-hierarchy(7) belgesindeki güncel kurallarla tamamlar. Temel ayrımlar şunlardır: dağıtımın kurduğu salt okunur yazılım /usr'de, makineye özel ayarlar /etc'de, değişen veri /var'da, kullanıcı verisi /home'da, çalışma anında oluşan geçici durum /run'da durur. Bu ayrım sayesinde /usr salt okunur bağlanabilir, /var ayrı bir diske taşınabilir ve yedekleme kuralları basitleşir.",
+t:[["Sürüm","FHS 3.0 (2015)"],["Güncel tamamlayıcı","systemd file-hierarchy(7)"],["Değişmeyen yazılım","/usr"],["Makine ayarı","/etc"],["Değişen veri","/var"],["Geçici çalışma durumu","/run, /tmp"]],
+d:{k:"stack",l:["/|kök","/usr|dağıtımın yazılımı (salt okunur)","/etc|makine ayarları","/var|günlükler, önbellek, veritabanı","/home|kullanıcı verisi","/run · /tmp|geçici, RAM'de","/proc · /sys · /dev|çekirdeğin sanal dosya sistemleri"]},
+cap:"Tek kök, farklı ömürlere ve yedekleme ihtiyaçlarına göre ayrılmış dallar."},
+
+{id:"usr",c:"hiyerarsi",a:"/usr",f:"Unix system resources",tr:"Dağıtımın yazılımı",y:"usrmerge",
+o:"Paket yöneticisinin kurduğu programların, kitaplıkların ve paylaşılan verinin bulunduğu dizin.",
+h:"/usr, işletim sisteminin kendisini tutar: programlar /usr/bin'de, kitaplıklar /usr/lib'de, belgeler, simgeler ve yerel ayar dosyaları /usr/share'de, başlık dosyaları /usr/include'da durur. Elle derlenen yazılım için /usr/local ayrılmıştır; paket yöneticisi oraya dokunmaz. Eskiden açılış için gereken araçlar kökteki /bin, /sbin ve /lib dizinlerindeydi; bugün neredeyse tüm dağıtımlar bunları /usr'ye taşıyıp kökte yalnızca sembolik bağlantı bırakmıştır (usrmerge). Arch ve türevleri bir adım daha ileri gidip /usr/sbin'i de /usr/bin'e bağlar. Sonuç olarak tüm işletim sistemi tek bir dizindedir ve bu dizin salt okunur ya da imza denetimli (dm-verity) olarak bağlanabilir.",
+t:[["/usr/bin","Tüm programlar"],["/usr/lib","Kitaplıklar, systemd birimleri, çekirdek modülleri"],["/usr/share","Mimariden bağımsız veri"],["/usr/local","Elle kurulan yazılım"],["usrmerge","/bin → usr/bin · /lib → usr/lib · /sbin → usr/bin (Arch)"],["Paket yöneticisi","pacman -Qo /usr/bin/ls ile sahibini bul"]],
+d:{k:"stack",l:["/bin|→ usr/bin (bağlantı)","/usr/bin|programlar","/usr/lib|kitaplıklar, modüller, birimler","/usr/share|belgeler, simgeler, yerel ayarlar","/usr/local|elle kurulanlar"]},
+cap:"usrmerge sonrası kökteki eski dizinler yalnızca /usr'ye yönlendiren bağlantılardır.",
+x:["Bir dosya hangi pakete ait?",`$ ls -l /bin /lib /sbin
+lrwxrwxrwx 1 root root 7 /bin -> usr/bin
+lrwxrwxrwx 1 root root 7 /lib -> usr/lib
+lrwxrwxrwx 1 root root 7 /sbin -> usr/bin
+$ pacman -Qo /usr/bin/mkfs.btrfs
+/usr/bin/mkfs.btrfs is owned by btrfs-progs 6.x-1`]},
+
+{id:"etc",c:"hiyerarsi",a:"/etc",f:"Host-specific configuration",tr:"Makineye özel ayarlar",y:"ayar",
+o:"Sistemin ve servislerin bu makineye özel yapılandırma dosyalarının durduğu dizin.",
+h:"/etc yalnızca metin tabanlı ayar dosyaları içerir: fstab, hostname, passwd, group, shadow, pacman.conf, sudoers ve servislerin ayar klasörleri. Program ya da veri barındırmaz. systemd çağındaki modern düzende paketler varsayılan ayarlarını /usr/lib altına koyar, yönetici yalnızca değiştirmek istediği kısmı /etc'ye yazar ve /etc'deki dosya kazanır. Örneğin bir servis birimi /usr/lib/systemd/system'de durur; onu değiştirmek için /etc/systemd/system/servis.d/ altına küçük bir parça (drop-in) eklenir. Pacman, paket güncellemesinde senin değiştirdiğin bir ayar dosyasının üzerine yazmaz; yeni sürümü .pacnew uzantısıyla yanına bırakır.",
+t:[["Önemli dosyalar","fstab, passwd, shadow, group, hostname, locale.conf"],["Öncelik","/etc > /run > /usr/lib"],["Parça ayarlar","*.d/ dizinleri (drop-in)"],["Pacman","Değişmiş ayara dokunmaz, .pacnew bırakır"],["Bul","pacdiff · find /etc -name '*.pacnew'"]],
+d:{k:"seq",a:["systemd","/usr/lib/systemd","/etc/systemd"],s:[[0,1,"sshd.service oku","q"],[1,0,"varsayılan birim","r"],[0,2,"sshd.service.d/*.conf","q"],[2,0,"değiştirilen satırlar","r"],[0,0,"birleştir, /etc kazanır","n"]]},
+cap:"Paketin varsayılanı /usr'de, senin değişikliğin /etc'de; ikisi birleştirilir.",
+x:["Bir servisi parça dosyayla değiştirmek",`$ sudo systemctl edit sshd.service
+# açılan dosya: /etc/systemd/system/sshd.service.d/override.conf
+[Service]
+Nice=5
+$ systemctl cat sshd.service   # birleşmiş hâli gösterir`]},
+
+{id:"var",c:"hiyerarsi",a:"/var",f:"Variable data",tr:"Değişen veri",y:"kalıcı",
+o:"Sistem çalıştıkça büyüyen ve değişen, ama yeniden başlatmada korunması gereken veri.",
+h:"Günlükler (/var/log, systemd journal'ı için /var/log/journal), paket önbelleği (/var/cache/pacman/pkg), veritabanları ve servis durumu (/var/lib), yazdırma ve posta kuyrukları (/var/spool) burada tutulur. /var/tmp, /tmp'ye benzer ama yeniden başlatmada silinmez. /var/lib, programların kalıcı durumunu tuttuğu yerdir: Docker, Flatpak, PostgreSQL ve systemd'nin kendisi buraya yazar. Bu dizin hızla büyüyebildiği için sunucularda ayrı bir bölüme ya da btrfs'te ayrı bir alt birime konur. Böylece kök anlık görüntüsü geri alındığında günlükler ve önbellek geriye gitmez.",
+t:[["/var/log","Günlükler; journal: /var/log/journal"],["/var/cache","Silinebilir önbellek (pacman paketleri)"],["/var/lib","Programların kalıcı durumu"],["/var/tmp","Kalıcı geçici dosyalar (30 gün)"],["Sık büyüyenler","journal, pacman önbelleği, Docker"],["Temizlik","journalctl --vacuum-size · paccache -r"]],
+d:{k:"stack",l:["/var/log|günlükler","/var/cache|silinebilir önbellek","/var/lib|uygulama durumu, veritabanları","/var/spool|kuyruklar","/var/tmp|kalıcı geçici dosyalar"]},
+cap:"/var altındakilerin hepsi zamanla değişir; /var/cache dışındakiler silinmemelidir.",
+x:["/var'ı kim dolduruyor?",`$ sudo du -xh --max-depth=1 /var | sort -h | tail -4
+312M    /var/log
+1.9G    /var/cache
+6.4G    /var/lib
+8.6G    /var
+$ journalctl --disk-usage
+$ sudo paccache -rk2        # her paketin son 2 sürümü kalsın`]},
+
+{id:"home",c:"hiyerarsi",a:"/home · XDG",f:"Home directories and XDG base directories",tr:"Ev dizini",y:"kullanıcı",
+o:"Kullanıcıların kişisel dosyalarının ve uygulama ayarlarının durduğu dizin.",
+h:"Her kullanıcının /home/ad biçiminde bir ev dizini vardır; root'unki /root'tur. Uygulamalar ayar ve verilerini eskiden ev dizinine noktalı klasörler olarak serpiştirirdi; XDG Base Directory belirtimi bunu düzene sokar. Ayarlar ~/.config'e, kalıcı uygulama verisi ~/.local/share'e, silinebilir önbellek ~/.cache'e, geçmiş ve durum dosyaları ~/.local/state'e gider. Kullanıcının çalışma anı dosyaları (Wayland soketi, PipeWire soketi) ise RAM'deki /run/user/UID altında durur. Bu düzen, yedeklerken ~/.cache'i dışarıda bırakmayı ve bir uygulamanın ayarını tek klasörü silerek sıfırlamayı kolaylaştırır.",
+t:[["Ayarlar","~/.config  (XDG_CONFIG_HOME)"],["Veri","~/.local/share  (XDG_DATA_HOME)"],["Önbellek","~/.cache  (XDG_CACHE_HOME)"],["Durum","~/.local/state  (XDG_STATE_HOME)"],["Çalışma anı","/run/user/1000  (XDG_RUNTIME_DIR)"],["Kişisel programlar","~/.local/bin"]],
+d:{k:"stack",l:["~/.config|ayarlar (yedekle)","~/.local/share|uygulama verisi (yedekle)","~/.local/state|geçmiş, son açılanlar","~/.cache|önbellek (yedekleme)","/run/user/1000|soketler, RAM'de"]},
+cap:"XDG dizinleri, yedeklenecek ve atılabilecek veriyi ayırır."},
+
+{id:"run-tmp",c:"hiyerarsi",a:"/run · /tmp",f:"Runtime and temporary directories",tr:"Geçici dizinler",y:"tmpfs",
+o:"Açılıştan açılışa yaşayan, RAM'de duran dizinler: /run çalışma durumu için, /tmp geçici dosyalar için.",
+h:"/run, sistem açıldığında boş bir tmpfs olarak bağlanır ve PID dosyaları, soketler, kilitler ve udev'in veritabanı gibi yalnızca o oturum için anlamlı veriyi tutar; eski /var/run artık buraya bir bağlantıdır. /tmp, herkesin yazabildiği ama başkalarının dosyasını silemediği (yapışkan bit) geçici dizindir. Arch, Fedora ve Debian 13 dahil birçok dağıtımda /tmp de tmpfs'tir; büyük dosyalar RAM ve takas alanından yer harcar. systemd-tmpfiles, /tmp'de 10 günden, /var/tmp'de 30 günden eski dosyaları temizler. Güvenlik için servisler PrivateTmp=yes ile kendi özel /tmp'lerini alabilir.",
+t:[["/run","tmpfs, açılışta boş; /var/run → /run"],["/tmp","Çoğu dağıtımda tmpfs, izin 1777"],["/var/tmp","Diskte, kalıcı"],["Otomatik temizlik","/tmp 10 gün · /var/tmp 30 gün"],["Servis yalıtımı","PrivateTmp=yes"],["Ayar","/usr/lib/tmpfiles.d/tmp.conf"]],
+d:{k:"seq",a:["Açılış","systemd","tmpfs (RAM)","systemd-tmpfiles"],s:[[0,1,"PID 1 başlar","e"],[1,2,"/run ve /tmp bağla","q"],[2,1,"boş dizinler","r"],[1,3,"tmpfiles kurallarını uygula","q"],[3,2,"dizinler, izinler, bağlantılar","q"],[3,3,"günlük: eski dosyaları sil","n"]]},
+cap:"Her açılış temiz bir /run ile başlar; tmpfiles gerekli iskeleti yeniden kurar.",
+x:["Hangi dizin nerede?",`$ findmnt -n -o TARGET,FSTYPE,SIZE /run /tmp
+/run tmpfs  3.9G
+/tmp tmpfs  7.8G
+$ ls -ld /tmp
+drwxrwxrwt 18 root root 440 /tmp     # sondaki t: yapışkan bit`]},
+
+{id:"boot-dizini",c:"hiyerarsi",a:"/boot · /efi",f:"Boot and EFI system partition",tr:"Önyükleme dizini",y:"FAT32",
+o:"Çekirdeğin, initramfs'in ve önyükleyicinin durduğu, ürün yazılımının okuyabildiği dizin.",
+h:"UEFI ürün yazılımı yalnızca FAT dosya sistemini okuyabildiği için önyükleyicinin bulunduğu EFI sistem bölümü (ESP) FAT32 ile biçimlendirilir. Bu bölüm ya /boot'a, ya /efi'ye, ya da /boot/efi'ye bağlanır. systemd-boot kullanan sistemlerde çekirdek ve initramfs de ESP'ye konduğu için ESP genellikle /boot'tur; GRUB kullanan sistemlerde ise /boot kök dosya sisteminin bir dizini olabilir çünkü GRUB ext4 ve btrfs okuyabilir. FAT'ın izin ve sahiplik desteği olmadığından bağlarken umask ya da fmask ve dmask seçenekleriyle herkesin okumasını kısıtlamak iyi bir alışkanlıktır.",
+t:[["ESP biçimi","FAT32 (EF00 bölüm türü)"],["Önerilen boyut","1 GiB (birkaç çekirdek için)"],["Bağlama noktası","/boot, /efi ya da /boot/efi"],["İzinler","FAT'ta yok; fmask=0137,dmask=0027"],["İçerik","EFI/, loader/, vmlinuz-*, initramfs-*.img"]],
+d:{k:"stack",l:["/boot (ESP, FAT32)|ürün yazılımı okur","EFI/systemd/|önyükleyici","loader/entries/|menü girdileri","vmlinuz-linux|çekirdek","initramfs-linux.img|ilk kök"]},
+cap:"systemd-boot düzeninde her şey ürün yazılımının okuyabildiği FAT32 bölümündedir."},
+
+{id:"opt-srv-mnt",c:"hiyerarsi",a:"/opt · /srv · /mnt · /media",f:"Add-on and mount directories",tr:"Ek yazılım ve bağlama dizinleri",y:"diğer",
+o:"Kendi klasörüyle gelen ek yazılım, sunulan veri ve elle ya da otomatik bağlanan diskler için ayrılmış dizinler.",
+h:"/opt, kendi dizin ağacıyla tek parça gelen yazılım içindir; /opt/google/chrome ya da bir üreticinin ARM araç zinciri gibi. /srv, bir sunucunun dışarıya sunduğu veriyi (web sitesi, FTP arşivi) tutar. /mnt, yöneticinin elle ve geçici olarak bağladığı diskler için boş bir noktadır. Takılabilir medya eskiden /media altına bağlanırdı; bugün masaüstünde udisks2, bir USB belleği kullanıcıya özel olarak /run/media/KULLANICI/ETİKET altına bağlar ve çıkarıldığında dizini siler. Bu dizinlerin hiçbiri paket yöneticisinin temel dosyalarıyla karışmaz.",
+t:[["/opt","Tek parça ek yazılım"],["/srv","Sunucunun sunduğu veri"],["/mnt","Elle geçici bağlama"],["/run/media/KULLANICI","udisks2 ile otomatik bağlanan USB'ler"],["/media","Eski düzen; bazı dağıtımlarda hâlâ kullanılır"]],
+d:{k:"seq",a:["USB bellek","udev","udisks2","Dolphin"],s:[[0,1,"takıldı (uevent)","e"],[1,2,"yeni blok cihazı","e"],[3,2,"bağla isteği","q"],[2,2,"/run/media/efe/USB","n"],[2,3,"bağlandı","r"]]},
+cap:"Masaüstünde USB bellek, kullanıcıya özel bir dizine otomatik bağlanır."},
+
+/* ---------- VFS ---------- */
+{id:"sanal-katman",c:"vfs",a:"VFS",f:"Virtual File System",tr:"Sanal dosya sistemi",y:"çekirdek katmanı",
+o:"Uygulamalara tek bir dosya arayüzü sunan ve her isteği ilgili dosya sistemi sürücüsüne yönlendiren çekirdek katmanı.",
+h:"Çekirdekte onlarca dosya sistemi sürücüsü vardır ama uygulamalar bunların hiçbirini doğrudan görmez. VFS dört ortak nesne tanımlar: bağlanmış her dosya sistemi için bir superblock, her dosya için bir inode, her yol bileşeni için bir dentry ve her açık dosya için bir file nesnesi. Her dosya sistemi bu nesnelerin işlemlerini (file_operations, inode_operations gibi işlev tabloları) kendi kodu ile doldurur. Bir read() çağrısı geldiğinde VFS, dosyanın hangi sürücüye ait olduğuna bakıp o sürücünün read_iter işlevini çağırır. Yetki denetimi, yol çözme ve önbellekleme gibi ortak işler ise tek bir yerde, VFS'te yapılır.",
+t:[["Nesneler","super_block, inode, dentry, file"],["İşlem tabloları","super_operations, inode_operations, file_operations"],["Ortak işler","Yol çözme, izin denetimi, dentry ve inode önbelleği"],["Kayıtlı sürücüler","cat /proc/filesystems"],["Kaynak","fs/ dizini (Linux çekirdeği)"]],
+d:{k:"seq",a:["Uygulama","VFS","ext4","btrfs"],s:[[0,1,"read(fd, buf, n)","q"],[1,1,"file → inode → f_op","n"],[1,2,"ext4_file_read_iter()","q"],[2,1,"veri","r"],[1,0,"n bayt","r"],[0,1,"başka bir fd","q"],[1,3,"btrfs_file_read_iter()","q"]]},
+cap:"Aynı read() çağrısı, dosyanın bulunduğu dosya sistemine göre farklı bir işleve gider.",
+x:["Çekirdeğin tanıdığı dosya sistemleri",`$ cat /proc/filesystems | head
+nodev   sysfs
+nodev   tmpfs
+nodev   proc
+nodev   cgroup2
+nodev   devtmpfs
+        ext4
+        btrfs
+        vfat
+nodev   overlay
+nodev   fuse
+# nodev: diske ihtiyaç duymayan (sanal) dosya sistemi`]},
+
+{id:"sistem-cagrilari",c:"vfs",a:"syscalls",f:"File system calls",tr:"Dosya sistem çağrıları",y:"arayüz",
+o:"Kullanıcı alanının dosyalarla çalışmak için çekirdeğe yaptığı çağrılar: openat, read, write, fstat, rename, unlink ve diğerleri.",
+h:"C kitaplığındaki fopen ya da Rust'taki File::open sonunda çekirdeğe giden birkaç sistem çağrısına dönüşür. Modern glibc, open yerine bir dizin tanımlayıcısına göre yol çözen openat'i kullanır; bu, yarış koşullarını (TOCTOU) önlemeye yardım eder. read ve write bir tampon ile bayt sayısı alır ve kopyalanan bayt sayısını döndürür; bu sayı istenenden az olabilir, bu yüzden doğru kod döngü kurar. rename aynı dosya sistemi içinde atomiktir: hedef ya eski hâlinde ya yeni hâlinde görünür, arada bir durum gözlenmez. unlink bir adı siler; inode, açık tanımlayıcısı kalmayınca serbest kalır. strace ile bir programın hangi çağrıları yaptığını canlı izleyebilirsin.",
+t:[["Açma","openat (O_RDONLY, O_CREAT, O_TRUNC, O_APPEND…)"],["Okuma/yazma","read, write, pread, pwrite, readv, writev"],["Üst veri","statx, fstat, chmod, utimensat"],["Ad işlemleri","rename(at2), unlink(at), link, symlink, mkdir"],["Atomik değiştirme","rename (aynı FS içinde)"],["İzleme","strace -e trace=%file komut"]],
+d:{k:"seq",a:["Program","glibc","Çekirdek"],s:[[0,1,"fopen(\"a.txt\",\"r\")","q"],[1,2,"openat(AT_FDCWD, …)","q"],[2,1,"fd 3","r"],[0,1,"fread()","q"],[1,2,"read(3, buf, 4096)","q"],[2,1,"4096","r"],[1,0,"FILE* tamponundan","r"]]},
+cap:"Kitaplık çağrıları tamponlanır; çekirdeğe giden çağrılar daha seyrek ve daha büyüktür.",
+x:["strace ile dosya çağrılarını izlemek",`$ strace -e trace=openat,read,close cat /etc/hostname
+openat(AT_FDCWD, "/etc/hostname", O_RDONLY) = 3
+read(3, "cachy\\n", 131072)              = 6
+read(3, "", 131072)                     = 0
+close(3)                                = 0`]},
+
+{id:"sayfa-onbellegi",c:"vfs",a:"Page cache",f:"Page cache",tr:"Sayfa önbelleği",y:"RAM",
+o:"Diskten okunan ve diske yazılacak verinin RAM'de tutulduğu, boş belleği değerlendiren önbellek.",
+h:"Linux, kullanılmayan RAM'i boş bırakmaz; dosya verisini sayfa önbelleğinde tutar. Bir dosya okunduğunda veri önce önbelleğe, oradan uygulamanın tamponuna kopyalanır; aynı dosya tekrar okunduğunda diske hiç gidilmez. Yazmalar da önce önbellekteki sayfaları değiştirir ve bunları kirli (dirty) olarak işaretler. Bellek gerektiğinde çekirdek temiz sayfaları hemen atar, kirli olanları önce diske yazar. free komutunun gösterdiği buff/cache bu önbellektir ve available sütunu, önbellek boşaltılırsa uygulamaların ne kadar bellek alabileceğini gösterir; yani yüksek önbellek kullanımı bir sorun değildir. Çekirdek bu sayfaları bugün folio adlı, birden çok sayfayı kapsayabilen yapılarla yönetir.",
+t:[["Birim","Sayfa (4 KiB) ya da folio (birden çok sayfa)"],["İzlemek","free -h → buff/cache · /proc/meminfo → Cached"],["Önden okuma","Ardışık okumada sonraki bloklar önceden getirilir"],["Boşaltma (test için)","echo 3 | sudo tee /proc/sys/vm/drop_caches"],["Atlama","O_DIRECT"]],
+d:{k:"seq",a:["Uygulama","Sayfa önbelleği","Disk"],s:[[0,1,"read() ilk kez","q"],[1,2,"blokları oku","q"],[2,1,"veri","r"],[1,0,"kopyala","r"],[0,1,"read() tekrar","q"],[1,0,"RAM'den, disk yok","r"]]},
+cap:"İkinci okuma diske hiç ulaşmaz.",
+x:["Önbelleğin etkisini görmek",`$ free -h
+               total   used   free  shared  buff/cache  available
+Mem:            31Gi  7.2Gi  1.1Gi   412Mi        23Gi       23Gi
+$ time cat buyuk.iso > /dev/null    # ilk okuma: diskten
+real    0m4.812s
+$ time cat buyuk.iso > /dev/null    # ikinci okuma: RAM'den
+real    0m0.391s`]},
+
+{id:"geri-yazma",c:"vfs",a:"Writeback",f:"Dirty pages and writeback",tr:"Geri yazma",y:"gecikmeli yazma",
+o:"Önbellekte değiştirilmiş (kirli) sayfaların arka planda, gruplanarak diske yazılması.",
+h:"write() çağrısı veri diske ulaştığında değil, sayfa önbelleğine kopyalandığında döner; bu yüzden yazma çok hızlı görünür. Çekirdekteki geri yazma iş parçacıkları kirli sayfaları belirli aralıklarla diske gönderir. Varsayılan ayarlarla 30 saniyeden eski kirli veri yazılır, iş parçacıkları her 5 saniyede bir uyanır; kirli veri belleğin yüzde 10'unu geçince arka planda yazma başlar, yüzde 20'yi geçince yazmaya çalışan süreç kendisi bekletilir. Bu gecikme, aynı bloğa yapılan ardışık yazmaları birleştirir ve diske sıralı, büyük istekler gönderilmesini sağlar. Bedeli, ani güç kesintisinde son birkaç saniyelik verinin kaybolabilmesidir. USB belleği çıkarmadan önce sync ya da güvenli çıkar beklenmesinin nedeni budur.",
+t:[["Yaşlanma süresi","vm.dirty_expire_centisecs = 3000 (30 s)"],["Uyanma aralığı","vm.dirty_writeback_centisecs = 500 (5 s)"],["Arka plan eşiği","vm.dirty_background_ratio = 10"],["Engelleme eşiği","vm.dirty_ratio = 20"],["İzlemek","grep -E 'Dirty|Writeback' /proc/meminfo"],["Hemen yaz","sync · syncfs · fsync"]],
+d:{k:"seq",a:["Uygulama","Sayfa önbelleği","Geri yazma iş parçacığı","Disk"],s:[[0,1,"write()","q"],[1,0,"hemen döner","r"],[1,1,"sayfa kirli","n"],[2,1,"30 sn'den eski kirliler?","q"],[1,2,"sayfa listesi","r"],[2,3,"sıralı büyük yazma","q"],[3,2,"tamamlandı","r"]]},
+cap:"Uygulama yazmanın diske ulaşmasını beklemez; bu iş arka planda yapılır.",
+x:["Kirli veriyi izlemek",`$ dd if=/dev/zero of=deneme bs=1M count=2000 status=none
+$ grep -E '^(Dirty|Writeback):' /proc/meminfo
+Dirty:           1843204 kB
+Writeback:         97440 kB
+$ sync; grep '^Dirty:' /proc/meminfo
+Dirty:               112 kB`]},
+
+{id:"fsync",c:"vfs",a:"fsync",f:"fsync and durability",tr:"Kalıcılık garantisi",y:"veri güvenliği",
+o:"Bir dosyanın verisinin ve üst verisinin gerçekten kalıcı depolamaya ulaştığından emin olmak için çağrılan sistem çağrısı.",
+h:"fsync(fd), dosyanın kirli sayfalarını ve inode'unu diske yazar, diskin kendi yazma önbelleğine de boşaltma (flush) komutu gönderir ve ancak bunlar bitince döner. fdatasync aynı işi yapar ama boyut gibi okuma için gerekmeyen üst veriyi (örneğin yalnızca mtime değişikliğini) atlar. Bir dosyayı güvenle değiştirmenin yerleşik yolu şudur: yeni içeriği geçici bir dosyaya yaz, o dosyayı fsync et, rename ile asıl adın üzerine taşı, ardından üst dizini fsync et. Böylece çökme anında dosya ya eski ya yeni hâlindedir, asla yarım değildir. Veritabanları ve paket yöneticileri bu düzeni kullanır; çok sık fsync ise yavaştır ve SSD'yi gereksiz yorar.",
+t:[["fsync","Veri + tüm üst veri + disk önbelleği boşaltma"],["fdatasync","Veri + yalnızca gerekli üst veri"],["sync / syncfs","Tüm sistem / tek dosya sistemi"],["Güvenli değiştirme","yaz → fsync → rename → dizini fsync"],["O_SYNC","Her write() bir fsync gibi davranır"]],
+d:{k:"seq",a:["Uygulama","Dosya sistemi","Disk önbelleği","Kalıcı ortam"],s:[[0,1,"write(tmp); fsync(tmp)","q"],[1,2,"veri + günlük","q"],[1,2,"FLUSH / FUA","q"],[2,3,"kalıcı yaz","q"],[3,1,"tamam","r"],[0,1,"rename(tmp, asıl)","q"],[0,1,"fsync(dizin)","q"]]},
+cap:"fsync ancak veri disk önbelleğini de geçip kalıcı ortama ulaştığında döner.",
+x:["Güvenli dosya değiştirme (Rust)",`use std::{fs, io::Write};
+fn kaydet(yol: &str, veri: &[u8]) -> std::io::Result<()> {
+    let tmp = format!("{yol}.tmp");
+    let mut f = fs::File::create(&tmp)?;
+    f.write_all(veri)?;
+    f.sync_all()?;                         // fsync
+    fs::rename(&tmp, yol)?;                // atomik değiştirme
+    fs::File::open(".")?.sync_all()?;      // dizin girdisini de kalıcı yap
+    Ok(())
+}`]},
+
+{id:"blok-katmani",c:"vfs",a:"blk-mq",f:"Block layer and I/O schedulers",tr:"Blok katmanı",y:"G/Ç yolu",
+o:"Dosya sistemlerinin gönderdiği blok isteklerini toplayan, birleştiren, sıralayan ve sürücüye ileten çekirdek katmanı.",
+h:"Dosya sistemi bir bloğu okumak ya da yazmak istediğinde bir bio yapısı oluşturur: hangi cihaz, hangi sektör, hangi bellek sayfaları. Blok katmanı bitişik bio'ları tek bir isteğe birleştirir ve bunları çok kuyruklu blk-mq altyapısı üzerinden sürücüye verir; her işlemci çekirdeğinin kendi yazılım kuyruğu, cihazın da bir ya da daha fazla donanım kuyruğu vardır. İsteğe bağlı bir G/Ç zamanlayıcı sırayı düzenleyebilir: NVMe'de varsayılan none'dır çünkü cihaz kendi içinde binlerce kuyruğu paralel işler; SATA diskte mq-deadline, masaüstü tepkiselliği için bfq tercih edilebilir. Zamanlayıcı her cihaz için /sys/block altından değiştirilebilir.",
+t:[["Temel yapı","bio → request → donanım kuyruğu"],["Zamanlayıcılar","none, mq-deadline, bfq, kyber"],["NVMe varsayılanı","none"],["Görmek / değiştirmek","/sys/block/nvme0n1/queue/scheduler"],["İzleme","iostat -x 1 · biolatency (bcc)"],["Kalıcı ayar","udev kuralı ile"]],
+d:{k:"stack",l:["Dosya sistemi|bio oluşturur","Blok katmanı|birleştir, sırala","Yazılım kuyrukları|çekirdek başına","G/Ç zamanlayıcı|none · mq-deadline · bfq","Donanım kuyrukları|NVMe: 64K'ya kadar","Sürücü ve cihaz|nvme, ahci"]},
+cap:"Bir yazma isteğinin dosya sisteminden cihaza inişi.",
+x:["Zamanlayıcıyı görmek ve değiştirmek",`$ cat /sys/block/nvme0n1/queue/scheduler
+[none] mq-deadline kyber bfq
+$ cat /sys/block/sda/queue/scheduler
+none [mq-deadline] kyber bfq
+$ echo bfq | sudo tee /sys/block/sda/queue/scheduler
+# kalıcı: /etc/udev/rules.d/60-iosched.rules
+ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq"`]},
+
+{id:"mmap-direct",c:"vfs",a:"mmap · O_DIRECT",f:"Memory mapping and direct I/O",tr:"Bellek eşleme ve doğrudan G/Ç",y:"iki uç",
+o:"Bir dosyayı sürecin adres alanına eşleyerek bellek gibi kullanmak ya da sayfa önbelleğini tamamen atlayıp diske doğrudan yazmak.",
+h:"mmap, bir dosyanın sayfa önbelleğindeki sayfalarını doğrudan sürecin sanal adres alanına eşler; dosya artık bir dizi gibi okunur ve yazılır, read ve write kopyaları ortadan kalkar. Henüz bellekte olmayan bir sayfaya ilk erişimde sayfa hatası (page fault) oluşur ve çekirdek o sayfayı diskten getirir. Paylaşılan kitaplıklar ve çalıştırılabilir dosyalar bu yolla yüklenir. Diğer uçta O_DIRECT bayrağı sayfa önbelleğini atlar ve veriyi uygulamanın tamponundan doğrudan cihaza taşır; bunun için tampon, konum ve boyut blok boyutuna hizalı olmalıdır. Kendi önbelleğini yöneten veritabanları, verinin RAM'de iki kez tutulmaması için O_DIRECT kullanır.",
+t:[["mmap kipleri","MAP_SHARED (dosyaya yansır), MAP_PRIVATE (kopyala-yaz)"],["Kalıcı yap","msync(MS_SYNC)"],["Görmek","cat /proc/PID/maps"],["O_DIRECT şartı","Tampon, konum ve boyut hizalı (tipik 512 B / 4 KiB)"],["Kullananlar","mmap: kitaplıklar, ripgrep · O_DIRECT: PostgreSQL (isteğe bağlı), QEMU"]],
+d:{k:"seq",a:["Süreç","MMU / sayfa tablosu","Sayfa önbelleği","Disk"],s:[[0,1,"p[8192] oku","q"],[1,0,"sayfa hatası","e"],[1,2,"sayfa var mı?","q"],[2,3,"yoksa oku","q"],[3,2,"blok","r"],[2,1,"sayfayı eşle","r"],[1,0,"erişim devam eder","r"]]},
+cap:"mmap'te dosya erişimi bir bellek erişimidir; disk okuması yalnızca sayfa hatasında olur.",
+x:["Bir dosyayı bellek gibi okumak (C)",`#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+int fd = open("veri.bin", O_RDONLY);
+struct stat st; fstat(fd, &st);
+const unsigned char *p = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+unsigned long top = 0;
+for (off_t i = 0; i < st.st_size; i++) top += p[i];   // read() yok
+munmap((void *)p, st.st_size); close(fd);`]},
+
+{id:"io-uring",c:"vfs",a:"io_uring",f:"io_uring asynchronous I/O",tr:"Eşzamansız G/Ç halkası",y:"Linux 5.1+",
+o:"Uygulama ile çekirdek arasında paylaşılan iki halka tampon üzerinden, sistem çağrısı yükü olmadan toplu ve eşzamansız G/Ç yapma arayüzü.",
+h:"Klasik read ve write, her işlem için bir sistem çağrısı yapar ve iş bitene kadar iş parçacığını bekletir. io_uring, uygulama ile çekirdeğin ortak belleğe eşlediği iki halka kurar: uygulama gönderim kuyruğuna (SQ) istekler yazar, çekirdek bunları işleyip sonuçları tamamlama kuyruğuna (CQ) koyar. Tek bir io_uring_enter çağrısı yüzlerce isteği gönderebilir; SQPOLL kipinde bir çekirdek iş parçacığı kuyruğu sürekli izlediği için hiç çağrı yapmaya gerek kalmaz. Okuma ve yazmanın yanında openat, statx, accept, send gibi onlarca işlemi destekler. Rust'ta tokio-uring ve glommio, C'de liburing bu arayüzü kullanır. Güvenlik açıkları geçmişi nedeniyle bazı ortamlarda kapatılabilir (kernel.io_uring_disabled).",
+t:[["Halkalar","SQ (gönderim), CQ (tamamlama)"],["Çağrılar","io_uring_setup, io_uring_enter, io_uring_register"],["Kitaplık","liburing (C) · tokio-uring, glommio (Rust)"],["Çağrısız kip","IORING_SETUP_SQPOLL"],["Kapatma","sysctl kernel.io_uring_disabled"]],
+d:{k:"seq",a:["Uygulama","SQ halkası","Çekirdek","CQ halkası"],s:[[0,1,"64 okuma isteği yaz","q"],[0,2,"io_uring_enter (tek çağrı)","q"],[2,1,"istekleri al","q"],[2,2,"paralel G/Ç","n"],[2,3,"sonuçları yaz","r"],[0,3,"tamamlananları oku","q"]]},
+cap:"İstekler ve sonuçlar paylaşılan bellekten geçer; çekirdeğe giriş sayısı azalır."},
+
+/* ---------- KLASİK ---------- */
+{id:"ext4",c:"klasik",a:"ext4",f:"Fourth extended file system",tr:"ext4",y:"Linux varsayılanı",
+o:"Linux'un en yaygın, en olgun ve en çok sınanmış genel amaçlı dosya sistemi.",
+h:"ext4, 2008'de ext3'ün halefi olarak kararlı hâle geldi ve Debian, Ubuntu ve birçok dağıtımda varsayılandır. Disk, her biri 4 KiB bloklarla 128 MiB olan blok gruplarına ayrılır; her grupta blok ve inode doluluk haritaları ile bir inode tablosu bulunur. Bu düzen, bir dosyanın inode'u ile verisini fiziksel olarak yakın tutar. Dosya sisteminin genel bilgisi (boyut, blok sayısı, özellikler) en baştaki superblock'ta durur ve yedekleri belirli gruplarda saklanır. Gecikmeli ayırma, kapsamlar (extent), günlük, üst veri sağlama toplamları, şifreleme (fscrypt) ve büyük-küçük harf duyarsız dizinler gibi özellikleri vardır. Anlık görüntü ve veri sağlama toplamı yoktur; karşılığında basit, hızlı ve onarımı kolaydır.",
+t:[["En büyük dosya","16 TiB (4 KiB blok)"],["En büyük birim","1 EiB"],["Blok grubu","32768 blok = 128 MiB"],["Superblock","1024. bayt; sihirli sayı 0xEF53"],["Büyütme / küçültme","Çevrimiçi büyütme; küçültme yalnızca bağlı değilken"],["Araçlar","mkfs.ext4, e2fsck, tune2fs, dumpe2fs, resize2fs"]],
+d:{k:"stack",l:["Boot sektörü + superblock|ilk 4 KiB","Grup tanımlayıcıları|her grubun yeri","Blok grubu 0|blok ve inode haritası, inode tablosu, veri","Blok grubu 1|superblock yedeği …","…|flex_bg: 16 grup birlikte","Blok grubu N|veri blokları"]},
+cap:"ext4 diski eşit büyüklükte gruplara böler ve üst veriyi gruplara dağıtır.",
+x:["ext4'ü incelemek",`$ sudo mkfs.ext4 -L veri /dev/sdb1
+$ sudo dumpe2fs -h /dev/sdb1 | grep -E 'features|Block size|Inode count|Reserved block'
+Filesystem features: has_journal ext_attr resize_inode dir_index filetype
+                     extent 64bit flex_bg sparse_super large_file huge_file
+                     dir_nlink extra_isize metadata_csum orphan_file
+Inode count:              61054976
+Reserved block count:     12210995
+Block size:               4096`]},
+
+{id:"extent",c:"klasik",a:"Extent",f:"Extents and delayed allocation",tr:"Kapsam ve gecikmeli ayırma",y:"yer ayırma",
+o:"Bir dosyanın verisini tek tek bloklar yerine ardışık blok aralıklarıyla tarif etme ve yer ayırmayı diske yazılana kadar erteleme.",
+h:"ext2 ve ext3, büyük bir dosyanın her bloğunu ayrı bir işaretçiyle tutuyordu; 1 GiB'lık bir dosya için 262 bin işaretçi gerekiyordu. ext4 bunun yerine kapsam (extent) kullanır: tek bir kayıt, mantıksal başlangıç bloğu, fiziksel başlangıç bloğu ve uzunluktan oluşur ve 128 MiB'a kadar ardışık alanı tarif eder. inode'un içine dört kapsam sığar; daha fazlası için bir kapsam ağacı kurulur. Gecikmeli ayırma (delalloc) ise blok seçimini write() anında değil, geri yazma anında yapar. O zamana kadar dosyanın son boyutu daha iyi bilindiği için çoklu blok ayırıcı büyük, ardışık bir alan seçebilir; parçalanma azalır ve kısa ömürlü geçici dosyalar diske hiç ulaşmayabilir.",
+t:[["Kapsam kaydı","mantıksal blok, fiziksel blok, uzunluk"],["En uzun kapsam","32768 blok = 128 MiB"],["inode içinde","4 kapsam; fazlası için ağaç"],["Gecikmeli ayırma","Varsayılan açık (delalloc)"],["Parçalanmayı görmek","filefrag -v dosya"],["Birleştirme","e4defrag dosya"]],
+d:{k:"stack",l:["inode|kapsam başlığı + 4 kayıt","Kapsam 1|mantıksal 0 → fiziksel 34816, 32768 blok","Kapsam 2|mantıksal 32768 → fiziksel 98304, 12000 blok","Veri|ardışık alanlar"]},
+cap:"İki kapsam, 175 MiB'lık bir dosyanın tüm yerini tarif eder.",
+x:["Bir dosyanın kapsamlarını görmek",`$ filefrag -v film.mkv
+ ext:  logical_offset:     physical_offset: length:
+   0:      0..  32767:   34816..  67583:  32768:
+   1:  32768..  44767:   98304.. 110303:  12000:   eof
+film.mkv: 2 extents found`]},
+
+{id:"gunluk",c:"klasik",a:"Journal",f:"Journaling",tr:"Günlükleme",y:"çökme güvenliği",
+o:"Bir değişikliği yerine yazmadan önce günlük alanına kaydederek, çökmeden sonra dosya sistemini saniyeler içinde tutarlı hâle getirme.",
+h:"Bir dosya oluşturmak bile birkaç bloğu değiştirmeyi gerektirir: inode tablosu, inode haritası, dizin bloğu, blok haritası. Bunların bir kısmı yazılıp güç kesilirse dosya sistemi tutarsız kalır ve eskiden tüm diski tarayan uzun bir fsck gerekirdi. Günlüklü dosya sistemi bu blokları önce ayrı bir günlük alanına bir işlem (transaction) olarak yazar, işlemin bittiğini belirten bir onay kaydı ekler ve ancak sonra blokları asıl yerlerine taşır (checkpoint). Çökmeden sonra açılışta onaylanmış ama yerine yazılmamış işlemler yeniden oynatılır, onaysız olanlar atılır. ext4'ün günlüğünü jbd2 katmanı yönetir ve işlemleri varsayılan olarak her 5 saniyede bir onaylar.",
+t:[["ext4 günlük katmanı","jbd2"],["Onay aralığı","commit=5 (saniye)"],["Kipler","journal · ordered (varsayılan) · writeback"],["ordered","Yalnızca üst veri günlüğe; veri ondan önce yerine yazılır"],["Kurtarma","Bağlama sırasında günlüğün yeniden oynatılması"],["Hızlı onay","fast_commit özelliği (isteğe bağlı)"]],
+d:{k:"pipe",st:["RAM","günlük","onay","yerine","boş"],r:[["İşlem 1",0],["İşlem 2",1],["İşlem 3",2,["RAM","günlük","·","onay","yerine","boş"]]]},
+cap:"Her işlem önce günlüğe yazılır, onaylanır, sonra yerine taşınır; günlük alanı ardından yeniden kullanılır. Kesikli kutu, önceki onayın bitmesini bekleyen işlemi gösterir."},
+
+{id:"xfs",c:"klasik",a:"XFS",f:"XFS",tr:"XFS",y:"büyük ve paralel",
+o:"SGI'dan gelen, büyük dosyalarda ve çok çekirdekli paralel yüklerde güçlü, RHEL'in varsayılan dosya sistemi.",
+h:"XFS, 1993'te SGI IRIX için yazıldı ve 2001'de Linux'a taşındı. Diski bağımsız ayırma gruplarına (allocation group) böler; her grubun kendi boş alan ve inode B+ ağaçları vardır, bu yüzden birçok iş parçacığı aynı anda farklı gruplarda yer ayırabilir. inode'lar gerektikçe oluşturulur, dolayısıyla inode tükenmesi yaşanmaz. Üst veri sağlama toplamları ve reflink (aynı veriyi kopyalamadan paylaşan dosya kopyaları) varsayılan olarak açıktır. En büyük eksiği küçültülememesidir; büyütme ise çevrimiçi yapılır. Büyük medya dosyaları, sanal makine imajları ve veritabanları için iyi bir seçimdir.",
+t:[["En büyük dosya / birim","8 EiB / 8 EiB"],["Paralellik","Ayırma grupları (AG)"],["Varsayılan özellikler","crc, reflink, finobt, sparse inode"],["Küçültme","Yok"],["Araçlar","mkfs.xfs, xfs_repair, xfs_growfs, xfs_info, xfs_admin"],["Varsayılan olduğu yer","RHEL, Rocky, Alma, Fedora Server"]],
+d:{k:"stack",l:["Superblock|her AG'nin başında bir kopya","AG 0|boş alan B+ ağacı, inode B+ ağacı","AG 1|bağımsız ayırma","AG 2|bağımsız ayırma","AG N|bağımsız ayırma","Günlük|iç ya da harici cihaz"]},
+cap:"Her ayırma grubu kendi kilitleri ve ağaçlarıyla neredeyse ayrı bir dosya sistemi gibi çalışır.",
+x:["XFS oluşturup büyütmek",`$ sudo mkfs.xfs -L medya /dev/sdc1
+$ xfs_info /mnt/medya | head -3
+meta-data=/dev/sdc1   isize=512    agcount=4, agsize=61047662 blks
+         =            sectsz=4096  attr=2, projid32bit=1
+         =            crc=1        finobt=1, sparse=1, rmapbt=1, reflink=1
+$ sudo xfs_growfs /mnt/medya          # bölüm büyütüldükten sonra`]},
+
+{id:"fat-exfat",c:"klasik",a:"FAT32 · exFAT",f:"File Allocation Table",tr:"Taşınabilir dosya sistemleri",y:"uyumluluk",
+o:"Her işletim sisteminin, ürün yazılımının ve kameranın okuyabildiği basit dosya sistemleri.",
+h:"FAT, diski kümelere böler ve her kümenin sıradaki kümeyi gösterdiği bir tablo (File Allocation Table) tutar; bir dosya bu zincir izlenerek okunur. Basitliği sayesinde UEFI ürün yazılımı, mikrodenetleyiciler ve kameralar onu okuyabilir; EFI sistem bölümü bu yüzden FAT32'dir. FAT32'de tek bir dosya 4 GiB'tan küçük olmak zorundadır, izin, sahiplik, sembolik bağlantı ve günlük yoktur. exFAT, Microsoft'un flash bellekler için tasarladığı halefidir: dosya boyutu sınırını kaldırır, büyük dizinlerde daha hızlıdır ve SDXC kartların zorunlu biçimidir. Linux 5.7'den beri çekirdekte yerleşik bir exFAT sürücüsü vardır. Windows disklerindeki NTFS için de 5.15'ten beri ntfs3 çekirdek sürücüsü bulunur.",
+t:[["FAT32 dosya sınırı","4 GiB − 1 bayt"],["exFAT dosya sınırı","Pratikte yok (16 EiB)"],["Eksikler","İzin, sahiplik, sembolik bağlantı, günlük"],["Linux sürücüleri","vfat · exfat (5.7+) · ntfs3 (5.15+)"],["Araçlar","mkfs.fat -F 32 · mkfs.exfat · fsck.fat"],["İzinleri taklit","uid=, gid=, umask=, fmask=, dmask="]],
+d:{k:"stack",l:["Önyükleme sektörü|BPB: geometri","FAT tablosu|küme → sonraki küme","FAT kopyası|yedek","Kök dizin|FAT32'de bir küme zinciri","Veri kümeleri|dosya içerikleri"]},
+cap:"Bir dosyanın kümeleri FAT tablosundaki bir bağlı listeyi izleyerek bulunur.",
+x:["USB belleği her yerde okunur biçimlendirmek",`$ lsblk -o NAME,SIZE,FSTYPE,LABEL /dev/sdb
+$ sudo wipefs -a /dev/sdb
+$ sudo parted -s /dev/sdb mklabel gpt mkpart veri 1MiB 100%
+$ sudo mkfs.exfat -L TASINABILIR /dev/sdb1`]},
+
+{id:"f2fs",c:"klasik",a:"F2FS",f:"Flash-Friendly File System",tr:"Flash dostu dosya sistemi",y:"günlük yapılı",
+o:"Samsung'un NAND flash bellekler için tasarladığı, veriyi hep sona ekleyen günlük yapılı dosya sistemi.",
+h:"Flash bellek bir sayfayı yerinde güncelleyemez; önce tüm bir silme bloğunu silmesi gerekir. F2FS (2012) bu yüzden yeni veriyi her zaman boş bölümlerin sonuna sırayla ekler ve eski kopyaları daha sonra arka planda toplayıp temizler (çöp toplama). Verileri sıcak, ılık ve soğuk olarak ayırıp farklı bölgelere yazarak gereksiz kopyalamayı azaltır. Android telefonlarda, SD kartlarda ve USB belleklerde yaygındır. Masaüstündeki modern NVMe SSD'lerin kendi denetleyicisi bu işi zaten yaptığı için ext4 ya da btrfs'e göre belirgin bir üstünlüğü genellikle yoktur. Şifreleme, sıkıştırma ve büyük-küçük harf duyarsızlık destekler.",
+t:[["Tasarım","Günlük yapılı (log-structured)"],["En büyük dosya / birim","≈ 3,9 TiB / 16 TiB"],["Öne çıkan","Sıcak/soğuk veri ayrımı, arka plan çöp toplama"],["Yaygın olduğu yer","Android, SD kart, gömülü sistemler"],["Araçlar","mkfs.f2fs, fsck.f2fs"]],
+d:{k:"seq",a:["Uygulama","F2FS","Flash"],s:[[0,1,"blok 7'yi güncelle","q"],[1,2,"yeni sayfaya ekle","q"],[1,1,"eski sayfa geçersiz","n"],[1,1,"çöp toplama: geçerlileri taşı","n"],[1,2,"boşalan bölümü sil","q"]]},
+cap:"Güncelleme yerinde değil, her zaman sona ekleme olarak yapılır."},
+
+/* ---------- COW ---------- */
+{id:"kopyala-yaz",c:"cow",a:"CoW",f:"Copy-on-write",tr:"Kopyala-yaz",y:"tasarım",
+o:"Değişen veriyi asla yerinde ezmeyen, her değişikliği yeni bir yere yazıp işaretçileri kökten güncelleyen tasarım.",
+h:"Kopyala-yaz bir dosya sisteminde bir blok değiştiğinde yeni hâli boş bir yere yazılır. Sonra onu gösteren üst ağaç düğümü de kopyalanıp güncellenir, onun üstü de, ta köke kadar. En son, tek bir yazmayla superblock yeni kökü gösterecek şekilde değiştirilir. Bu son yazmadan önce çökme olursa eski ağaç bütünüyle geçerlidir; sonra olursa yenisi. Bu yüzden ayrı bir veri günlüğüne gerek kalmaz ve dosya sistemi her an tutarlıdır. Eski blokları serbest bırakmak yerine saklamak, anlık görüntüyü bedavaya getirir. Bedeli, sık ve rastgele güncellenen büyük dosyalarda (veritabanı, sanal makine diski) parçalanmanın artmasıdır.",
+t:[["Atomik geçiş","Superblock'taki kök işaretçisinin güncellenmesi"],["Doğal sonuçlar","Anlık görüntü, reflink, sağlama toplamı"],["Örnekler","btrfs, ZFS, bcachefs"],["Zayıf nokta","Rastgele yazılan büyük dosyalarda parçalanma"],["btrfs'te kapatma","chattr +C (yalnızca boş dosya/dizinde)"]],
+d:{k:"seq",a:["Superblock","Kök düğüm","Ara düğüm","Veri bloğu"],s:[[3,3,"yeni blok: veri'","n"],[2,2,"ara' → veri'","n"],[1,1,"kök' → ara'","n"],[0,1,"kök işaretçisi → kök'","e"],[0,0,"eski ağaç: anlık görüntü","n"]]},
+cap:"Değişiklik aşağıdan yukarıya yeni kopyalarla ilerler; tek bir işaretçi değişimiyle devreye girer."},
+
+{id:"btrfs",c:"cow",a:"btrfs",f:"B-tree file system",tr:"btrfs",y:"Fedora, openSUSE, CachyOS varsayılanı",
+o:"Linux çekirdeğinde yerleşik, kopyala-yaz tabanlı, alt birim, anlık görüntü, sıkıştırma ve çok diskli düzenleri destekleyen dosya sistemi.",
+h:"btrfs, 2007'de Oracle'da başlatıldı ve 2013'ten beri kararlı kabul edilir. Tüm üst veriyi kopyala-yaz B ağaçlarında tutar: dosya ağacı, kapsam ağacı, sağlama toplamı ağacı, parça (chunk) ağacı gibi. Disk alanı önce 1 GiB'lık veri ve 256 MiB'lık üst veri parçalarına ayrılır, dosyalar bu parçaların içine yerleşir; bu yüzden df'nin söylediği boş alan bazen yanıltıcıdır ve btrfs filesystem usage kullanmak gerekir. İşlemler varsayılan olarak her 30 saniyede bir onaylanır. Tek komutla anlık görüntü, alt birim, şeffaf sıkıştırma, sağlama toplamıyla bozulma tespiti ve çevrimiçi büyütme ile küçültme yapılabilir. RAID5 ve RAID6 profilleri hâlâ önerilmez.",
+t:[["En büyük dosya / birim","16 EiB / 16 EiB"],["Onay aralığı","commit=30 (saniye)"],["Yer ayırma","Parçalar: veri ≈1 GiB, üst veri 256 MiB"],["Doğru boş alan","btrfs filesystem usage /"],["Büyütme / küçültme","İkisi de çevrimiçi"],["Araçlar","btrfs (subvolume, scrub, balance, send…), btrfs check"]],
+d:{k:"stack",l:["Superblock|64 KiB'da, yedekleri 64 MiB ve 256 GiB'da","Kök ağacı|tüm ağaçların dizini","Alt birim ağaçları|@, @home, @log …","Kapsam ağacı|hangi blok kimde","Sağlama toplamı ağacı|her veri bloğunun özeti","Parça ağacı|mantıksal → fiziksel adres"]},
+cap:"btrfs'te her şey birbirine bağlı kopyala-yaz B ağaçlarıdır.",
+x:["btrfs'te gerçek doluluk",`$ sudo btrfs filesystem usage -T /
+Overall:
+    Device size:                 931.51GiB
+    Device allocated:            412.03GiB
+    Used:                        388.77GiB
+    Free (estimated):            540.11GiB   (min: 540.11GiB)
+             Data      Metadata System
+Id Path      single    DUP      DUP
+-- --------- --------- -------- --------
+ 1 /dev/nvme0n1p2 404.00GiB 8.00GiB 64.00MiB`]},
+
+{id:"alt-birim",c:"cow",a:"Subvolume",f:"btrfs subvolumes",tr:"Alt birim",y:"btrfs",
+o:"Bir btrfs dosya sisteminin içinde ayrı bağlanabilen, ayrı anlık görüntüsü alınabilen bağımsız dosya ağacı.",
+h:"Alt birim, dışarıdan sıradan bir dizin gibi görünür ama kendi B ağacı ve kendi inode numarası alanı olan ayrı bir dosya ağacıdır. Bölümden farklı olarak sabit bir boyutu yoktur; tüm alt birimler aynı boş alanı paylaşır. Bir alt birim subvol= ya da subvolid= seçeneğiyle doğrudan bağlanabilir. Dağıtımlar bunu düzenli bir yapı için kullanır: kök için @, ev dizinleri için @home, günlükler için @log, önbellek için @cache gibi. Anlık görüntü yalnızca kendi alt birimini kapsadığı ve iç içe alt birimlerin içine inmediği için, kökü geri alırken ev dizini ve günlükler olduğu yerde kalır. Alt birimler btrfs subvolume list ile görülür.",
+t:[["Boyut","Yok; tüm alan ortak (isteğe bağlı kota: qgroup)"],["Bağlama","subvol=@home ya da subvolid=257"],["Tipik düzen","@, @home, @root, @log, @cache, @tmp, @srv"],["Anlık görüntü sınırı","İç içe alt birimlere inmez"],["Oluşturma","btrfs subvolume create /mnt/@yeni"],["Kök alt birim","ID 5 (FS_TREE)"]],
+d:{k:"stack",l:["btrfs (ID 5)|tüm disk","@ → /|sistem","@home → /home|kullanıcı verisi","@log → /var/log|günlükler","@cache → /var/cache|paket önbelleği","@snapshots|anlık görüntüler"]},
+cap:"Her alt birim ayrı bağlanır; kökün anlık görüntüsü diğerlerini içermez.",
+x:["Alt birimleri ve bağlantılarını görmek",`$ sudo btrfs subvolume list /
+ID 256 gen 48211 top level 5 path @
+ID 257 gen 48211 top level 5 path @home
+ID 258 gen 48207 top level 5 path @root
+ID 260 gen 48211 top level 5 path @log
+ID 261 gen 48190 top level 5 path @cache
+$ findmnt -t btrfs -o TARGET,SOURCE
+TARGET      SOURCE
+/           /dev/nvme0n1p2[/@]
+/home       /dev/nvme0n1p2[/@home]
+/var/log    /dev/nvme0n1p2[/@log]`]},
+
+{id:"anlik-goruntu",c:"cow",a:"Snapshot",f:"Snapshots",tr:"Anlık görüntü",y:"geri alma",
+o:"Bir alt birimin belirli bir andaki hâlinin, veri kopyalanmadan saniyenin altında alınan dondurulmuş kopyası.",
+h:"Kopyala-yaz dosya sisteminde anlık görüntü almak, mevcut ağacın köküne ikinci bir işaretçi eklemekten ibarettir; hiçbir veri kopyalanmaz ve işlem disk boyutundan bağımsız olarak anında biter. Başlangıçta iki ağaç aynı blokları paylaşır. Asıl alt birimde bir dosya değiştikçe yeni bloklar yazılır, eski bloklar anlık görüntü tarafından tutulmaya devam eder; böylece görüntünün kapladığı yer, aradaki farkla birlikte büyür. Arch tabanlı sistemlerde snapper ile snap-pac, her pacman işleminden önce ve sonra otomatik görüntü alır; bozulan bir güncellemeden sonra önyükleme menüsünden eski görüntüyle açmak mümkündür. Anlık görüntü yedek değildir: aynı diskte durur ve disk ölürse onunla birlikte kaybolur.",
+t:[["Süre","Anında; boyuttan bağımsız"],["Başlangıç maliyeti","Neredeyse sıfır; değişiklik arttıkça büyür"],["Salt okunur","btrfs subvolume snapshot -r"],["Otomasyon","snapper + snap-pac, Timeshift (btrfs kipi)"],["Uyarı","Aynı disk: yedeğin yerini tutmaz"],["ZFS karşılığı","zfs snapshot havuz/veri@ad"]],
+d:{k:"seq",a:["@ (canlı)","Paylaşılan bloklar","@snap-1","Yeni bloklar"],s:[[2,1,"aynı kök: paylaş","q"],[0,1,"aynı bloklar","q"],[0,3,"dosya değişti: yeni blok","q"],[2,1,"eski blok korunur","q"],[2,2,"fark kadar yer","n"]]},
+cap:"Canlı alt birim değiştikçe yalnızca farklar yeni yer kaplar.",
+x:["El ile anlık görüntü ve geri dönüş",`$ sudo btrfs subvolume snapshot -r / /.snapshots/oncesi-2026-10-12
+Create a readonly snapshot of '/' in '/.snapshots/oncesi-2026-10-12'
+$ sudo snapper -c root list | tail -3
+ #  | Type   | Pre # | Date                  | Description
+ 41 | pre    |       | 2026-10-12 09:14:02   | pacman -Syu
+ 42 | post   |    41 | 2026-10-12 09:15:37   | linux mesa
+$ sudo snapper -c root undochange 41..42   # aradaki değişiklikleri geri al`]},
+
+{id:"send-receive",c:"cow",a:"send / receive",f:"Incremental replication",tr:"Artımlı aktarım",y:"yedekleme",
+o:"İki salt okunur anlık görüntü arasındaki farkı bir akışa döküp başka bir diskte ya da makinede yeniden kurma.",
+h:"btrfs send, salt okunur bir anlık görüntüyü bir veri akışına çevirir; btrfs receive bu akışı başka bir btrfs dosya sisteminde alt birim olarak kurar. İlk aktarımda tüm veri gider. Sonrakilerde -p ile bir ebeveyn görüntü verilir ve yalnızca iki görüntü arasındaki fark gönderilir; dosya sistemi bunu ağaçları karşılaştırarak bulduğu için dosyaları tek tek taramaya gerek yoktur. Akış bir boruya yazıldığı için ssh ile uzak bir makineye, ya da sıkıştırılıp dosyaya gönderilebilir. btrbk ve snapper eklentileri bu döngüyü otomatikleştirir. ZFS'te zfs send ve zfs receive aynı işi yapar ve şifreli veri kümelerini çözmeden gönderebilir.",
+t:[["Koşul","Kaynak görüntü salt okunur olmalı (-r)"],["Artımlı","btrfs send -p eski yeni"],["Ağ üzerinden","… | ssh sunucu btrfs receive /yedek"],["Otomasyon","btrbk"],["ZFS","zfs send -i @eski havuz/v@yeni | zfs receive"]],
+d:{k:"seq",a:["Dizüstü (kaynak)","ssh","Yedek diski"],s:[[0,0,"snapshot -r @home → s2","n"],[0,0,"send -p s1 s2: fark","n"],[0,1,"akış","q"],[1,2,"btrfs receive","q"],[2,2,"s2 kuruldu (s1 tabanlı)","n"],[2,0,"tamam","r"]]},
+cap:"İkinci yedekten itibaren yalnızca değişen bloklar ağdan geçer.",
+x:["Ev dizinini harici diske artımlı yedeklemek",`$ sudo btrfs subvolume snapshot -r /home /.snapshots/home-s2
+$ sudo btrfs send -p /.snapshots/home-s1 /.snapshots/home-s2 \\
+    | sudo btrfs receive /run/media/efe/YEDEK/
+At subvol /.snapshots/home-s2
+At subvol home-s2
+# uzak makineye:
+$ sudo btrfs send -p s1 s2 | ssh sunucu "sudo btrfs receive /yedek"`]},
+
+{id:"saglama",c:"cow",a:"Checksum · scrub",f:"Checksums and scrubbing",tr:"Sağlama toplamı ve tarama",y:"bütünlük",
+o:"Her veri ve üst veri bloğu için özet saklayarak sessiz bozulmayı (bit rot) okuma anında yakalama ve yedek kopyadan onarma.",
+h:"Diskler, kablolar ve bellek bazen hiçbir hata bildirmeden yanlış veri döndürebilir. btrfs ve ZFS her bloğun bir özetini (checksum) ayrı bir ağaçta saklar ve blok her okunduğunda yeniden hesaplayıp karşılaştırır. Uyuşmazlık varsa, okuma bir hata ile döner ve bozuk veri uygulamaya hiç verilmez. Bloğun ikinci bir kopyası varsa (RAID1 ya da tek diskte DUP üst veri) dosya sistemi iyi kopyayı okuyup bozuk olanı otomatik onarır. Scrub, tüm diskteki her bloğu okuyup doğrulayan bir bakım işlemidir; ayda bir çalıştırılması önerilir. ext4 ve XFS yalnızca üst verinin sağlamasını tutar; veri bozulmasını fark etmezler.",
+t:[["btrfs algoritmaları","crc32c (varsayılan), xxhash64, sha256, blake2b"],["ZFS algoritmaları","fletcher4 (varsayılan), sha256, sha512, blake3"],["Onarım","Yalnızca ikinci kopya varsa (RAID1, DUP)"],["Tarama","btrfs scrub start / · zpool scrub havuz"],["Hata sayaçları","btrfs device stats /"],["Periyodik","btrfs-scrub@-.timer (aylık)"]],
+d:{k:"seq",a:["Uygulama","btrfs","Kopya 1","Kopya 2"],s:[[0,1,"read()","q"],[1,2,"bloğu oku","q"],[2,1,"veri","r"],[1,1,"özet uyuşmuyor!","e"],[1,3,"ikinci kopyayı oku","q"],[3,1,"doğru veri","r"],[1,2,"bozuk kopyayı onar","q"],[1,0,"doğru veri","r"]]},
+cap:"Bozuk blok uygulamaya ulaşmadan yakalanır ve iyi kopyadan onarılır.",
+x:["Bütünlük taraması",`$ sudo btrfs scrub start -B /
+Scrub started:    Mon Oct 12 10:02:11 2026
+Status:           finished
+Duration:         0:03:41
+Total to scrub:   388.77GiB
+Rate:             1.75GiB/s
+Error summary:    no errors found
+$ sudo btrfs device stats /
+[/dev/nvme0n1p2].corruption_errs  0`]},
+
+{id:"sikistirma",c:"cow",a:"Compression",f:"Transparent compression",tr:"Şeffaf sıkıştırma",y:"zstd",
+o:"Dosyaların diske yazılırken otomatik sıkıştırılması ve okunurken açılması; uygulamalar bunu fark etmez.",
+h:"btrfs, ZFS ve F2FS veriyi yazarken sıkıştırabilir. btrfs'te compress=zstd:1 bağlama seçeneği yeni yazılan verinin zstd ile, hafif bir seviyede sıkıştırılmasını sağlar; seviye verilmezse 3 kullanılır. btrfs her kapsamın ilk parçasını sıkıştırmayı dener ve kazanç yoksa o dosyayı sıkıştırmadan yazar; zaten sıkıştırılmış JPEG, video ve arşivler için zaman harcanmaz. compress-force bu denetimi atlar. Metin, kaynak kodu ve ikili programlarda kazanç genellikle yüzde 30 ile 50 arasındadır ve hızlı NVMe'de bile çoğu zaman disk daha az veri okuduğu için okuma hızlanır. Kazancı compsize aracı gösterir; mevcut dosyalar btrfs filesystem defragment -czstd ile sonradan sıkıştırılabilir.",
+t:[["btrfs algoritmaları","zlib, lzo, zstd (seviye 1–15, negatif hızlı seviyeler)"],["Bağlama seçeneği","compress=zstd:1"],["Zorlama","compress-force=zstd"],["Dosya bazında","btrfs property set dosya compression zstd"],["Ölçmek","compsize /"],["ZFS","zfs set compression=zstd havuz/veri (lz4 yaygın)"]],
+d:{k:"seq",a:["Uygulama","btrfs","zstd","Disk"],s:[[0,1,"write(128 KiB)","q"],[1,2,"sıkıştır","q"],[2,1,"41 KiB","r"],[1,3,"41 KiB yaz","q"],[0,1,"read()","q"],[1,3,"41 KiB oku","q"],[1,0,"128 KiB (açılmış)","r"]]},
+cap:"Uygulama her zaman açık veriyi görür; diske giden ve gelen veri azalır.",
+x:["Sıkıştırma kazancını ölçmek",`$ sudo compsize -x /usr
+Processed 312044 files, 151287 regular extents (152410 refs), 168221 inline.
+Type       Perc     Disk Usage   Uncompressed Referenced
+TOTAL       52%      6.1G          11G          11G
+none       100%      2.4G         2.4G         2.4G
+zstd        42%      3.7G         8.8G         8.9G`]},
+
+{id:"reflink",c:"cow",a:"Reflink",f:"Reflink copies and deduplication",tr:"Paylaşımlı kopya",y:"cp --reflink",
+o:"Bir dosyanın kopyasını veri bloklarını kopyalamadan, aynı blokları paylaşarak anında oluşturma.",
+h:"Reflink, anlık görüntünün dosya düzeyindeki karşılığıdır. cp --reflink ile yapılan kopya yeni bir inode alır ama aynı veri kapsamlarını gösterir; 50 GiB'lık bir sanal makine diski bir saniyeden kısa sürede ve neredeyse sıfır ek alanla kopyalanır. Kopyalardan biri değiştirildiğinde yalnızca değişen bloklar ayrışır. btrfs ve XFS bunu destekler; bugünkü coreutils, cp'de reflink'i mümkün olduğunda kendiliğinden dener. Aynı mekanizma sonradan tekilleştirme (deduplication) için de kullanılır: duperemove ya da bees gibi araçlar aynı içerikli blokları bulup tek kopyaya indirir. ZFS'in tekilleştirmesi ise yazma anında çalışır ve çok RAM ister.",
+t:[["Destekleyenler","btrfs, XFS (reflink=1), bcachefs, ZFS 2.2+ (block cloning)"],["Komut","cp --reflink=always kaynak hedef"],["Çekirdek çağrısı","ioctl FICLONE / FICLONERANGE"],["Sonradan tekilleştirme","duperemove, bees"],["Dikkat","du her iki dosyayı tam boyutlu gösterir"]],
+d:{k:"seq",a:["vm.qcow2","Ortak kapsamlar","kopya.qcow2"],s:[[2,1,"cp --reflink: aynı kapsamlar","q"],[0,1,"aynı kapsamlar","q"],[2,2,"4 KiB değişti","n"],[2,2,"yalnız o blok ayrışır","n"]]},
+cap:"İki dosya, farklılaşana kadar aynı fiziksel blokları paylaşır."},
+
+{id:"zfs",c:"cow",a:"ZFS",f:"Zettabyte File System (OpenZFS)",tr:"ZFS",y:"havuz + dosya sistemi",
+o:"Hacim yöneticisi, RAID ve dosya sistemini tek bir katmanda birleştiren, kurumsal ölçekte veri bütünlüğü odaklı sistem.",
+h:"ZFS, 2005'te Sun Microsystems'te Solaris için geliştirildi; bugün Linux ve FreeBSD'de OpenZFS olarak sürdürülüyor. Diskler önce vdev'lerde (ayna, RAID-Z1, Z2, Z3) birleştirilir, vdev'ler bir havuz (zpool) oluşturur ve havuzun üzerinde istenildiği kadar veri kümesi (dataset) ya da blok cihazı (zvol) açılır. Her şey kopyala-yazdır ve sağlama toplamlıdır; anlık görüntü, sıkıştırma, yerel şifreleme ve send/receive yerleşiktir. Okuma önbelleği ARC RAM'de durur ve isteğe bağlı olarak hızlı bir diske (L2ARC) taşar; eşzamanlı yazmalar ZIL günlüğüne, o da isteğe bağlı ayrı bir SLOG cihazına yazılır. Lisansı (CDDL) GPL ile uyumsuz sayıldığı için çekirdeğin parçası değildir; DKMS modülü olarak kurulur.",
+t:[["Katmanlar","zpool → vdev → disk · dataset / zvol"],["RAID türleri","mirror, RAID-Z1/Z2/Z3, dRAID"],["Önbellekler","ARC (RAM), L2ARC (SSD), ZIL/SLOG"],["Lisans","CDDL; Linux'a DKMS ile (zfs-dkms)"],["Araçlar","zpool, zfs, zdb"],["Bilinen kısıt","Havuz küçültülemez; RAID-Z genişletme 2.3'ten beri var"]],
+d:{k:"stack",l:["Veri kümeleri / zvol|havuz/ev, havuz/vm","ZPL / DMU|nesne katmanı","ARC|RAM önbelleği","SPA (zpool)|blok tahsisi, sağlama, sıkıştırma","vdev: raidz2|6 disk","vdev: mirror|2 SSD (özel üst veri)"]},
+cap:"ZFS hacim yönetimini ve dosya sistemini tek yığında birleştirir.",
+x:["Aynalı bir havuz kurmak",`$ sudo zpool create -o ashift=12 tank mirror /dev/disk/by-id/ata-A /dev/disk/by-id/ata-B
+$ sudo zfs create -o compression=zstd -o atime=off tank/arsiv
+$ sudo zfs snapshot tank/arsiv@2026-10-12
+$ zpool status tank
+  pool: tank
+ state: ONLINE
+config:
+        NAME        STATE     READ WRITE CKSUM
+        tank        ONLINE       0     0     0
+          mirror-0  ONLINE       0     0     0`]},
+
+{id:"bcachefs",c:"cow",a:"bcachefs",f:"bcachefs",tr:"bcachefs",y:"genç",
+o:"bcache önbellek katmanından doğan, btrfs ve ZFS özelliklerini daha sade bir tasarımla sunmayı hedefleyen kopyala-yaz dosya sistemi.",
+h:"bcachefs, Kent Overstreet'in yıllarca bağımsız olarak geliştirdiği bir dosya sistemidir. Kopyala-yaz, sağlama toplamı, sıkıştırma, şifreleme, anlık görüntü ve çok diskli düzenleri destekler; en ayırt edici özelliği hızlı SSD'yi önbellek ya da öncelikli katman olarak, büyük HDD'yi ise arka depo olarak tek bir dosya sisteminde birleştirebilmesidir. Linux 6.7 ile çekirdeğe girdi ve deneysel olarak işaretlendi. Geliştirme süreciyle ilgili anlaşmazlıklar sonucunda ana daldan sonradan çıkarıldı; bugün DKMS modülü olarak ayrıca dağıtılıyor. Yeni bir proje olduğu için önemli veri için henüz birinci tercih değildir.",
+t:[["Kökeni","bcache blok önbelleği"],["Öne çıkan","SSD + HDD katmanlama, foreground/background/promote hedefleri"],["Çekirdek","6.7'de girdi; sonra ana daldan çıkarıldı, DKMS ile dağıtılıyor"],["Araç","bcachefs-tools"],["Durum","Deneysel"]],
+d:{k:"stack",l:["bcachefs|tek dosya sistemi","Ön hedef: NVMe|yeni yazmalar","Sıcak veri önbelleği|sık okunanlar SSD'ye yükseltilir","Arka hedef: HDD|soğuk veri","Kopya / sıkıştırma|ayarlanabilir"]},
+cap:"Hızlı ve yavaş diskler tek bir dosya sisteminde katmanlanır."},
+
+/* ---------- BAĞLAMA ---------- */
+{id:"mount",c:"baglama",a:"mount",f:"Mounting",tr:"Bağlama",y:"temel işlem",
+o:"Bir dosya sistemini dizin ağacındaki bir dizine (bağlama noktası) iliştirerek içeriğini o yoldan erişilebilir kılma.",
+h:"mount, bir cihazdaki dosya sistemini bir dizinin üzerine yerleştirir: bağlandıktan sonra o dizine giren yollar artık yeni dosya sisteminin kökünden devam eder, dizinin eski içeriği gizlenir ama silinmez. Çekirdek her bağlamayı süreçlerin mount isim alanındaki bir ağaçta tutar ve bunu /proc/self/mountinfo dosyasıyla sunar; findmnt bu dosyayı okunabilir bir ağaç olarak gösterir. Bağlama sırasında ro, noexec, nosuid, nodev, noatime gibi seçenekler verilir. umount, dosya sistemini ağaçtan ayırır ama içinde açık dosya ya da çalışma dizini olan bir süreç varsa meşgul hatası verir; hangi sürecin tuttuğunu fuser -vm ya da lsof gösterir. Linux 5.2'den beri fsopen, fsconfig, fsmount ve move_mount adlı yeni bir bağlama arayüzü de vardır.",
+t:[["Komut","mount -t tür -o seçenekler kaynak hedef"],["Bağlı olanlar","findmnt · /proc/self/mountinfo"],["Ayırma","umount hedef · umount -l (tembel)"],["Meşgul hatası","fuser -vm hedef · lsof +f -- hedef"],["Yeni API","fsopen, fsconfig, fsmount, move_mount (5.2+)"],["Yeniden bağlama","mount -o remount,rw /"]],
+d:{k:"seq",a:["Yönetici","mount(8)","Çekirdek","exfat sürücüsü"],s:[[0,1,"mount /dev/sdb1 /mnt/usb","q"],[1,2,"mount(2) / fsmount","q"],[2,3,"superblock'u oku","q"],[3,2,"kök inode","r"],[2,2,"/mnt/usb'nin üstüne iliştir","n"],[2,0,"bağlandı","r"]]},
+cap:"Bağlamadan sonra /mnt/usb artık USB belleğin kökünü gösterir.",
+x:["Bağlama ağacını görmek",`$ findmnt --real
+TARGET              SOURCE                    FSTYPE OPTIONS
+/                   /dev/nvme0n1p2[/@]        btrfs  rw,noatime,compress=zstd:1,ssd,discard=async,subvol=/@
+├─/home             /dev/nvme0n1p2[/@home]    btrfs  rw,noatime,compress=zstd:1,ssd,discard=async,subvol=/@home
+├─/boot             /dev/nvme0n1p1            vfat   rw,relatime,fmask=0137,dmask=0027
+└─/run/media/efe/USB /dev/sdb1                exfat  rw,nosuid,nodev,relatime,uid=1000,gid=1000`]},
+
+{id:"fstab",c:"baglama",a:"fstab",f:"/etc/fstab",tr:"Kalıcı bağlama tablosu",y:"açılışta",
+o:"Açılışta hangi dosya sisteminin nereye, hangi seçeneklerle bağlanacağını tanımlayan dosya.",
+h:"/etc/fstab'daki her satır altı alandan oluşur: kaynak, bağlama noktası, dosya sistemi türü, seçenekler, dump (artık kullanılmaz, 0) ve fsck sırası (kök 1, diğerleri 2, denetlenmeyecekse 0). Kaynağı /dev/sdb1 gibi bir adla yazmak tehlikelidir çünkü cihaz adları açılıştan açılışa değişebilir; bunun yerine UUID=, LABEL=, PARTUUID= ya da /dev/disk/by-id/ yolları kullanılır. Modern sistemlerde fstab'ı systemd okur: systemd-fstab-generator her satırı bir .mount birimine çevirir. Bu yüzden nofail (disk yoksa açılışı durdurma), x-systemd.automount (ilk erişimde bağla) ve x-systemd.device-timeout gibi seçenekler kullanılabilir. Bir hata açılışı acil durum kabuğuna düşürebileceği için değişiklikten sonra mount -a ve findmnt --verify ile denemek iyi bir alışkanlıktır.",
+t:[["Alanlar","kaynak  hedef  tür  seçenekler  dump  pass"],["Kaynak yazımı","UUID=… · LABEL=… · PARTUUID=…"],["UUID bulmak","lsblk -f · blkid"],["Açılışı kurtaran","nofail, x-systemd.device-timeout=5s"],["Tembel bağlama","noauto,x-systemd.automount"],["Denetim","sudo findmnt --verify · sudo mount -a"]],
+d:{k:"seq",a:["systemd","fstab-generator","home.mount","Çekirdek"],s:[[0,1,"açılışta çalıştır","q"],[1,1,"/etc/fstab satırlarını oku","n"],[1,0,".mount birimleri üret","r"],[0,2,"başlat (local-fs.target)","q"],[2,3,"mount(UUID=…, /home)","q"],[3,2,"bağlandı","r"]]},
+cap:"fstab satırları açılışta systemd birimlerine dönüştürülür.",
+x:["Örnek /etc/fstab (btrfs + ESP + veri diski)",`# <kaynak>                                 <hedef>     <tür>  <seçenekler>                                       <dump> <pass>
+UUID=7c1e…-9a2f  /           btrfs  subvol=/@,noatime,compress=zstd:1           0 0
+UUID=7c1e…-9a2f  /home       btrfs  subvol=/@home,noatime,compress=zstd:1       0 0
+UUID=7c1e…-9a2f  /var/log    btrfs  subvol=/@log,noatime,compress=zstd:1        0 0
+UUID=3A1F-0C2E   /boot       vfat   umask=0077                                  0 2
+LABEL=ARSIV      /mnt/arsiv  ext4   noatime,nofail,x-systemd.device-timeout=5s 0 2
+tmpfs            /tmp        tmpfs  size=8G,mode=1777                           0 0`]},
+
+{id:"systemd-mount",c:"baglama",a:".mount · .automount",f:"systemd mount and automount units",tr:"systemd bağlama birimleri",y:"birim",
+o:"Bağlamaları diğer servislerle aynı bağımlılık sistemi içinde yöneten systemd birimleri.",
+h:"Her bağlama noktası systemd'de bir .mount birimidir; adı yoldan türetilir: /mnt/arsiv için mnt-arsiv.mount. fstab'tan üretilenlerin yanı sıra elle de yazılabilir. Bir servis RequiresMountsFor=/mnt/arsiv dediğinde systemd o diski servisten önce bağlar. .automount birimi ise dizine bir otomatik bağlama tuzağı (autofs) kurar: dizine ilk erişildiği anda gerçek bağlama yapılır ve erişen süreç kısa bir süre bekletilir. Bu, ağ paylaşımları ve nadiren kullanılan diskler için açılışı hızlandırır; TimeoutIdleSec= ile bir süre kullanılmayan bağlama kendiliğinden ayrılır. systemctl list-units -t mount tüm bağlamaları birim olarak listeler.",
+t:[["Adlandırma","/mnt/arsiv → mnt-arsiv.mount (systemd-escape -p)"],["Bağımlılık","RequiresMountsFor=/yol"],["Otomatik bağlama","x-systemd.automount ya da .automount birimi"],["Boşta ayır","x-systemd.idle-timeout=10min / TimeoutIdleSec="],["Listeleme","systemctl list-units -t mount,automount"],["Ağ diski","_netdev ya da After=network-online.target"]],
+d:{k:"seq",a:["Süreç","autofs (çekirdek)","systemd","Ağ paylaşımı"],s:[[0,1,"ls /mnt/nas","q"],[1,2,"ilk erişim olayı","e"],[2,3,"mnt-nas.mount başlat","q"],[3,2,"bağlandı","r"],[2,1,"devam et","r"],[1,0,"dizin içeriği","r"]]},
+cap:"Otomatik bağlamada disk, ilk kez gerçekten gerektiğinde bağlanır.",
+x:["Elle yazılmış bir bağlama birimi",`# /etc/systemd/system/mnt-nas.mount
+[Unit]
+Description=NAS paylaşımı
+After=network-online.target
+Wants=network-online.target
+
+[Mount]
+What=//192.168.1.20/arsiv
+Where=/mnt/nas
+Type=cifs
+Options=credentials=/etc/nas.cred,uid=1000,gid=1000,_netdev
+
+# /etc/systemd/system/mnt-nas.automount
+[Automount]
+Where=/mnt/nas
+TimeoutIdleSec=10min
+[Install]
+WantedBy=multi-user.target`]},
+
+{id:"bind-mount",c:"baglama",a:"Bind mount",f:"Bind mounts and propagation",tr:"Bağ bağlaması",y:"--bind",
+o:"Zaten bağlı bir dosya sistemindeki bir dizini ağacın başka bir yerinde de görünür kılma.",
+h:"mount --bind kaynak hedef, kaynak dizini hedef dizinin üzerinde ikinci bir yerde gösterir; her iki yol aynı dosyalara çıkar. Bir dizin kendi üzerine bind edilip salt okunur olarak yeniden bağlanabilir ya da bir dosya, başka bir dosyanın üzerine bind edilebilir. Konteynerlerdeki birim (volume) bağlamaları, chroot için /dev, /proc ve /sys'in içeri taşınması ve systemd'nin ProtectSystem ile BindPaths ayarları hep bu mekanizmayı kullanır. Bağlamaların nasıl yayılacağını yayılım türü belirler: shared bağlamalarda sonradan yapılan alt bağlamalar kopyalar arasında görünür, private'ta görünmez, slave'de yalnızca tek yönde görünür. systemd, kökü varsayılan olarak shared yapar.",
+t:[["Komut","mount --bind /kaynak /hedef"],["Salt okunur kopya","mount -o remount,bind,ro /hedef"],["Alt bağlamalarla","mount --rbind"],["Yayılım türleri","shared, private, slave, unbindable"],["Görmek","findmnt -o TARGET,PROPAGATION"],["Kullananlar","Konteyner birimleri, arch-chroot, systemd BindPaths="]],
+d:{k:"seq",a:["/srv/site","dosyalar (aynı inode'lar)","/var/www/site"],s:[[2,0,"mount --bind","q"],[0,1,"gösterir","q"],[2,1,"aynı dosyaları gösterir","q"],[2,2,"ro ile yeniden bağla","n"]]},
+cap:"İki yol aynı dosyalara çıkar; biri salt okunur yapılabilir."},
+
+{id:"mount-namespace",c:"baglama",a:"Mount namespace",f:"Mount namespaces",tr:"Bağlama isim alanı",y:"konteyner",
+o:"Bir süreç grubuna kendine ait bir bağlama ağacı vererek dosya sistemi görünümünü diğer süreçlerden ayırma.",
+h:"Linux'ta bağlama tablosu küresel değildir; her süreç bir mount isim alanına aittir. unshare -m ya da clone(CLONE_NEWNS) ile yeni bir isim alanı oluşturulduğunda süreç mevcut ağacın bir kopyasını alır ve bundan sonra yaptığı bağlamalar dışarıdan görülmez. Konteynerler bu sayede kendi kök dizinlerini, pivot_root ile asıl kökün yerine geçirerek elde eder. systemd de servisleri bu yolla yalıtır: PrivateTmp=yes servise özel bir /tmp, ProtectHome=yes boş görünen bir /home, ProtectSystem=strict salt okunur bir /usr ve /etc verir. Bir sürecin gördüğü bağlamaları /proc/PID/mountinfo, isim alanına girmeyi nsenter sağlar.",
+t:[["Oluşturma","unshare -m · clone(CLONE_NEWNS)"],["Kök değiştirme","pivot_root (konteynerler), chroot (eski yol)"],["systemd yalıtımı","PrivateTmp, ProtectHome, ProtectSystem, ReadOnlyPaths"],["Görmek","lsns -t mnt · /proc/PID/mountinfo"],["İçeri girmek","nsenter -t PID -m"]],
+d:{k:"seq",a:["Ana isim alanı","unshare -m","Yeni isim alanı"],s:[[1,2,"ağacın kopyası","q"],[2,2,"mount tmpfs /tmp","n"],[2,2,"pivot_root yeni-kök","n"],[0,0,"değişiklikleri görmez","n"]]},
+cap:"Yeni isim alanındaki bağlamalar dışarı sızmaz.",
+x:["Sana özel /tmp ile bir kabuk",`$ sudo unshare -m --propagation private bash
+# mount -t tmpfs none /tmp
+# touch /tmp/gizli && ls /tmp
+gizli
+# exit
+$ ls /tmp/gizli
+ls: cannot access '/tmp/gizli': No such file or directory`]},
+
+{id:"overlayfs",c:"baglama",a:"OverlayFS",f:"Overlay file system",tr:"Katmanlı dosya sistemi",y:"konteyner imajları",
+o:"Salt okunur bir ya da birden fazla alt katmanın üzerine yazılabilir bir üst katman koyup bunları tek bir dizin olarak birleştiren dosya sistemi.",
+h:"OverlayFS dört dizinle çalışır: salt okunur alt katmanlar (lowerdir), yazılabilir üst katman (upperdir), çekirdeğin geçici işler için kullandığı çalışma dizini (workdir) ve birleşik görünüm (merged). Bir dosya okunurken önce üst katmana, yoksa alt katmanlara bakılır. Alt katmandaki bir dosya değiştirildiğinde önce tamamı üst katmana kopyalanır (copy-up), değişiklik orada yapılır. Alt katmandaki bir dosya silindiğinde ise üst katmana onu gizleyen bir beyaz çıkış (whiteout) girdisi konur. Docker ve Podman'ın overlay2 depolama sürücüsü, canlı ISO'lar ve salt okunur köklü sistemler bu yolla çalışır. Çok sayıda imaj aynı alt katmanları paylaşabildiği için disk kullanımı azalır.",
+t:[["Dizinler","lowerdir (ro), upperdir (rw), workdir, merged"],["Değiştirme","copy-up: dosya üst katmana kopyalanır"],["Silme","whiteout: 0/0 karakter cihazı"],["Kullananlar","Docker/Podman overlay2, canlı ISO, Steam Deck"],["Kullanıcı alanı sürümü","fuse-overlayfs (rootless eski sürümler)"]],
+d:{k:"stack",l:["merged|uygulamanın gördüğü","upperdir|yeni ve değişmiş dosyalar, whiteout'lar","lowerdir 2|uygulama katmanı (ro)","lowerdir 1|temel imaj (ro)"]},
+cap:"Üstteki katman alttakini örter; alt katmanlar hiç değişmez.",
+x:["Elle bir katman kurmak",`$ mkdir alt ust is birlesik
+$ echo eski > alt/a.txt
+$ sudo mount -t overlay overlay -o lowerdir=alt,upperdir=ust,workdir=is birlesik
+$ echo yeni > birlesik/a.txt
+$ cat alt/a.txt ust/a.txt
+eski
+yeni
+$ rm birlesik/a.txt; ls -l ust/a.txt
+c--------- 1 root root 0, 0 ust/a.txt      # whiteout`]},
+
+{id:"fuse",c:"baglama",a:"FUSE",f:"Filesystem in Userspace",tr:"Kullanıcı alanında dosya sistemi",y:"/dev/fuse",
+o:"Dosya sistemi mantığını çekirdek yerine sıradan bir kullanıcı programında çalıştırmayı sağlayan arayüz.",
+h:"FUSE'da çekirdek tarafında küçük bir sürücü, kullanıcı tarafında bir hizmet programı vardır. Bağlanmış bir FUSE dizininde bir dosya açıldığında VFS isteği fuse sürücüsüne verir, sürücü bunu /dev/fuse üzerinden hizmet programına iletir, program cevabı hesaplayıp geri yazar. Bu sayede dosya sistemleri Rust, Python ya da Go ile, çekirdek derlemeden ve root yetkisi olmadan yazılabilir. sshfs uzak bir makineyi, rclone bulut depolarını, gocryptfs şifreli bir dizini, ntfs-3g NTFS disklerini bu yolla bağlar. Her istek çekirdek ile kullanıcı alanı arasında gidip geldiği için yerleşik sürücülerden yavaştır. Kullanıcı bağlamaları fusermount3 -u ile ayrılır.",
+t:[["Bileşenler","fuse çekirdek modülü, /dev/fuse, libfuse3"],["Örnekler","sshfs, rclone mount, gocryptfs, ntfs-3g, AppImage"],["Rust","fuser kütüphanesi"],["Ayırma","fusermount3 -u /hedef"],["Bedel","Her istekte bağlam geçişi"]],
+d:{k:"seq",a:["Uygulama","VFS + fuse","/dev/fuse","sshfs","Uzak sunucu"],s:[[0,1,"read()","q"],[1,2,"FUSE_READ isteği","q"],[2,3,"istek","q"],[3,4,"SFTP okuma","q"],[4,3,"veri","r"],[3,2,"cevap","r"],[1,0,"veri","r"]]},
+cap:"Asıl işi bir kullanıcı programı yapar; çekirdek yalnızca aracılık eder.",
+x:["Uzak bir dizini sshfs ile bağlamak",`$ mkdir -p ~/uzak
+$ sshfs efe@vds:/srv ~/uzak -o reconnect,ServerAliveInterval=15
+$ findmnt ~/uzak
+TARGET          SOURCE     FSTYPE     OPTIONS
+/home/efe/uzak  efe@vds:/srv fuse.sshfs rw,nosuid,nodev,relatime,user_id=1000
+$ fusermount3 -u ~/uzak`]},
+
+/* ---------- İZİNLER ---------- */
+{id:"rwx",c:"izin",a:"rwx",f:"Unix permission bits",tr:"Okuma, yazma, çalıştırma izinleri",y:"chmod",
+o:"Her dosya için sahip, grup ve diğerleri olmak üzere üç sınıfa ayrı ayrı verilen okuma, yazma ve çalıştırma hakları.",
+h:"Bir dosyaya erişim istendiğinde çekirdek önce sürecin etkin kullanıcı kimliğine bakar: dosyanın sahibiyse sahip bitleri, değilse ve dosyanın grubundaysa grup bitleri, hiçbiri değilse diğerleri bitleri geçerlidir; sınıflar birleştirilmez. Her sınıfta üç bit vardır ve sekizlik sayıyla yazılır: r=4, w=2, x=1, dolayısıyla 754 sahibe rwx, gruba r-x, diğerlerine r-- demektir. Dizinlerde anlam değişir: r içindekileri listelemeyi, w içinde dosya oluşturup silmeyi, x ise dizine girmeyi ve içinden geçmeyi sağlar. Bir dosyayı silmek için dosyanın değil, bulunduğu dizinin yazma izni gerekir. root (UID 0) bu denetimlerin çoğunu atlar.",
+t:[["Sekizlik değerler","r=4 · w=2 · x=1"],["Örnekler","644 dosya · 755 program/dizin · 600 gizli anahtar"],["Dizinde r / w / x","listele / oluştur-sil / içine gir"],["Değiştirme","chmod 640 dosya · chmod g+w,o-r dosya"],["Sahiplik","chown kullanıcı:grup dosya"],["Silme hakkı","Dizinin w ve x iznine bağlıdır"]],
+d:{k:"seq",a:["Süreç (uid 1000)","VFS","inode"],s:[[0,1,"open(\"rapor\", O_WRONLY)","q"],[1,2,"sahip? grup? diğer?","q"],[2,1,"sahip: rw-","r"],[1,1,"w var → izin ver","n"],[1,0,"fd","r"]]},
+cap:"Yalnızca bir sınıfın bitlerine bakılır: sahip eşleşirse grup ve diğerleri hiç değerlendirilmez.",
+x:["İzinleri okumak ve değiştirmek",`$ ls -l betik.sh
+-rw-r--r-- 1 efe efe 214 betik.sh
+$ chmod u+x betik.sh            # ya da: chmod 744 betik.sh
+$ ls -l betik.sh
+-rwxr--r-- 1 efe efe 214 betik.sh
+$ stat -c '%a %A %U:%G' ~/.ssh/id_ed25519
+600 -rw------- efe:efe`]},
+
+{id:"umask",c:"izin",a:"umask",f:"File mode creation mask",tr:"Varsayılan izin maskesi",y:"022",
+o:"Yeni oluşturulan dosya ve dizinlerden hangi izin bitlerinin çıkarılacağını belirleyen süreç ayarı.",
+h:"Programlar dosya oluştururken genellikle 666, dizin oluştururken 777 izni ister; çekirdek bundan sürecin umask değerindeki bitleri çıkarır. Varsayılan umask 022'dir: grup ve diğerlerinden yazma izni kaldırılır, sonuçta dosyalar 644, dizinler 755 olur. 077 seçilirse yeni dosyaları yalnızca sahibi görebilir (600 ve 700). umask süreçten sürece miras kalır; kabukta umask komutuyla, oturum genelinde PAM (pam_umask) ya da /etc/login.defs ile, bir servis için systemd'de UMask= ile ayarlanır. Çalıştırma biti dosyalara umask ile verilmez; derleyiciler ve paket yöneticileri bunu açıkça ister.",
+t:[["Varsayılan","022 → dosya 644, dizin 755"],["Gizli","077 → dosya 600, dizin 700"],["Paylaşımlı grup","002 → dosya 664, dizin 775"],["Kabukta","umask · umask -S"],["Servis","UMask=0027 (systemd)"],["Hesap","istenen & ~umask"]],
+d:{k:"seq",a:["Editör","Çekirdek","Yeni inode"],s:[[0,1,"open(…, O_CREAT, 0666)","q"],[1,1,"0666 & ~022","n"],[1,2,"mode = 0644","q"],[1,0,"fd","r"]]},
+cap:"İstenen izinden umask'taki bitler düşülür."},
+
+{id:"ozel-bitler",c:"izin",a:"setuid · setgid · sticky",f:"Special permission bits",tr:"Özel izin bitleri",y:"4000 · 2000 · 1000",
+o:"Programın sahibinin yetkisiyle çalışmasını, dizinde grubun miras kalmasını ve paylaşılan dizinde başkasının dosyasının silinmemesini sağlayan üç ek bit.",
+h:"setuid biti (4000) olan bir program, onu çalıştıranın değil dosya sahibinin kimliğiyle çalışır; passwd böylece normal kullanıcıya root'a ait /etc/shadow'u güncelleme imkânı verir. Bu güçlü bir yetki olduğu için setuid programlar saldırganların ilk hedefidir ve sayıları az tutulur. setgid (2000) bir programda grubun kimliğini verir; bir dizinde ise içinde oluşturulan dosyaların dizinin grubunu miras almasını sağlar, ortak proje klasörleri için kullanışlıdır. Yapışkan bit (sticky, 1000) bir dizinde herkesin dosya oluşturabildiği ama yalnızca dosya sahibinin silebildiği anlamına gelir; /tmp'nin izni bu yüzden 1777'dir. ls -l bunları x yerine s, s ve t harfleriyle gösterir.",
+t:[["setuid (4000)","Sahibin kimliğiyle çalış · ls: rwsr-xr-x"],["setgid (2000)","Program: grubun kimliği · Dizin: grup mirası"],["sticky (1000)","Yalnız sahip silebilir · ls: rwxrwxrwt"],["Örnekler","/usr/bin/passwd (4755), /tmp (1777)"],["Bul","find / -perm -4000 -type f 2>/dev/null"],["Etkisizleştir","nosuid bağlama seçeneği"]],
+d:{k:"seq",a:["efe (uid 1000)","passwd (setuid root)","/etc/shadow"],s:[[0,1,"çalıştır","q"],[1,1,"etkin uid = 0","n"],[1,2,"yeni parola özetini yaz","q"],[2,1,"yazıldı","r"],[1,0,"parola güncellendi","r"]]},
+cap:"setuid ile sıradan kullanıcı, yalnızca o programın izin verdiği işi root yetkisiyle yapabilir.",
+x:["Özel bitleri görmek",`$ ls -l /usr/bin/passwd /usr/bin/sudo
+-rwsr-xr-x 1 root root  51552 /usr/bin/passwd
+-rwsr-xr-x 1 root root 262536 /usr/bin/sudo
+$ ls -ld /tmp
+drwxrwxrwt 18 root root 440 /tmp
+$ sudo mkdir /srv/proje && sudo chgrp gelistirici /srv/proje && sudo chmod 2775 /srv/proje`]},
+
+{id:"acl",c:"izin",a:"ACL",f:"POSIX access control lists",tr:"Erişim denetim listeleri",y:"setfacl",
+o:"Sahip, grup ve diğerleri üçlüsünün yetmediği durumlarda belirli kullanıcılara ve gruplara ayrı ayrı izin verme.",
+h:"Klasik izinlerle bir dosyaya tek bir grubun erişimi tanımlanabilir. ACL ile ise örneğin ali'ye okuma, ayse'ye okuma ve yazma, yedek grubuna yalnızca okuma ayrı ayrı verilebilir. Ek girdiler varsa ls -l izinlerin sonuna bir + işareti koyar. ACL'de mask adlı bir girdi, adlandırılmış kullanıcı ve grupların alabileceği en yüksek izni sınırlar; chmod ile grup bitlerini değiştirmek aslında bu maskeyi değiştirir. Dizinlere varsayılan (default) ACL konduğunda içinde yeni oluşturulan her dosya bu girdileri miras alır. ext4, XFS, btrfs ve tmpfs ACL'yi destekler; veriler system.posix_acl_access genişletilmiş özniteliğinde saklanır. systemd, masaüstündeki kullanıcının ses ve kamera cihazlarına erişimini de bu yolla verir.",
+t:[["Okuma / yazma","getfacl dosya · setfacl -m u:ali:r dosya"],["Varsayılan ACL","setfacl -d -m g:ekip:rwX dizin"],["Kaldırma","setfacl -x u:ali dosya · setfacl -b dosya"],["ls göstergesi","-rw-r-----+ (sondaki +)"],["Saklama","system.posix_acl_access xattr"],["Kopyalarken","cp -a, rsync -A"]],
+d:{k:"seq",a:["ali","VFS","ACL girdileri"],s:[[0,1,"open(\"plan.ods\")","q"],[1,2,"user:ali var mı?","q"],[2,1,"user:ali:rw-","r"],[1,2,"mask?","q"],[2,1,"mask::r--","r"],[1,1,"rw- ∧ r-- = r--","n"],[1,0,"yalnız okuma","r"]]},
+cap:"Adlandırılmış girdiler mask ile sınırlanır; etkin izin ikisinin kesişimidir.",
+x:["Bir arkadaşa tek dosya için yazma izni",`$ setfacl -m u:ali:rw plan.ods
+$ getfacl plan.ods
+# file: plan.ods
+# owner: efe
+# group: efe
+user::rw-
+user:ali:rw-
+group::r--
+mask::rw-
+other::---
+$ ls -l plan.ods
+-rw-rw----+ 1 efe efe 18032 plan.ods`]},
+
+{id:"xattr",c:"izin",a:"xattr",f:"Extended attributes",tr:"Genişletilmiş öznitelikler",y:"ad = değer",
+o:"Bir dosyaya içeriğinden ayrı olarak eklenen ad ve değer çiftleri.",
+h:"Genişletilmiş öznitelikler, inode'a ya da ona bağlı küçük bir bloğa iliştirilmiş anahtar ve değer çiftleridir; dosyanın içeriğini değiştirmeden ek bilgi taşırlar. Dört isim alanı vardır: user. herkesin kendi dosyasına koyabildiği veri (örneğin tarayıcının indirme kaynağı user.xdg.origin.url), trusted. yalnızca root'un görebildiği veri, security. SELinux etiketleri ve dosya yetenekleri gibi güvenlik bilgisi, system. ise ACL'ler. Bir dosyayı kopyalarken öznitelikler varsayılan olarak korunmayabilir; cp -a, rsync -X ve tar --xattrs bunları taşır. FAT ve exFAT xattr desteklemez.",
+t:[["İsim alanları","user., trusted., security., system."],["Komutlar","getfattr -d dosya · setfattr -n user.not -v değer dosya"],["Boyut sınırı (ext4)","Tüm değerler bir blokta: ≈ 4 KiB"],["Örnek","user.xdg.origin.url, security.selinux, security.capability"],["Koruyarak kopyalama","cp -a · rsync -X · tar --xattrs"]],
+d:{k:"stack",l:["inode|mode, uid, boyut …","inode içi xattr alanı|küçük öznitelikler","xattr bloğu|user.xdg.origin.url = https://…","Veri blokları|dosya içeriği (değişmez)"]},
+cap:"Öznitelikler dosyanın içeriğine değil, inode'una bağlıdır.",
+x:["İndirilen bir dosyanın kaynağını görmek",`$ getfattr -d ~/İndirilenler/stm32cubeprog.zip
+# file: stm32cubeprog.zip
+user.xdg.origin.url="https://www.st.com/…"
+$ setfattr -n user.etiket -v "proje-x" rapor.pdf
+$ getfattr -n user.etiket rapor.pdf`]},
+
+{id:"chattr",c:"izin",a:"chattr",f:"File attributes (inode flags)",tr:"Dosya bayrakları",y:"lsattr",
+o:"Dosya sistemine özel, izinlerden bağımsız davranış bayrakları: değiştirilemez, yalnızca ekleme, kopyala-yaz kapalı ve diğerleri.",
+h:"chattr ile verilen bayraklar izin bitlerinin üzerinde çalışır ve root için bile geçerlidir. +i (immutable) olan bir dosya silinemez, yeniden adlandırılamaz, değiştirilemez ve ona bağlantı verilemez; bayrağı yalnızca root kaldırabilir. +a (append only) dosyaya yalnızca sona ekleme yapılmasına izin verir; günlük dosyalarının geriye dönük değiştirilmesini önler. btrfs'te +C kopyala-yazı ve dolayısıyla sıkıştırma ile sağlama toplamını o dosya için kapatır; sanal makine diskleri ve veritabanları için kullanılır, ancak boş bir dosyaya ya da dizine uygulanmalıdır ki içinde sonradan oluşan dosyalar miras alsın. +c sıkıştırma, +m sıkıştırmama ister. Bayraklar lsattr ile görülür.",
+t:[["+i","Değiştirilemez (root dahil)"],["+a","Yalnızca sona ekleme"],["+C (btrfs)","Kopyala-yaz kapalı"],["+c / +m (btrfs)","Sıkıştır / sıkıştırma"],["+d","dump yedeklemesinden hariç"],["Görmek","lsattr -d dizin · lsattr dosya"]],
+d:{k:"seq",a:["root","VFS","inode (+i)"],s:[[0,1,"rm kritik.conf","q"],[1,2,"bayraklar?","q"],[2,1,"IMMUTABLE","r"],[1,0,"EPERM: işleme izin yok","r"]]},
+cap:"Değiştirilemez bayrağı izin denetiminden önce gelir; root bile önce bayrağı kaldırmalıdır.",
+x:["Sanal makine dizininde kopyala-yazı kapatmak",`$ mkdir ~/vm && chattr +C ~/vm
+$ lsattr -d ~/vm
+---------------C------ /home/efe/vm
+$ sudo chattr +i /etc/resolv.conf
+$ sudo rm /etc/resolv.conf
+rm: cannot remove '/etc/resolv.conf': Operation not permitted`]},
+
+{id:"yetenekler",c:"izin",a:"File capabilities",f:"File capabilities",tr:"Dosya yetenekleri",y:"setcap",
+o:"Bir programa root'un tüm gücü yerine yalnızca ihtiyaç duyduğu tek tek ayrıcalıkları, setuid kullanmadan verme.",
+h:"Linux, root'un ayrıcalıklarını kırktan fazla yeteneğe böler: 1024'ten küçük portları dinlemek için CAP_NET_BIND_SERVICE, ham ağ paketleri için CAP_NET_RAW, dosya izinlerini atlamak için CAP_DAC_OVERRIDE gibi. setcap bu yetenekleri bir programın security.capability genişletilmiş özniteliğine yazar; program çalıştırıldığında yalnızca bu yetenekleri alır, root olmaz. Bu, setuid'e göre çok daha dar bir yetkidir. Örneğin bir web sunucusuna yalnızca 80 numaralı portu dinleme izni verilebilir. Dosya bir paket güncellemesiyle değiştirildiğinde öznitelik kaybolur; nosuid ile bağlanan dosya sistemlerinde dosya yetenekleri de etkisizdir. Servisler için systemd'de AmbientCapabilities= daha temiz bir yoldur.",
+t:[["Ver / gör","setcap cap_net_bind_service=+ep prog · getcap prog"],["Kaldır","setcap -r prog"],["Bayraklar","e (etkin), p (izinli), i (miras)"],["Tüm liste","man 7 capabilities"],["Servis için","AmbientCapabilities=CAP_NET_BIND_SERVICE"],["Tara","getcap -r /usr 2>/dev/null"]],
+d:{k:"seq",a:["efe","execve(sunucu)","Çekirdek"],s:[[0,1,"çalıştır","q"],[1,2,"security.capability oku","q"],[2,1,"CAP_NET_BIND_SERVICE","r"],[1,2,"bind(:80)","q"],[2,1,"izin verildi","r"],[1,2,"/etc/shadow aç","q"],[2,1,"EACCES","r"]]},
+cap:"Program yalnızca verilen tek yeteneği kullanabilir; geri kalan root yetkileri yoktur."},
+
+/* ---------- SANAL ---------- */
+{id:"procfs",c:"sanal",a:"procfs",f:"/proc",tr:"Süreç dosya sistemi",y:"çekirdek durumu",
+o:"Çekirdeğin süreçler ve sistem durumu hakkındaki bilgilerini, okunduğu anda üretilen metin dosyaları olarak sunan sanal dosya sistemi.",
+h:"/proc altındaki dosyalar diskte yoktur; okunduğunda çekirdek içeriği o an üretir, bu yüzden ls hepsini 0 bayt gösterir. Her süreç için numarasıyla bir dizin bulunur: /proc/PID/cmdline komut satırını, status bellek ve kimlik bilgisini, fd açık dosyaları, maps bellek eşlemelerini, mountinfo o sürecin bağlama ağacını gösterir. /proc/self, okuyan sürecin kendi dizinidir. Sistem genelinde /proc/meminfo, /proc/cpuinfo, /proc/loadavg ve /proc/interrupts sık kullanılır. /proc/sys ise çekirdek ayarlarının yazılabilir hâlidir; sysctl komutu bu dizinin bir arayüzüdür ve kalıcı ayarlar /etc/sysctl.d/ altına yazılır. ps, top ve free gibi araçlar verilerini buradan okur.",
+t:[["Süreç başına","/proc/PID/{cmdline,status,fd,maps,mountinfo,environ}"],["Kendisi","/proc/self"],["Sistem","meminfo, cpuinfo, loadavg, interrupts, partitions"],["Çekirdek ayarları","/proc/sys ↔ sysctl"],["Kalıcı ayar","/etc/sysctl.d/99-ozel.conf"],["Gizlilik","hidepid=2 bağlama seçeneği"]],
+d:{k:"seq",a:["cat","VFS","procfs","Çekirdek yapıları"],s:[[0,1,"read(/proc/meminfo)","q"],[1,2,"show() işlevi","q"],[2,3,"sayaçları oku","q"],[3,2,"değerler","r"],[2,1,"metni o an üret","r"],[1,0,"MemTotal: …","r"]]},
+cap:"İçerik diskte durmaz; her okumada çekirdek yapılarından yeniden üretilir.",
+x:["Çekirdek ayarı okumak ve yazmak",`$ cat /proc/sys/vm/swappiness
+60
+$ sudo sysctl vm.swappiness=10          # anlık
+$ echo 'vm.swappiness = 10' | sudo tee /etc/sysctl.d/99-swap.conf   # kalıcı
+$ grep -E '^(Name|VmRSS|Threads)' /proc/self/status
+Name:   grep
+VmRSS:      2304 kB
+Threads:        1`]},
+
+{id:"sysfs",c:"sanal",a:"sysfs",f:"/sys",tr:"Cihaz modeli dosya sistemi",y:"kobject",
+o:"Çekirdeğin cihaz, sürücü ve veri yolu modelini dizinler ve tek değerli dosyalar olarak gösteren sanal dosya sistemi.",
+h:"/sys, çekirdekteki her cihazın, sürücünün ve veri yolunun (kobject) bir dizin olarak göründüğü düzenli bir ağaçtır. procfs'in karışık metin dosyalarının aksine, sysfs'te her dosya tek bir değer tutar: bir diskin boyutu, bir LED'in parlaklığı, bir USB cihazının üretici kimliği gibi. /sys/devices gerçek fiziksel hiyerarşiyi, /sys/class cihazları türlerine göre (net, block, tty, power_supply, backlight), /sys/bus veri yollarına göre gösterir; bu ikisi /sys/devices'a bağlantılardır. udev, cihaz kurallarını eşleştirirken bu öznitelikleri kullanır. Bazı dosyalar yazılabilir ve donanımı doğrudan ayarlar; örneğin G/Ç zamanlayıcısı ya da ekran parlaklığı.",
+t:[["Fiziksel ağaç","/sys/devices"],["Türe göre","/sys/class/{net,block,tty,power_supply,backlight}"],["Veri yoluna göre","/sys/bus/{usb,pci,platform}"],["Kural","Dosya başına tek değer"],["Dosya sistemleri","/sys/fs/{btrfs,ext4,cgroup}"],["Öznitelikleri görmek","udevadm info -a /dev/ttyACM0"]],
+d:{k:"stack",l:["/sys/class/tty/ttyACM0|→ bağlantı","/sys/devices/pci0000:00|PCI kökü","…/0000:00:14.0|USB denetleyicisi","…/usb1/1-3|ST-LINK cihazı (idVendor=0483)","…/1-3:1.1/tty/ttyACM0|sanal seri port"]},
+cap:"Bir seri portun, PCI kökünden başlayan gerçek donanım yolu.",
+x:["Donanımı dosya olarak okumak",`$ cat /sys/class/power_supply/BAT0/{status,capacity}
+Discharging
+87
+$ cat /sys/block/nvme0n1/size          # 512 baytlık sektör sayısı
+1953525168
+$ echo 40 | sudo tee /sys/class/backlight/intel_backlight/brightness`]},
+
+{id:"devtmpfs",c:"sanal",a:"devtmpfs · udev",f:"Device nodes",tr:"Cihaz dosyaları",y:"/dev",
+o:"/dev altındaki cihaz dosyalarını çekirdeğin oluşturduğu ve udev'in adlandırıp izinlendirdiği düzen.",
+h:"/dev, devtmpfs adlı bir sanal dosya sistemidir: çekirdek yeni bir cihaz bulduğunda onun dosyasını (örneğin /dev/nvme0n1 ya da /dev/ttyACM0) burada kendisi oluşturur. Cihaz dosyası veri tutmaz; major ve minor numaralarıyla çekirdekteki sürücüyü işaret eder. Ardından çekirdek kullanıcı alanına bir uevent gönderir ve systemd-udevd kurallarını uygular: dosyanın sahibini ve iznini ayarlar, /dev/disk/by-uuid, by-id, by-label ve by-path altında kararlı adlı bağlantılar oluşturur, gerekirse bir program çalıştırır. Kendi kurallarını /etc/udev/rules.d/ altına yazarak örneğin bir ST-LINK'e her zaman aynı adı ve kullanıcıya erişim izni verebilirsin. /dev/null, /dev/zero, /dev/urandom gibi sözde cihazlar da buradadır.",
+t:[["Oluşturan","Çekirdek (devtmpfs)"],["Düzenleyen","systemd-udevd (kurallar)"],["Kararlı adlar","/dev/disk/by-{uuid,id,label,partuuid,path}"],["Major:minor","ls -l /dev/nvme0n1 → 259, 0"],["Kural dizini","/etc/udev/rules.d/ (öncelikli), /usr/lib/udev/rules.d/"],["İzlemek","udevadm monitor --udev"]],
+d:{k:"seq",a:["Donanım","Çekirdek","devtmpfs","udevd"],s:[[0,1,"USB cihaz takıldı","e"],[1,2,"/dev/ttyACM0 oluştur","q"],[1,3,"uevent (add)","e"],[3,3,"kuralları eşleştir","n"],[3,2,"izin, grup, /dev/stlink bağlantısı","q"]]},
+cap:"Çekirdek dosyayı oluşturur; udev onu adlandırır ve izinlerini ayarlar.",
+x:["ST-LINK için kalıcı ad ve kullanıcı izni",`# /etc/udev/rules.d/49-stlink.rules
+SUBSYSTEM=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="374b", TAG+="uaccess", SYMLINK+="stlink"
+$ sudo udevadm control --reload && sudo udevadm trigger
+$ ls -l /dev/disk/by-uuid/ | head -3
+lrwxrwxrwx 1 root root 15 3A1F-0C2E -> ../../nvme0n1p1
+lrwxrwxrwx 1 root root 15 7c1e…-9a2f -> ../../nvme0n1p2`]},
+
+{id:"tmpfs",c:"sanal",a:"tmpfs",f:"Temporary file system",tr:"Bellekte dosya sistemi",y:"RAM + takas",
+o:"Dosyaları doğrudan sayfa önbelleğinde tutan, diske hiç yazmayan ve yeniden başlatmada silinen dosya sistemi.",
+h:"tmpfs'te bir dosyanın verisi yalnızca sayfa önbelleğinde durur; arkasında bir disk yoktur. Bu yüzden okuma ve yazma bellek hızındadır ve sistem kapanınca içerik kaybolur. Bellek sıkışırsa tmpfs sayfaları takas alanına itilebilir. Boyut varsayılan olarak RAM'in yarısıyla sınırlıdır ama bu yer önceden ayrılmaz; yalnızca gerçekten kullanılan kadar bellek tüketilir. /run, /dev/shm (POSIX paylaşımlı bellek), çoğu dağıtımda /tmp ve /run/user/UID tmpfs'tir. Derleme dizinini tmpfs'e almak SSD yazmalarını azaltır ama çok büyük derlemelerde belleği tüketebilir. ramfs ise benzer ama boyut sınırı ve takas desteği olmayan eski bir sürümdür.",
+t:[["Varsayılan boyut","RAM'in %50'si (sınır; önceden ayrılmaz)"],["Seçenekler","size=8G, nr_inodes=, mode=1777, noswap (6.4+)"],["Kullanıldığı yerler","/run, /dev/shm, /tmp, /run/user/UID"],["Görmek","df -h -t tmpfs"],["Kalıcılık","Yok; yeniden başlatmada silinir"]],
+d:{k:"seq",a:["Uygulama","tmpfs","Sayfa önbelleği","Takas"],s:[[0,1,"write(/tmp/a)","q"],[1,2,"sayfa ayır","q"],[2,0,"tamam (disk yok)","r"],[2,2,"bellek baskısı","e"],[2,3,"soğuk sayfayı taşı","q"]]},
+cap:"tmpfs verisi önbellekte yaşar; yalnızca bellek dolduğunda takasa iner.",
+x:["Derleme için RAM diski",`$ df -h -t tmpfs
+Filesystem  Size  Used Avail Use% Mounted on
+tmpfs        16G  412M   16G   3% /dev/shm
+tmpfs        16G  1.2G   15G   8% /tmp
+$ sudo mount -t tmpfs -o size=6G,mode=1777 tmpfs /mnt/derle`]},
+
+{id:"cgroupfs",c:"sanal",a:"cgroup2",f:"Control group file system",tr:"Kaynak denetim grupları",y:"/sys/fs/cgroup",
+o:"Süreç gruplarının CPU, bellek ve G/Ç kullanımını sınırlayan ve ölçen çekirdek mekanizmasının dosya arayüzü.",
+h:"cgroup v2, /sys/fs/cgroup altında tek bir hiyerarşi olarak bağlanır. Her dizin bir denetim grubudur; içine süreç taşımak için PID'ini cgroup.procs dosyasına yazmak yeterlidir. Sınırlar da dosyalara yazılarak konur: memory.max bellek üst sınırını, cpu.max işlemci payını, io.max disk bant genişliğini belirler; memory.current ve cpu.stat ise anlık kullanımı gösterir. systemd tüm sistemi bu ağaçta düzenler: system.slice servisleri, user.slice kullanıcı oturumlarını tutar ve her servis kendi alt grubundadır. systemctl set-property ya da birim dosyasındaki MemoryMax= gibi ayarlar sonunda bu dosyalara yazılır. Konteynerlerin kaynak sınırları da aynı mekanizmayla uygulanır.",
+t:[["Bağlama noktası","/sys/fs/cgroup (cgroup2)"],["Süreç taşıma","echo PID > grup/cgroup.procs"],["Sınırlar","memory.max, cpu.max, io.max, pids.max"],["İzleme","memory.current, cpu.stat, io.stat, memory.pressure"],["systemd","MemoryMax=, CPUQuota=, IOWeight="],["Araçlar","systemd-cgls · systemd-cgtop"]],
+d:{k:"stack",l:["/sys/fs/cgroup|kök","system.slice|servisler","system.slice/docker.service|memory.max = 4G","user.slice|kullanıcı oturumları","user.slice/user-1000.slice|efe'nin süreçleri"]},
+cap:"systemd, tüm süreçleri cgroup ağacında dilimlere ve birimlere yerleştirir.",
+x:["Bir servisin belleğini sınırlamak",`$ systemd-cgls -u docker.service | head -3
+$ sudo systemctl set-property docker.service MemoryMax=4G
+$ cat /sys/fs/cgroup/system.slice/docker.service/memory.max
+4294967296
+$ cat /sys/fs/cgroup/system.slice/docker.service/memory.current
+1183842304`]},
+
+{id:"diger-sanal",c:"sanal",a:"efivarfs · debugfs · bpffs",f:"Other pseudo file systems",tr:"Diğer sanal dosya sistemleri",y:"özel amaçlı",
+o:"Belirli çekirdek alt sistemlerini dosya olarak açan küçük sanal dosya sistemleri.",
+h:"efivarfs (/sys/firmware/efi/efivars) UEFI değişkenlerini, yani önyükleme girdilerini ve Secure Boot durumunu dosya olarak gösterir; efibootmgr bunları buradan okur ve yazar. Yanlış bir dosyayı silmek bazı anakartları açılmaz hâle getirebildiği için çoğu dosya varsayılan olarak değiştirilemez bayrağıyla korunur. debugfs (/sys/kernel/debug) sürücü geliştiricilerinin iç durumu açığa çıkardığı, kararlılık garantisi olmayan bir alandır. tracefs (/sys/kernel/tracing) ftrace izleme altyapısına arayüzdür. bpffs (/sys/fs/bpf) eBPF programlarının ve haritalarının süreçler sonlandıktan sonra da yaşamasını sağlar. configfs ise kullanıcı alanının çekirdek nesneleri oluşturmasına imkân verir; USB gadget ayarları bunun örneğidir. Ayrıca pipefs ve sockfs gibi hiç bağlanmayan iç dosya sistemleri boruları ve soketleri inode olarak temsil eder.",
+t:[["efivarfs","/sys/firmware/efi/efivars — UEFI değişkenleri"],["debugfs","/sys/kernel/debug — sürücü iç durumu"],["tracefs","/sys/kernel/tracing — ftrace"],["bpffs","/sys/fs/bpf — kalıcı eBPF nesneleri"],["configfs","/sys/kernel/config — USB gadget, iSCSI hedefleri"],["İç (bağlanmayan)","pipefs, sockfs, anon_inodefs"]],
+d:{k:"stack",l:["/sys/firmware/efi/efivars|efivarfs","/sys/kernel/debug|debugfs","/sys/kernel/tracing|tracefs","/sys/fs/bpf|bpffs","/sys/kernel/config|configfs"]},
+cap:"Her biri bir çekirdek alt sistemini dosya arayüzüyle açar."},
+
+/* ---------- BLOK ---------- */
+{id:"bolumler",c:"blok",a:"GPT",f:"Partitions and block devices",tr:"Bölümler ve blok cihazları",y:"lsblk",
+o:"Fiziksel bir diskin GPT tablosuyla bağımsız parçalara bölünmesi ve her parçanın ayrı bir blok cihazı olarak görünmesi.",
+h:"Bir disk Linux'ta bir blok cihazıdır: NVMe için /dev/nvme0n1, SATA ya da USB için /dev/sda. Disk bölümlendiğinde her bölüm ayrı bir cihaz olur: /dev/nvme0n1p1, /dev/sda2 gibi. Bugünkü standart GUID bölüm tablosu (GPT) diskin başında ve sonunda iki kopya tutar, 128 bölüme kadar izin verir ve her bölüme bir tür kimliği (EFI sistem bölümü, Linux dosya sistemi, Linux takas, LUKS) ile benzersiz bir PARTUUID atar. Dosya sistemleri bölümlerin üzerine kurulur; ama bölüm şart değildir, bir dosya sistemi doğrudan tüm diske ya da bir LVM birimine de yazılabilir. Bölümleri lsblk gösterir; düzenlemek için fdisk, gdisk, parted ya da grafik arayüzde KDE Partition Manager kullanılır.",
+t:[["Tablo","GPT (her iki uçta kopya, 128 bölüm)"],["Cihaz adları","/dev/nvme0n1p2 · /dev/sda2 · /dev/mmcblk0p1"],["Hizalama","Bölümler 1 MiB sınırında başlar"],["Araçlar","lsblk -f, fdisk, gdisk, sgdisk, parted, partprobe"],["Tür kodları (gdisk)","EF00 ESP · 8300 Linux · 8309 LUKS · 8200 takas"],["Yeniden okut","partprobe /dev/sda"]],
+d:{k:"stack",l:["/dev/nvme0n1|1 TB NVMe disk","GPT başlığı + tablo|LBA 1–33","p1: EFI sistem bölümü|1 GiB, FAT32","p2: Linux dosya sistemi|930 GiB, btrfs","Yedek GPT|diskin sonunda"]},
+cap:"Tipik bir tek diskli masaüstü düzeni.",
+x:["Blok cihazlarını görmek",`$ lsblk -f
+NAME        FSTYPE FSVER LABEL UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
+nvme0n1
+├─nvme0n1p1 vfat   FAT32       3A1F-0C2E                             812.4M    19% /boot
+└─nvme0n1p2 btrfs              7c1e8f42-…-9a2f                       540.1G    42% /var/log
+                                                                                    /home
+                                                                                    /
+zram0                                                                                  [SWAP]`]},
+
+{id:"device-mapper",c:"blok",a:"Device mapper",f:"Device mapper",tr:"Aygıt eşleyici",y:"dm-*",
+o:"Bir ya da birden fazla blok cihazının üzerine, istekleri dönüştürerek ileten sanal blok cihazları kuran çekirdek çerçevesi.",
+h:"Device mapper, /dev/dm-0 gibi sanal bir blok cihazı oluşturur ve ona gelen her isteği bir eşleme tablosuna göre altta yatan cihazlara yönlendirir. Tablonun her satırı bir hedef (target) kullanır: linear bir aralığı başka bir cihaza kaydırır, crypt yolda şifreler ve çözer, thin ince ayrılmış havuzlar kurar, snapshot kopyala-yaz görüntüler tutar, verity okunan her bloğun özetini doğrular, cache yavaş bir diski hızlı biriyle önbellekler. LVM, LUKS, Android'in doğrulanmış önyüklemesi ve Docker'ın eski devicemapper sürücüsü bu çerçevenin üzerine kuruludur. Cihazlar /dev/mapper altında okunabilir adlarla görünür ve dmsetup ile incelenir.",
+t:[["Hedefler","linear, striped, crypt, thin, snapshot, verity, cache, raid"],["Cihaz adları","/dev/dm-N · /dev/mapper/ad"],["İnceleme","dmsetup ls --tree · dmsetup table"],["Üstüne kurulanlar","LVM, LUKS (cryptsetup), dm-verity, VDO"],["İç içe","Hedefler üst üste yığılabilir"]],
+d:{k:"seq",a:["Dosya sistemi","/dev/mapper/kok","dm-crypt hedefi","/dev/nvme0n1p2"],s:[[0,1,"blok 1000'i yaz","q"],[1,2,"tabloya göre ilet","q"],[2,2,"AES-XTS ile şifrele","n"],[2,3,"şifreli blok 1000+ofset","q"],[3,0,"tamam","r"]]},
+cap:"Dosya sistemi sanal cihaza yazar; eşleyici isteği dönüştürüp gerçek cihaza iletir.",
+x:["Eşleme ağacını görmek",`$ sudo dmsetup ls --tree
+kok (254:0)
+ └─ (259:2)
+$ sudo dmsetup table kok
+0 1950320640 crypt aes-xts-plain64 :64:logon:cryptsetup:… 0 259:2 32768`]},
+
+{id:"lvm",c:"blok",a:"LVM",f:"Logical Volume Manager",tr:"Mantıksal birim yöneticisi",y:"PV · VG · LV",
+o:"Diskleri bir havuzda birleştirip içinden esnek boyutlu, çevrimiçi büyütülebilen mantıksal birimler ayıran katman.",
+h:"LVM üç katmandan oluşur. Fiziksel birim (PV), LVM'e verilmiş bir disk ya da bölümdür. Birim grubu (VG), bir ya da daha fazla PV'nin birleştiği bir alan havuzudur ve bu alan varsayılan 4 MiB'lık fiziksel kapsamlara (PE) bölünür. Mantıksal birim (LV) ise havuzdan ayrılan, istendiğinde büyütülüp küçültülebilen ve /dev/vg/lv adıyla görünen sanal bölümdür. Bir LV, birden fazla diskin parçalarından oluşabilir; yeni bir disk eklendiğinde VG'ye katılır ve LV'ler hemen büyüyebilir. İnce ayırma (thin pool) ile gerçekte olandan fazla alan vaat edilebilir; anlık görüntü, RAID ve önbellek LV'leri de vardır. btrfs ve ZFS bu işlerin çoğunu kendi içinde yaptığı için onlarla birlikte LVM'e daha az ihtiyaç duyulur.",
+t:[["Katmanlar","PV (disk) → VG (havuz) → LV (birim)"],["PE boyutu","4 MiB (varsayılan)"],["Komutlar","pvcreate, vgcreate, lvcreate, lvextend, vgextend"],["Büyütme + FS","lvextend -r -L +50G vg/lv"],["Türler","linear, striped, raid1, thin, cache, snapshot"],["Durum","pvs · vgs · lvs"]],
+d:{k:"stack",l:["/home (ext4)|dosya sistemi","LV: vg0/home|300 GiB, büyütülebilir","VG: vg0|tüm PE'lerin havuzu","PV: /dev/nvme0n1p3|500 GiB","PV: /dev/sda1|2 TB (sonradan eklendi)"]},
+cap:"Yeni disk havuza eklenir; mantıksal birim, altındaki disk değişmeden büyür.",
+x:["Yeni diskle bir birimi büyütmek",`$ sudo pvcreate /dev/sda1
+$ sudo vgextend vg0 /dev/sda1
+$ sudo lvextend -r -L +500G vg0/home      # -r: dosya sistemini de büyüt
+$ sudo lvs
+  LV   VG  Attr       LSize
+  home vg0 -wi-ao---- 800.00g
+  root vg0 -wi-ao----  80.00g`]},
+
+{id:"mdadm",c:"blok",a:"mdadm",f:"Linux software RAID (md)",tr:"Yazılımsal RAID",y:"/dev/md0",
+o:"Birden fazla diski çekirdeğin md sürücüsüyle tek bir RAID cihazında birleştirerek hız ya da yedeklilik sağlama.",
+h:"md sürücüsü diskleri birleştirip /dev/md0 gibi tek bir blok cihazı sunar; üstüne herhangi bir dosya sistemi kurulabilir. RAID0 veriyi diskler arasında şeritler ve hızlıdır ama bir disk ölünce her şey gider. RAID1 aynı veriyi her diske yazar. RAID5 ve RAID6 eşlik (parity) bilgisi tutarak bir ya da iki disk kaybına dayanır. RAID10 ayna çiftlerini şeritler. Her diskte dizinin yapısını anlatan bir üst veri (sürüm 1.2 superblock) bulunur; dizinin durumu /proc/mdstat dosyasında izlenir. Bir disk öldüğünde yenisi eklenir ve dizi arka planda yeniden kurulur. RAID bir yedek değildir: silinen ya da bozulan dosya tüm kopyalarda silinir ya da bozulur.",
+t:[["Seviyeler","0 (şerit), 1 (ayna), 5, 6 (eşlik), 10"],["Durum","cat /proc/mdstat · mdadm --detail /dev/md0"],["Oluşturma","mdadm --create /dev/md0 --level=1 --raid-devices=2 …"],["Ayar dosyası","/etc/mdadm.conf"],["Disk değiştirme","--fail, --remove, --add"],["Alternatifler","btrfs RAID1, ZFS mirror/RAID-Z, LVM raid"]],
+d:{k:"seq",a:["Dosya sistemi","/dev/md0 (RAID1)","Disk A","Disk B"],s:[[0,1,"yaz","q"],[1,2,"kopya 1","q"],[1,3,"kopya 2","q"],[3,1,"G/Ç hatası","e"],[1,1,"B işaretlendi: [U_]","n"],[1,0,"tamam (A ile devam)","r"]]},
+cap:"Aynada bir disk ölse de dizi azalmış (degraded) kipte çalışmaya devam eder.",
+x:["İki diskli ayna",`$ sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sda1 /dev/sdb1
+$ cat /proc/mdstat
+md0 : active raid1 sdb1[1] sda1[0]
+      976630464 blocks super 1.2 [2/2] [UU]
+      [=>...................]  resync =  7.4% (72318976/976630464)
+$ sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf`]},
+
+{id:"luks",c:"blok",a:"LUKS2",f:"Linux Unified Key Setup",tr:"Disk şifreleme",y:"dm-crypt",
+o:"Bir bölümün tamamını şifreleyen ve anahtarı birden çok parola ya da donanım anahtarıyla açılabilir kılan standart.",
+h:"LUKS, dm-crypt'in üzerinde bir başlık biçimidir. Diskteki veri rastgele üretilmiş bir ana anahtarla (genellikle AES-XTS) şifrelenir. Bu ana anahtar başlıktaki anahtar yuvalarında (keyslot), her biri farklı bir parola ya da anahtar dosyasıyla şifrelenmiş olarak saklanır. Parolayı değiştirmek tüm diski yeniden şifrelemeyi gerektirmez; yalnızca bir yuvayı günceller. LUKS2, parolayı anahtara çevirmek için belleği bilerek çok kullanan Argon2id işlevini kullanır; bu, kaba kuvvet denemelerini pahalılaştırır. Açılınca /dev/mapper/ad altında şifresiz bir cihaz belirir ve dosya sistemi onun üzerine kurulur. systemd-cryptenroll ile kilit TPM2 yongasına, FIDO2 anahtarına ya da kurtarma anahtarına bağlanabilir. Başlık bozulursa veri kurtarılamaz, bu yüzden başlığın yedeği alınmalıdır.",
+t:[["Varsayılan şifre","aes-xts-plain64, 512 bit anahtar"],["Parola türetme","Argon2id (LUKS2)"],["Anahtar yuvası","32'ye kadar"],["Açma","cryptsetup open /dev/nvme0n1p2 kok"],["Donanım kilidi","systemd-cryptenroll --tpm2-device=auto · --fido2-device=auto"],["Başlık yedeği","cryptsetup luksHeaderBackup"]],
+d:{k:"seq",a:["Kullanıcı","cryptsetup","LUKS başlığı","dm-crypt"],s:[[0,1,"parola","q"],[1,2,"Argon2id → yuva anahtarı","q"],[2,1,"ana anahtar (çözüldü)","r"],[1,3,"tabloyu kur","q"],[3,0,"/dev/mapper/kok hazır","r"]]},
+cap:"Parola ana anahtarı açar; verinin kendisi her zaman ana anahtarla şifrelidir.",
+x:["Şifreli bir disk oluşturmak",`$ sudo cryptsetup luksFormat --type luks2 /dev/sdb1
+$ sudo cryptsetup open /dev/sdb1 arsiv
+$ sudo mkfs.btrfs -L arsiv /dev/mapper/arsiv
+$ sudo cryptsetup luksDump /dev/sdb1 | grep -E 'Version|Cipher|PBKDF'
+Version:        2
+        cipher: aes-xts-plain64
+        PBKDF:      argon2id
+$ sudo cryptsetup luksHeaderBackup /dev/sdb1 --header-backup-file sdb1-luks.img`]},
+
+{id:"trim",c:"blok",a:"TRIM",f:"TRIM / discard",tr:"Boşalan blokları bildirme",y:"SSD",
+o:"Dosya sisteminin artık kullanmadığı blokları SSD'ye bildirerek denetleyicinin bu alanı önceden temizlemesini sağlama.",
+h:"Bir dosya silindiğinde dosya sistemi yalnızca kendi haritasında blokları boş işaretler; SSD ise o blokların hâlâ geçerli veri tuttuğunu sanar ve çöp toplama sırasında gereksiz yere taşır. TRIM (NVMe'de Deallocate) komutu bu blokların boş olduğunu cihaza bildirir; böylece yazma hızı korunur ve SSD'nin ömrü uzar. İki yolu vardır: discard bağlama seçeneği silme anında bildirir, fstrim ise boş alanı topluca bildirir. Çoğu dağıtım haftalık çalışan fstrim.timer'ı etkin getirir. btrfs, 6.2 sürümünden beri SSD'lerde bildirimleri gruplayıp arka planda gönderen discard=async seçeneğini varsayılan olarak açar. LUKS altında TRIM'in geçmesi için cihazın --allow-discards ile açılması gerekir; bu, hangi blokların boş olduğunu az da olsa açığa çıkarır.",
+t:[["Toplu","fstrim -av · fstrim.timer (haftalık)"],["Sürekli","discard · discard=async (btrfs, 6.2+ varsayılan)"],["Destek kontrolü","lsblk --discard (DISC-GRAN ≠ 0)"],["LUKS","--allow-discards ya da /etc/crypttab'ta discard"],["LVM","issue_discards = 1 (lvm.conf)"],["NVMe karşılığı","Deallocate (DSM)"]],
+d:{k:"seq",a:["rm","Dosya sistemi","SSD denetleyicisi"],s:[[0,1,"unlink(büyük.iso)","q"],[1,1,"blokları boş işaretle","n"],[1,2,"TRIM: LBA aralığı boş","q"],[2,2,"haritadan sil, sonra temizle","n"],[2,1,"tamam","r"]]},
+cap:"TRIM, dosya sisteminin bildiği boşluğu SSD'ye de bildirir.",
+x:["TRIM durumunu kontrol etmek",`$ lsblk --discard /dev/nvme0n1
+NAME        DISC-ALN DISC-GRAN DISC-MAX DISC-ZERO
+nvme0n1            0      512B       2T         0
+$ systemctl status fstrim.timer | grep Trigger
+    Trigger: Mon 2026-10-19 00:00:00 +03
+$ sudo fstrim -av
+/boot: 812.1 MiB (851556352 bytes) trimmed on /dev/nvme0n1p1`]},
+
+{id:"takas",c:"blok",a:"Swap · zram",f:"Swap space and zram",tr:"Takas alanı",y:"sanal bellek",
+o:"RAM dolduğunda az kullanılan bellek sayfalarının taşındığı alan: diskte bir bölüm ya da dosya, veya RAM'de sıkıştırılmış bir blok cihazı.",
+h:"Bellek sıkıştığında çekirdek, dosya önbelleğinden sayfa atabilir ya da süreçlerin anonim belleğini (yığın, heap) takasa taşıyabilir. Takas alanı bir bölüm, bir dosya ya da zram olabilir. zram, RAM'in bir kısmında sıkıştırılmış bir blok cihazı oluşturur; sayfalar diske değil oraya, zstd ya da lz4 ile sıkıştırılarak yazılır. Disk takasından çok daha hızlıdır ve Fedora ile CachyOS'ta varsayılan takas budur. vm.swappiness, çekirdeğin önbellek atmak ile takasa taşımak arasındaki tercihini ayarlar. btrfs üzerinde takas dosyası kullanılacaksa dosyanın kopyala-yaz kapalı ve sıkıştırmasız olması gerekir; btrfs filesystem mkswapfile bunu tek komutla yapar. Uyku kipinden (hibernate) dönüş için diskte RAM kadar takas gerekir; zram bu iş için uygun değildir.",
+t:[["Türler","Bölüm, dosya, zram"],["zram ayarı","zram-generator: /etc/systemd/zram-generator.conf"],["Öncelik","zram 100 · disk takası daha düşük"],["swappiness","vm.swappiness (varsayılan 60, zram ile yüksek tutulabilir)"],["btrfs takas dosyası","btrfs filesystem mkswapfile --size 16G /swap/swapfile"],["Görmek","swapon --show · zramctl"]],
+d:{k:"seq",a:["Çekirdek (bellek baskısı)","zram0 (RAM)","Disk takası"],s:[[0,1,"soğuk sayfayı sıkıştır","q"],[1,0,"4 KiB → ≈1,3 KiB","r"],[0,0,"zram doldu","e"],[0,2,"daha da soğukları diske","q"],[2,0,"yazıldı","r"]]},
+cap:"Önce hızlı zram, o da dolarsa daha yavaş disk takası kullanılır.",
+x:["Takas alanlarını görmek",`$ swapon --show
+NAME       TYPE      SIZE USED PRIO
+/dev/zram0 partition  31G 1.4G  100
+$ zramctl
+NAME       ALGORITHM DISKSIZE  DATA  COMPR TOTAL STREAMS MOUNTPOINT
+/dev/zram0 zstd           31G  1.4G 391.2M  402M      12 [SWAP]`]},
+
+/* ---------- ARAÇLAR ---------- */
+{id:"mkfs-fsck",c:"arac",a:"mkfs · fsck",f:"Creating and checking file systems",tr:"Oluşturma ve onarma",y:"bakım",
+o:"Bir cihazda yeni dosya sistemi oluşturma ve tutarsız bir dosya sistemini denetleyip onarma araçları.",
+h:"mkfs, her dosya sistemi için ayrı bir programın (mkfs.ext4, mkfs.xfs, mkfs.btrfs, mkfs.fat) ön yüzüdür ve cihazın başına superblock, haritalar ve kök dizini yazar; önceki dosya sistemi imzalarını silmek için wipefs kullanılır. fsck de benzer şekilde e2fsck, xfs_repair, fsck.fat gibi araçları çağırır. Denetim, bağlı olmayan ya da salt okunur bağlı bir dosya sisteminde yapılmalıdır; bağlı bir dosya sistemini onarmaya çalışmak onu bozar. Günlüklü ve kopyala-yaz dosya sistemlerinde açılışta uzun fsck'lere nadiren gerek kalır. btrfs'te btrfs check --repair son çare olarak görülür; ilk adımlar scrub, salt okunur bağlama ve btrfs rescue'dur. fstab'daki altıncı alan, açılışta hangi dosya sisteminin hangi sırayla denetleneceğini belirler.",
+t:[["Oluşturma","mkfs.ext4 · mkfs.xfs · mkfs.btrfs · mkfs.fat -F 32 · mkfs.exfat"],["Eski imzaları sil","wipefs -a /dev/sdX"],["Denetleme","e2fsck -f · xfs_repair -n · fsck.fat"],["btrfs","scrub → ro bağla → btrfs rescue → (son çare) check --repair"],["Kural","Bağlıyken onarma yapma"],["Açılışta","fstab pass alanı · fsck.mode=force (çekirdek parametresi)"]],
+d:{k:"seq",a:["Yönetici","e2fsck","Disk"],s:[[0,0,"umount /dev/sdb1","n"],[0,1,"e2fsck -f /dev/sdb1","q"],[1,2,"geçiş 1: inode'lar, bloklar","q"],[1,2,"geçiş 2–3: dizinler, bağlantı","q"],[1,2,"geçiş 4–5: sayaçlar, haritalar","q"],[1,0,"temiz / onarıldı","r"]]},
+cap:"e2fsck beş geçişte tüm üst veriyi tutarlılık için tarar.",
+x:["Bir ext4 diski denetlemek",`$ sudo umount /dev/sdb1
+$ sudo e2fsck -f /dev/sdb1
+e2fsck 1.47.x
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 4: Checking reference counts
+Pass 5: Checking group summary information
+veri: 41207/61054976 files (0.4% non-contiguous), 4312088/244190208 blocks`]},
+
+{id:"kesif",c:"arac",a:"lsblk · blkid · findmnt",f:"Discovery tools",tr:"Keşif araçları",y:"util-linux",
+o:"Hangi diskin, bölümün ve dosya sisteminin nerede olduğunu, kimliğini ve nereye bağlandığını gösteren araçlar.",
+h:"lsblk blok cihazlarını ağaç olarak listeler ve -f ile dosya sistemi türlerini, etiketleri, UUID'leri ve bağlama noktalarını ekler. blkid bir cihazın imzalarını okuyup türünü ve kimliklerini söyler; fstab için UUID ararken kullanışlıdır. findmnt bağlı dosya sistemlerini ağaç olarak gösterir, --verify ile fstab'daki hataları açılıştan önce yakalar. df -hT bağlı dosya sistemlerinin doluluğunu türleriyle, df -i inode doluluğunu gösterir. stat tek bir dosyanın inode bilgisini verir. Bu araçların çoğu util-linux paketindendir ve aynı -o sütun seçme mantığını paylaşır. udisksctl ise masaüstünde root olmadan bağlama ve ayırma yapar.",
+t:[["Cihaz ağacı","lsblk -f · lsblk -o NAME,SIZE,MODEL,TRAN"],["Kimlikler","blkid · ls -l /dev/disk/by-uuid"],["Bağlamalar","findmnt · findmnt -T /dosya/yolu"],["Doluluk","df -hT · df -i"],["Tek dosya","stat · ls -li"],["Root olmadan","udisksctl mount -b /dev/sdb1"]],
+d:{k:"seq",a:["Sen","lsblk / blkid","sysfs + udev","findmnt"],s:[[0,1,"hangi diskler var?","q"],[1,2,"/sys/block, udev veritabanı","q"],[2,1,"cihazlar, UUID'ler","r"],[1,0,"ağaç","r"],[0,3,"bu dosya hangi bağlamada?","q"],[3,0,"/home, btrfs, subvol=@home","r"]]},
+cap:"Bu araçlar bilgilerini sysfs, udev ve /proc/self/mountinfo'dan okur.",
+x:["Bir dosyanın hangi diskte olduğunu bulmak",`$ findmnt -T ~/Belgeler/rapor.pdf
+TARGET SOURCE                  FSTYPE OPTIONS
+/home  /dev/nvme0n1p2[/@home]  btrfs  rw,noatime,compress=zstd:1,ssd,discard=async
+$ sudo blkid /dev/nvme0n1p2
+/dev/nvme0n1p2: UUID="7c1e8f42-…-9a2f" UUID_SUB="…" BLOCK_SIZE="4096" TYPE="btrfs" PARTUUID="…"`]},
+
+{id:"df-du",c:"arac",a:"df · du",f:"Disk usage and free space",tr:"Doluluk ölçümü",y:"neden farklı?",
+o:"Dosya sistemi düzeyindeki boş alanı (df) ve dosyaların toplam kullanımını (du) ölçen araçlar ile ikisinin neden farklı sonuç verdiği.",
+h:"df bilgiyi dosya sisteminin kendisine sorar (statfs), du ise dizin ağacını dolaşıp dosyaların bloklarını toplar. Bu ikisi sık sık uyuşmaz ve nedenleri öğreticidir. Silinmiş ama hâlâ bir süreçte açık olan bir dosya du'da görünmez ama df'te yer kaplar; lsof +L1 bunları bulur. ext4, root için varsayılan olarak alanın yüzde 5'ini ayırır; df bunu boş saymaz. Bir dizinin üzerine başka bir dosya sistemi bağlanmışsa altındaki eski dosyalar gizlenir ama yer kaplar. btrfs'te paylaşılan kapsamlar, anlık görüntüler ve sıkıştırma nedeniyle her iki araç da yanıltıcı olabilir; btrfs filesystem usage ve btrfs filesystem du daha doğru sonuç verir. Etkileşimli inceleme için ncdu ya da KDE'de Filelight kullanılabilir.",
+t:[["df","Dosya sistemine sorar (statfs)"],["du","Dosyaları tek tek toplar"],["Açık silinmiş dosya","lsof +L1 · süreci yeniden başlat"],["ext4 ayrılmış alan","%5 (tune2fs -m 1 ile azaltılabilir)"],["Gizli dosyalar","Bağlama noktasının altında kalanlar"],["btrfs","btrfs filesystem usage · btrfs filesystem du -s"]],
+d:{k:"seq",a:["df","Dosya sistemi","du","Dizin ağacı"],s:[[0,1,"statfs()","q"],[1,0,"kullanılan: 412 G","r"],[2,3,"tüm dosyaları dolaş","q"],[3,2,"toplam: 380 G","r"],[2,2,"fark: açık silinmiş dosya?","n"]]},
+cap:"df dosya sisteminin muhasebesini, du görünen dosyaların toplamını söyler.",
+x:["Kaybolan alanı bulmak",`$ df -h /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p2  931G  412G  519G  45% /
+$ sudo du -xsh /
+380G    /
+$ sudo lsof +L1 | head -3
+COMMAND   PID USER  FD  TYPE SIZE/OFF NLINK NAME
+java    18211  efe  42w  REG 32212254720  0 /tmp/heap.hprof (deleted)`]},
+
+{id:"inotify",c:"arac",a:"inotify · fanotify",f:"File system event notification",tr:"Dosya olaylarını izleme",y:"olay tabanlı",
+o:"Bir dosya ya da dizinde değişiklik olduğunda çekirdeğin programa anında haber vermesi.",
+h:"Bir dizini sürekli tarayıp değişiklik aramak yerine program inotify ile çekirdeğe abone olur: inotify_init ile bir tanımlayıcı açar, inotify_add_watch ile izlenecek dosya ya da dizini ve ilgilendiği olayları (oluşturma, değiştirme, kapatma, taşıma, silme) belirtir, sonra bu tanımlayıcıdan okunan olayları işler. Dosya yöneticileri, eşitleme araçları (Syncthing), derleme izleyicileri (cargo watch) ve IDE'ler bu yolla anında tepki verir. inotify özyinelemeli değildir; her alt dizin için ayrı izleme eklenmelidir ve izleme sayısı fs.inotify.max_user_watches ile sınırlıdır. fanotify ise tüm bir bağlama noktasını ya da dosya sistemini izleyebilir ve erişime izin verip vermemeye karar verebilir; virüs tarayıcıları ve sistem denetim araçları onu kullanır.",
+t:[["Çağrılar","inotify_init1, inotify_add_watch, read"],["Olaylar","IN_CREATE, IN_MODIFY, IN_CLOSE_WRITE, IN_MOVED_TO, IN_DELETE"],["Sınır","fs.inotify.max_user_watches"],["Komut satırı","inotifywait -m -r dizin (inotify-tools)"],["Rust","notify kütüphanesi"],["fanotify","Tüm FS izleme, erişim kararı (izin olayları)"]],
+d:{k:"seq",a:["Editör","Çekirdek","inotify fd","cargo watch"],s:[[3,1,"add_watch(src/, MODIFY)","q"],[0,1,"main.rs kaydedildi","q"],[1,2,"IN_CLOSE_WRITE main.rs","e"],[3,2,"read()","q"],[2,3,"olay","r"],[3,3,"yeniden derle","n"]]},
+cap:"Program dizini taramaz; değişiklik olduğunda çekirdek onu uyandırır.",
+x:["Bir dizini canlı izlemek",`$ inotifywait -m -r -e close_write,moved_to,delete ~/proje/src
+Setting up watches.  Beware: since -r was given, this may take a while!
+Watches established.
+/home/efe/proje/src/ CLOSE_WRITE,CLOSE main.rs
+/home/efe/proje/src/ MOVED_TO uart.rs
+$ cat /proc/sys/fs/inotify/max_user_watches
+524288`]},
+
+{id:"yedekleme",c:"arac",a:"rsync · 3-2-1",f:"Backups",tr:"Yedekleme",y:"veri güvenliği",
+o:"Dosyaları başka bir diske ya da makineye kopyalayarak disk arızasına, yanlışlıkla silmeye ve fidye yazılımına karşı korunma.",
+h:"Anlık görüntü ve RAID yedek değildir: ikisi de aynı makinede durur ve kullanıcı hatasına, yangına ya da hırsızlığa karşı korumaz. Yaygın kural 3-2-1'dir: verinin üç kopyası, iki farklı ortamda, biri başka bir yerde. rsync dosya düzeyinde çalışır, yalnızca değişen dosyaları ve büyük dosyaların değişen parçalarını aktarır; -aHAX seçenekleri izinleri, sabit bağlantıları, ACL'leri ve genişletilmiş öznitelikleri korur. restic, borg ve kopia gibi araçlar yedekleri parçalara bölüp tekilleştirir, şifreler ve tarih tarih sürüm tutar. Dosya sistemi btrfs ya da ZFS ise send/receive ile blok düzeyinde artımlı yedek de alınabilir. Hiç geri yüklemeyi denemediğin bir yedeğe güvenmemek gerekir.",
+t:[["Kural","3 kopya · 2 ortam · 1 başka yerde"],["Dosya eşitleme","rsync -aHAX --delete kaynak/ hedef/"],["Sürümlü ve şifreli","restic, borg, kopia"],["Blok düzeyi","btrfs send/receive · zfs send · btrbk"],["Masaüstü","Timeshift (sistem), Pika Backup / Déjà Dup (ev)"],["Sınama","Geri yüklemeyi düzenli dene"]],
+d:{k:"seq",a:["Dizüstü","Harici disk","VDS / bulut"],s:[[0,1,"rsync -aHAX (haftalık)","q"],[0,2,"restic backup (günlük, şifreli)","q"],[2,0,"anlık görüntü kimliği","r"],[0,0,"aylık: geri yükleme sınaması","n"]]},
+cap:"Biri yerel biri uzak iki ayrı yedek, 3-2-1 kuralını karşılar.",
+x:["rsync ve restic",`$ rsync -aHAX --delete --info=progress2 ~/ /run/media/efe/YEDEK/ev/
+$ export RESTIC_REPOSITORY=sftp:efe@vds:/yedek/dizustu
+$ restic backup ~/Belgeler ~/proje --exclude-caches
+snapshot 4b1e2c9f saved
+$ restic snapshots --compact | tail -2
+$ restic restore latest --target /tmp/geri --include /home/efe/Belgeler/rapor.pdf`]}
+];
+
+/* ============ SVG ÇİZİM ============ */
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(t,a,p,s){const e=el(t,a,p);e.textContent=s;return e}
+
+function seqSVG(d){
+  const n=d.a.length, cw=n<=2?300:n===3?205:n===4?165:140, px=82;
+  const labelMax=Math.max(...d.s.map(s=>s[2].length));
+  const W=Math.max(px*2+cw*(n-1), labelMax*6.9+40), top=58, rh=40, H=top+d.s.length*rh+14;
+  const off=(W-(px*2+cw*(n-1)))/2;
+  const X=i=>off+px+i*cw;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.72)}px`,"aria-label":"Akış şeması: "+d.a.join(", ")});
+  d.a.forEach((name,i)=>{
+    el("line",{x1:X(i),y1:36,x2:X(i),y2:H-4,class:"life"},svg);
+    const w=Math.max(96,name.length*7.4+20);
+    el("rect",{x:X(i)-w/2,y:6,width:w,height:30,rx:6,class:"actor"},svg);
+    txt("text",{x:X(i),y:25.5,class:"actor-t","text-anchor":"middle"},svg,name);
+  });
+  const segs=d.s.map((s,i)=>{
+    const [f,t,label,k]=s, kind=k==="n"?"n":(k||"q"), y=top+i*rh+16;
+    const g=el("g",{class:"step k-"+kind},svg);
+    if(f===t){
+      const w=Math.max(104,label.length*6.8+18);
+      el("rect",{x:X(f)-w/2,y:y-13,width:w,height:24,rx:5,class:"note"},g);
+      txt("text",{x:X(f),y:y+3.5,"text-anchor":"middle",class:"lbl"},g,label);
+      return {g,x1:X(f)-w/2-9,y1:y-1,x2:X(f)-w/2-9,y2:y-1,note:true};
+    }
+    const x1=X(f),x2=X(t),dir=x2>x1?1:-1;
+    el("line",{x1:x1+dir*3,y1:y+6,x2:x2-dir*3,y2:y+6,class:"arrow","marker-end":`url(#m-${kind})`},g);
+    txt("text",{x:(x1+x2)/2,y:y-1,"text-anchor":"middle",class:"lbl"},g,label);
+    return {g,x1,y1:y+6,x2,y2:y+6};
+  });
+  const dot=el("circle",{r:5.5,class:"pkt",cx:segs[0].x1,cy:segs[0].y1},svg);
+  return {svg,segs,dot};
+}
+
+function stackSVG(d,wide){
+  const items=d.l.map(s=>s.split("|"));
+  const longest=Math.max(...items.map(i=>i[0].length*7.2+(i[1]?i[1].length*6.3:0)));
+  const W=Math.max(wide?520:440,Math.round(longest+90)), bw=W-40, bh=40, gap=14, top=12;
+  const H=top+items.length*(bh+gap)-gap+12;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.7)}px`,"aria-label":"Katman şeması: "+items.map(i=>i[0]).join(" → ")});
+  const cx=W/2;
+  const pts=items.map((it,i)=>{
+    const y=top+i*(bh+gap), g=el("g",{class:"step"},svg);
+    el("rect",{x:20,y,width:bw,height:bh,rx:7,class:"layer"},g);
+    txt("text",{x:36,y:y+25,class:"layer-t"},g,it[0]);
+    if(it[1]) txt("text",{x:W-36,y:y+25,class:"layer-c","text-anchor":"end"},g,it[1]);
+    if(i<items.length-1) el("line",{x1:cx,y1:y+bh+2,x2:cx,y2:y+bh+gap-2,class:"arrow",stroke:"var(--muted)","stroke-width":1.4},svg);
+    return {g,y:y+bh/2};
+  });
+  const segs=[];
+  for(let i=0;i<pts.length;i++){segs.push({g:pts[i].g,x1:cx,y1:i?pts[i-1].y:pts[0].y,x2:cx,y2:pts[i].y});}
+  for(let i=pts.length-2;i>=0;i--){segs.push({g:pts[i].g,x1:cx,y1:pts[i+1].y,x2:cx,y2:pts[i].y});}
+  const dot=el("circle",{r:6,class:"pkt",cx,cy:pts[0].y},svg);
+  return {svg,segs,dot};
+}
+
+/* boru hattı çizelgesi: satırlar komut, sütunlar saat çevrimi */
+function pipeSVG(d){
+  const ST=d.st||["IF","ID","EX","MEM","WB"];
+  const rows=d.r.map(r=>({label:r[0],start:r[1],seq:r[2]||ST}));
+  const ncol=Math.max(...rows.map(r=>r.start+r.seq.length));
+  const lw=Math.max(...rows.map(r=>r.label.length))*6.9+20, cw=46, rh=32, top=34;
+  const W=Math.round(lw+ncol*cw+12), H=top+rows.length*rh+10;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.75)}px`,"aria-label":"Boru hattı çizelgesi: "+rows.map(r=>r.label).join(", ")});
+  const X=c=>lw+c*cw;
+  const cols=[];
+  for(let c=0;c<ncol;c++){
+    txt("text",{x:X(c)+cw/2,y:14,class:"cyc","text-anchor":"middle"},svg,String(c+1));
+    cols.push(el("g",{class:"step"},svg));
+  }
+  el("line",{x1:lw-6,y1:top-8,x2:W-6,y2:top-8,class:"grid-l"},svg);
+  rows.forEach((r,i)=>{
+    const y=top+i*rh;
+    txt("text",{x:8,y:y+rh/2+2,class:"rowl"},svg,r.label);
+    r.seq.forEach((s,k)=>{
+      const c=r.start+k, g=cols[c], bub=s==="·";
+      el("rect",{x:X(c)+3,y:y+3,width:cw-6,height:rh-8,rx:4,class:bub?"bub":"cell"},g);
+      txt("text",{x:X(c)+cw/2,y:y+rh/2+1,"text-anchor":"middle",class:bub?"bub-t":"cell-t"},g,bub?"dur":s);
+    });
+  });
+  const cy=22;
+  const segs=cols.map((g,c)=>({g,x1:X(Math.max(0,c-1))+cw/2,y1:cy,x2:X(c)+cw/2,y2:cy}));
+  const dot=el("circle",{r:5,class:"pkt",cx:segs[0].x1,cy},svg);
+  return {svg,segs,dot};
+}
+
+/* ============ ANİMASYON ============ */
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const live=new Set();
+function animate(diag){
+  if(reduce) return;
+  diag.i=0;diag.t0=performance.now();
+  live.add(diag);
+}
+function frame(now){
+  live.forEach(d=>{
+    if(!d.visible) return;
+    const DUR=d.pipe?750:(d.stack?650:1050);
+    const elapsed=now-d.t0;
+    if(d.i>=d.segs.length){ if(elapsed>1300){d.i=0;d.t0=now;} return;}
+    const s=d.segs[d.i];
+    if(!d.root.classList.contains("playing")) d.root.classList.add("playing");
+    d.segs.forEach((x,j)=>x.g.classList.toggle("on",j===d.i));
+    const p=Math.min(1,elapsed/DUR), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    d.dot.setAttribute("cx",s.x1+(s.x2-s.x1)*e);
+    d.dot.setAttribute("cy",s.y1+(s.y2-s.y1)*e);
+    d.dot.setAttribute("r",s.note?5.5+2*Math.sin(p*Math.PI):(d.stack?6:5.5));
+    if(p>=1){d.i++;d.t0=now; if(d.i>=d.segs.length){d.segs.forEach(x=>x.g.classList.remove("on"));d.root.classList.remove("playing");}}
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{const d=e.target.__diag;if(d)d.visible=e.isIntersecting}),{rootMargin:"60px"}):null;
+
+function mount(box,spec,wide){
+  const r=spec.k==="stack"?stackSVG(spec,wide):spec.k==="pipe"?pipeSVG(spec):seqSVG(spec);
+  box.appendChild(r.svg);
+  const d={root:r.svg,segs:r.segs,dot:r.dot,stack:spec.k==="stack",pipe:spec.k==="pipe",visible:!io};
+  box.__diag=d; if(io) io.observe(box);
+  animate(d);
+}
+
+/* ============ SAYFA ============ */
+const content=document.getElementById("content"), nav=document.getElementById("nav"), idx=document.getElementById("index");
+CATS.forEach(c=>{
+  const items=T.filter(t=>t.c===c.id);
+  const sec=document.createElement("section");sec.className="cat";sec.id=c.id;
+  const head=document.createElement("div");head.className="cat-head";
+  const h2=document.createElement("h2");h2.textContent=c.n;
+  const num=document.createElement("span");num.className="num";num.textContent=items.length+" kavram";
+  head.append(h2,num);
+  const intro=document.createElement("p");intro.className="cat-intro";intro.textContent=c.i;
+  sec.append(head,intro);
+  items.forEach(t=>{
+    const art=document.createElement("article");art.className="term";art.id=t.id;
+    art.dataset.s=(t.a+" "+t.f+" "+t.tr+" "+t.o+" "+t.h+" "+t.t.map(x=>x.join(" ")).join(" ")).toLocaleLowerCase("tr");
+    const hd=document.createElement("header");
+    hd.innerHTML=`<span class="abbr"></span><h3></h3><span class="meta"></span><p class="tr"></p>`;
+    hd.querySelector(".abbr").textContent=t.a;hd.querySelector("h3").textContent=t.f;hd.querySelector(".meta").textContent=t.y;hd.querySelector(".tr").textContent=t.tr;
+    art.appendChild(hd);
+    const one=document.createElement("p");one.className="one";one.textContent=t.o;art.appendChild(one);
+    const body=document.createElement("div");body.className="body";
+    const left=document.createElement("div");
+    const h4a=document.createElement("h4");h4a.textContent="Nasıl çalışır";left.appendChild(h4a);
+    const p=document.createElement("p");p.textContent=t.h;left.appendChild(p);
+    const h4b=document.createElement("h4");h4b.textContent="Teknik ayrıntılar";left.appendChild(h4b);
+    const dl=document.createElement("dl");dl.className="tech";
+    t.t.forEach(([k,v])=>{const dt=document.createElement("dt");dt.textContent=k;const dd=document.createElement("dd");dd.textContent=v;dl.append(dt,dd)});
+    left.appendChild(dl);
+    const fig=document.createElement("figure");
+    const box=document.createElement("div");box.className="diag-box";fig.appendChild(box);
+    const fc=document.createElement("figcaption");fc.textContent=t.cap;fig.appendChild(fc);
+    body.append(left,fig);art.appendChild(body);
+    if(t.x){const pre=document.createElement("pre");pre.className="code";const cl=document.createElement("span");cl.className="cl";cl.textContent=t.x[0];pre.appendChild(cl);pre.appendChild(document.createTextNode(t.x[1]));art.appendChild(pre);}
+    sec.appendChild(art);
+    mount(box,t.d,false);
+    const a=document.createElement("a");a.href="#"+t.id;a.textContent=t.a;idx.appendChild(a);
+  });
+  content.appendChild(sec);
+  const na=document.createElement("a");na.href="#"+c.id;na.textContent=c.n;
+  const sp=document.createElement("span");sp.textContent=items.length;na.appendChild(sp);nav.appendChild(na);
+});
+[["karsilastirma","Dosya sistemi karşılaştırması"],["secenekler","Bağlama seçenekleri"]].forEach(([id,n])=>{
+  const na=document.createElement("a");na.href="#"+id;na.textContent=n;
+  const sp=document.createElement("span");sp.textContent="tablo";na.appendChild(sp);nav.appendChild(na);
+});
+
+mount(document.getElementById("hero-diag"),{k:"stack",l:[
+ "Uygulama|write(fd, buf, n)","VFS|file → inode → işlev tablosu","Sayfa önbelleği|kirli sayfa, geri yazma","Dosya sistemi|ext4 · btrfs · XFS","Aygıt eşleyici|LUKS · LVM (isteğe bağlı)","Blok katmanı|birleştir, kuyruğa al","Sürücü ve disk|NVMe · SATA · USB"]},true);
+
+/* arama */
+const q=document.getElementById("q"), empty=document.getElementById("empty");
+q.addEventListener("input",()=>{
+  const v=q.value.trim().toLocaleLowerCase("tr");let any=false;
+  document.querySelectorAll("#content section.cat").forEach(sec=>{
+    let n=0;sec.querySelectorAll(".term").forEach(a=>{const ok=!v||a.dataset.s.includes(v);a.hidden=!ok;if(ok)n++});
+    sec.hidden=n===0;if(n)any=true;
+  });
+  document.querySelectorAll("#karsilastirma,#secenekler").forEach(s=>s.hidden=!!v);
+  empty.style.display=any?"none":"block";
+});
+</script>
+
+</body></html>
