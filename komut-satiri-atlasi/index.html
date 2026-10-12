@@ -1,0 +1,1765 @@
+<!doctype html><html lang="tr"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Komut Satırı Atlası</title>
+<meta name="description" content="Kabuğun bir satırı nasıl yorumladığından boru hatlarına: genişletmeler, yönlendirme, dosya ve metin araçları, süreçler, ağ komutları, ssh ve güvenli kabuk betiklerini canlı şemalarla anlatan Türkçe rehber.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Komut Satırı Atlası · düzen: veri sayfası + mantık analizörü — solda kategori rayı, sağda kavram kartları; her kartta metin | canlı şema (akış, katman yığını ya da boru hattı çizelgesi) */
+:root{
+  --bg:#eef1f3; --panel:#fbfcfc; --ink:#14202a; --muted:#56636e; --line:#cfd6dc;
+  --accent:#1d55c9; --resp:#14866d; --event:#c47a06; --note:#e4e9ef; --soft:#e3e9f2;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1218; --panel:#121a22; --ink:#dbe3ea; --muted:#8d9aa6; --line:#26323d;
+  --accent:#6f9cff; --resp:#3fc79f; --event:#f0ae3c; --note:#1b2631; --soft:#17212c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;margin:0}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.9em}
+.rail,main{min-width:0}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px;padding-block:0 80px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr);gap:0;padding-inline:16px}}
+
+/* ray */
+.rail{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-block:28px;max-height:100vh;overflow:auto}
+.brand{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01em;line-height:1.1}
+.brand small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
+.search{margin-top:18px;width:100%;font:inherit;font-size:14px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.search:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.rail nav{margin-top:18px;display:flex;flex-direction:column;gap:2px}
+.rail nav a{display:flex;justify-content:space-between;gap:8px;text-decoration:none;color:var(--ink);font-size:14px;padding:6px 10px;border-radius:6px}
+.rail nav a:hover,.rail nav a:focus-visible{background:var(--soft);outline:none}
+.rail nav a span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend{margin-top:22px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:8px}
+.legend b{display:inline-block;width:22px;height:12px;border-radius:3px;vertical-align:middle;margin-right:8px;border:1px solid var(--accent);background:var(--soft)}
+.legend b.bub{border:1px dashed var(--event);background:var(--note)}
+@media (max-width:900px){
+  .rail{position:sticky;max-height:none;padding-block:12px;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+  .brand small,.legend{display:none}
+  .rail nav{flex-direction:row;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+  .rail nav a{white-space:nowrap;background:var(--panel);border:1px solid var(--line)}
+  .search{margin-top:10px}
+}
+
+/* hero */
+.hero{padding-block:40px 24px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(34px,5.4vw,60px);line-height:1.02;letter-spacing:-.025em;margin:10px 0 16px;text-wrap:balance;max-width:16ch}
+.hero p.lead{font-size:18px;max-width:62ch;color:var(--muted);margin:0}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:center;margin-top:26px}
+@media (max-width:1050px){.hero-grid{grid-template-columns:minmax(0,1fr)}}
+.hero-notes{display:flex;flex-direction:column;gap:14px;font-size:15px}
+.hero-notes div{padding-left:14px;border-left:2px solid var(--line)}
+.hero-notes b{font-family:var(--mono);font-weight:600}
+
+.index{display:flex;flex-wrap:wrap;gap:6px;margin-top:26px}
+.index a{font-family:var(--mono);font-size:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:var(--panel);padding:3px 8px;border-radius:5px}
+.index a:hover,.index a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+
+/* bölümler */
+section.cat{padding-top:48px}
+.cat-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px;margin-bottom:6px}
+.cat-head h2{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.4vw,36px);letter-spacing:-.02em;margin:0;line-height:1.1;text-wrap:balance}
+.cat-head .num{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.cat-intro{color:var(--muted);max-width:68ch;margin:0 0 22px}
+
+.term{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px;scroll-margin-top:90px}
+@media (max-width:600px){.term{padding:18px 16px}}
+.term header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+.abbr{font-family:var(--mono);font-weight:600;font-size:26px;color:var(--accent);letter-spacing:-.01em}
+.term h3{font-family:var(--display);font-weight:700;font-size:21px;margin:0;line-height:1.2}
+.term .tr{font-size:14px;color:var(--muted);margin:0;flex-basis:100%}
+.term .meta{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 7px;margin-left:auto}
+.one{font-size:17px;font-weight:500;margin:12px 0 0;max-width:70ch}
+.body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;margin-top:16px}
+@media (max-width:1150px){.body{grid-template-columns:minmax(0,1fr)}}
+.body h4{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.body p{margin:0 0 16px;max-width:66ch}
+dl.tech{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:4px 14px;margin:0;font-size:14px}
+dl.tech dt{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:2px}
+dl.tech dd{margin:0}
+@media (max-width:500px){dl.tech{grid-template-columns:minmax(0,1fr)}dl.tech dd{margin-bottom:6px}}
+figure{margin:0;min-width:0}
+.diag-box{overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+pre.code{margin:16px 0 0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.55}
+pre.code .cl{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+
+/* svg diyagram */
+svg.diag{display:block;font-family:var(--mono);width:100%;height:auto;margin:0 auto}
+.actor{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.actor-t{fill:var(--ink);font-size:11.5px;font-weight:600}
+.life{stroke:var(--line);stroke-width:1.2;stroke-dasharray:3 4}
+.arrow{stroke-width:1.6;fill:none}
+.k-q .arrow{stroke:var(--accent)} .k-r .arrow{stroke:var(--resp);stroke-dasharray:5 3} .k-e .arrow{stroke:var(--event)}
+.lbl{fill:var(--ink);font-size:11px}
+.note{fill:var(--note);stroke:var(--line)}
+.step{transition:opacity .25s}
+.playing .step{opacity:.45} .playing .step.on{opacity:1}
+.step.on .lbl{font-weight:600}
+.pkt{fill:var(--event);stroke:var(--panel);stroke-width:2}
+.mq{fill:var(--accent)} .mr{fill:var(--resp)} .me{fill:var(--event)}
+.layer{fill:var(--panel);stroke:var(--ink);stroke-width:1.1}
+.layer-t{fill:var(--ink);font-size:12px;font-weight:600}
+.layer-c{fill:var(--muted);font-size:10.5px}
+.step.on .layer{fill:var(--soft);stroke:var(--accent);stroke-width:2}
+/* boru hattı çizelgesi */
+.cyc{fill:var(--muted);font-size:10.5px}
+.rowl{fill:var(--ink);font-size:11px}
+.cell{fill:var(--panel);stroke:var(--line);stroke-width:1}
+.cell-t{fill:var(--ink);font-size:10.5px;font-weight:600}
+.bub{fill:var(--note);stroke:var(--event);stroke-width:1.1;stroke-dasharray:3 2}
+.bub-t{fill:var(--event);font-size:10.5px;font-weight:600}
+.step.on .cell{fill:var(--soft);stroke:var(--accent);stroke-width:1.8}
+.step.on .bub{stroke-width:1.8}
+.grid-l{stroke:var(--line);stroke-width:1}
+
+/* karşılaştırma */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:760px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td:first-child{font-family:var(--mono);font-weight:600;color:var(--accent)}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.tbl-note{font-size:13px;color:var(--muted);margin:10px 0 0;max-width:72ch}
+.empty{display:none;padding:40px 0;color:var(--muted)}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.pkt{display:none}.step{transition:none}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="m-q" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mq" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mr" d="M0 0L10 5L0 10z"/></marker>
+    <marker id="m-e" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="me" d="M0 0L10 5L0 10z"/></marker>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <aside class="rail">
+    <div class="brand">Komut Satırı Atlası<small>kabuk · borular · metin · betik</small></div>
+    <input id="q" class="search" type="search" placeholder="Ara: grep, 2>&amp;1, rsync…" aria-label="Komut ya da kavram ara">
+    <nav id="nav" aria-label="Kategoriler"></nav>
+    <div class="legend" aria-label="Şema renkleri">
+      <span><i style="border-color:var(--accent)"></i>istek / çağrı / girdi</span>
+      <span><i style="border-color:var(--resp);border-top-style:dashed"></i>yanıt / çıktı</span>
+      <span><i style="border-color:var(--event)"></i>sinyal / hata / uyarı</span>
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Enter tuşu ile program arasındaki her şey</div>
+      <h1>Bir komut satırı aslında ne yapar?</h1>
+      <p class="lead">Terminale yazdığın bir satır hemen çalışmaz. Kabuk onu önce sözcüklere böler, değişkenleri ve joker karakterleri açar, girdisini ve çıktısını dosyalara ya da başka programlara bağlar, sonra yeni bir süreç olarak başlatır ve sonucunu bekler. Bu atlas bu dönüşümü, her gün kullanılan araçları ve onları birleştirip betik haline getirmenin yollarını anlatır. Örnekler bash ve POSIX sh üzerinden verilir; fish'te farklı olan yerler ayrıca belirtilir.</p>
+      <div class="hero-grid">
+        <figure>
+          <div class="diag-box" id="hero-diag"></div>
+          <figcaption>Enter'a bastığında bir satırın geçtiği aşamalar. Turuncu nokta satırın o anda hangi aşamada olduğunu gösterir.</figcaption>
+        </figure>
+        <div class="hero-notes">
+          <div>Program yıldızları, tırnakları ve <b>$DEĞİŞKEN</b>leri hiç görmez. Onları kabuk açar ve programa yalnızca sonuçta oluşan argüman listesini verir.</div>
+          <div>Her harici komut <b>fork + exec</b> ile başlayan yeni bir süreçtir. cd ve export bu yüzden kabuğun içinde, yerleşik olarak çalışmak zorundadır.</div>
+          <div>Küçük araçlar <b>|</b> ile birbirine bağlanır: her biri tek bir iş yapar, metin okur ve metin yazar. Komut satırının gücünün çoğu bu birleşimden gelir.</div>
+          <div><b>0 başarı</b>, gerisi hata demektir. &amp;&amp;, ||, if ve set -e kararlarını hep son komutun çıkış koduna bakarak verir.</div>
+        </div>
+      </div>
+      <div class="index" id="index" aria-label="Hızlı dizin"></div>
+    </header>
+
+    <div id="content"></div>
+    <p class="empty" id="empty">Bu aramaya uyan kavram yok. Komut adı, İngilizce ad ya da Türkçe karşılık deneyebilirsin.</p>
+
+    <section class="cat" id="kabuklar">
+      <div class="cat-head"><h2>Yan yana: kabuklar</h2><span class="num">özet tablo</span></div>
+      <p class="cat-intro">Etkileşimli kabuğunu zevkine göre seçebilirsin; betiklerin ise başka makinelerde de çalışabilmesi için genellikle bash ya da POSIX sh ile yazılır.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Kabuk</th><th>POSIX uyumu</th><th>Güçlü yanı</th><th>Zayıf yanı</th><th>Yapılandırma</th><th>Nerede varsayılan</th><th>Uygun olduğu iş</th></tr></thead>
+        <tbody>
+          <tr><td>bash</td><td>Evet, üstüne eklerle</td><td>Her yerde kurulu; betiklerin fiili standardı</td><td>Varsayılan etkileşimli deneyimi sade</td><td><code>~/.bashrc</code></td><td>Çoğu Linux dağıtımı, Arch</td><td>Betikler, sunucular</td></tr>
+          <tr><td>zsh</td><td>Büyük ölçüde</td><td>Güçlü tamamlama ve glob'lar, geniş eklenti ekosistemi</td><td>İyi bir kurulum için ayar gerekir</td><td><code>~/.zshrc</code></td><td>macOS, Kali</td><td>Gelişmiş etkileşimli kullanım</td></tr>
+          <tr><td>fish</td><td>Hayır</td><td>Kurulur kurulmaz öneri, renklendirme ve tamamlama</td><td>bash betikleri source edilemez; heredoc yok</td><td><code>~/.config/fish/</code></td><td>CachyOS</td><td>Günlük etkileşimli kullanım</td></tr>
+          <tr><td>dash</td><td>Evet, yalnızca POSIX</td><td>Çok küçük ve hızlı</td><td>Etkileşimli özellikleri çok az</td><td>—</td><td>Debian ve Ubuntu'da <code>/bin/sh</code></td><td>Sistem betikleri</td></tr>
+          <tr><td>busybox ash</td><td>Evet</td><td>Tek ikili dosyada yüzlerce araç</td><td>Sınırlı özellik seti</td><td>—</td><td>Alpine, initramfs, gömülü cihazlar</td><td>Konteynerler, gömülü sistemler</td></tr>
+          <tr><td>nushell</td><td>Hayır</td><td>Çıktıyı metin değil tablo olarak işler</td><td>Klasik araçlarla dönüşüm gerekir; dil hâlâ değişiyor</td><td><code>~/.config/nushell/</code></td><td>—</td><td>Yapılandırılmış veriyi keşfetmek</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tbl-note">Şu an hangi kabukta olduğunu <code>ps -p $$ -o comm=</code>, oturum açınca hangisinin başladığını <code>getent passwd $USER | cut -d: -f7</code> gösterir. Varsayılanı <code>chsh -s /usr/bin/fish</code> ile değiştirirsin.</p>
+    </section>
+
+    <section class="cat" id="modern">
+      <div class="cat-head"><h2>Yan yana: klasik araçlar ve modern alternatifleri</h2><span class="num">isteğe bağlı</span></div>
+      <p class="cat-intro">Son yıllarda çoğu Rust ile yazılmış, varsayılanları etkileşimli kullanıma göre seçilmiş yeni araçlar çıktı. Klasiklerin yerini almazlar ama günlük işi hızlandırırlar.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Klasik</th><th>Modern</th><th>Ne kazandırır</th><th>Arch paketi</th></tr></thead>
+        <tbody>
+          <tr><td>ls</td><td><code>eza</code></td><td>Renkler, git durumu, ağaç görünümü, simgeler</td><td><code>eza</code></td></tr>
+          <tr><td>cat</td><td><code>bat</code></td><td>Sözdizimi renklendirme, satır numarası, git farkı, otomatik sayfalama</td><td><code>bat</code></td></tr>
+          <tr><td>find</td><td><code>fd</code></td><td>Kısa sözdizimi, .gitignore'a uyma, paralel tarama</td><td><code>fd</code></td></tr>
+          <tr><td>grep -r</td><td><code>rg</code></td><td>Varsayılan olarak özyinelemeli, .gitignore'a uyar, çok hızlı</td><td><code>ripgrep</code></td></tr>
+          <tr><td>sed s///</td><td><code>sd</code></td><td>Tanıdık regex sözdizimi, kaçış derdi yok</td><td><code>sd</code></td></tr>
+          <tr><td>du</td><td><code>dust</code> · <code>ncdu</code></td><td>Görsel boyut ağacı · etkileşimli gezinip silme</td><td><code>dust</code> · <code>ncdu</code></td></tr>
+          <tr><td>top</td><td><code>btop</code></td><td>CPU, bellek, ağ ve disk grafikleri; fare desteği</td><td><code>btop</code></td></tr>
+          <tr><td>ps</td><td><code>procs</code></td><td>Renkli çıktı, arama, ağaç görünümü, port bilgisi</td><td><code>procs</code></td></tr>
+          <tr><td>cd</td><td><code>zoxide</code></td><td>Sık gidilen dizinlere kısa adla atlama</td><td><code>zoxide</code></td></tr>
+          <tr><td>man</td><td><code>tldr</code></td><td>En yaygın kullanımların örnek odaklı özeti</td><td><code>tealdeer</code></td></tr>
+          <tr><td>diff</td><td><code>delta</code></td><td>Sözdizimi renkli, yan yana ve sözcük düzeyinde fark</td><td><code>git-delta</code></td></tr>
+          <tr><td>Ctrl-R</td><td><code>fzf</code> · <code>atuin</code></td><td>Bulanık geçmiş araması · geçmişi cihazlar arasında eşitleme</td><td><code>fzf</code> · <code>atuin</code></td></tr>
+        </tbody>
+      </table></div>
+      <p class="tbl-note">Modern araçlar her makinede kurulu değildir. Başka sistemlerde de çalışması gereken betiklerde klasikleri kullan. <code>alias ls=eza</code> gibi takma adlar betikleri etkilemez, çünkü betiklerde takma adlar açılmaz.</p>
+    </section>
+
+    <section class="cat" id="kisayollar">
+      <div class="cat-head"><h2>Yan yana: klavye kısayolları</h2><span class="num">bash · zsh · fish</span></div>
+      <p class="cat-intro">Üç kabukta da çoğunlukla aynı olan, Emacs kökenli satır düzenleme kısayolları ve terminalin özel tuşları.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Kısayol</th><th>Ne yapar</th><th>Not</th></tr></thead>
+        <tbody>
+          <tr><td>Ctrl-A · Ctrl-E</td><td>Satırın başına · sonuna git</td><td>Home ve End de çalışır</td></tr>
+          <tr><td>Alt-B · Alt-F</td><td>Bir sözcük geri · ileri</td><td>Çoğu terminalde Ctrl-← ve Ctrl-→ aynı işi yapar</td></tr>
+          <tr><td>Ctrl-W</td><td>İmlecin solundaki sözcüğü sil</td><td>fish'te / işaretinde durur (yol bileşeni)</td></tr>
+          <tr><td>Ctrl-U · Ctrl-K</td><td>İmlecin solundakileri · sağındakileri sil</td><td>Silinen metin Ctrl-Y ile geri gelir</td></tr>
+          <tr><td>Ctrl-Y</td><td>Son sileni yapıştır</td><td>Sistem panosu değil, kabuğun kendi arabelleği</td></tr>
+          <tr><td>Ctrl-R</td><td>Geçmişte geriye doğru ara</td><td>fzf entegrasyonu açıksa bulanık arama</td></tr>
+          <tr><td>Alt-.</td><td>Önceki komutun son argümanını ekle</td><td>Tekrar basınca daha eski komutlara gider</td></tr>
+          <tr><td>Tab</td><td>Tamamla</td><td>Birden çok seçenek varsa iki kez basınca listeler</td></tr>
+          <tr><td>Ctrl-X Ctrl-E</td><td>Satırı <code>$EDITOR</code> içinde düzenle</td><td>bash ve zsh; fish'te Alt-E</td></tr>
+          <tr><td>→ · Ctrl-F</td><td>fish: gri öneriyi kabul et</td><td>Alt-→ yalnızca bir sözcüğünü alır</td></tr>
+          <tr><td>Ctrl-L</td><td>Ekranı temizle</td><td>Yazmakta olduğun satır korunur</td></tr>
+          <tr><td>Ctrl-C</td><td>Ön plandaki işe SIGINT gönder</td><td>Yarım yazılmış satırı da iptal eder</td></tr>
+          <tr><td>Ctrl-Z</td><td>Ön plandaki işi durdur</td><td><code>fg</code> ya da <code>bg</code> ile devam ettir</td></tr>
+          <tr><td>Ctrl-D</td><td>Boş satırda oturumu kapat (EOF)</td><td>Satır doluysa imleçteki karakteri siler</td></tr>
+          <tr><td>Ctrl-S · Ctrl-Q</td><td>Terminal çıktısını dondur · çöz</td><td>Terminal "donmuş" görünüyorsa önce Ctrl-Q'yu dene</td></tr>
+        </tbody>
+      </table></div>
+      <p class="tbl-note">bash'te bütün bağlamaları <code>bind -P</code>, fish'te <code>bind</code> listeler. Vi tarzı düzenleme isteyenler bash'te <code>set -o vi</code>, fish'te <code>fish_vi_key_bindings</code> kullanabilir.</p>
+    </section>
+
+    <footer>Kaynak olarak GNU Bash Başvuru Kılavuzu, POSIX Shell Command Language (IEEE Std 1003.1), GNU coreutils, findutils, diffutils, grep, sed ve gawk kılavuzları, util-linux, procps-ng, iproute2, OpenSSH ve shadow-utils kılavuz sayfaları, fish ve zsh belgeleri, ripgrep, fd, jq, fzf, tmux, curl ve ShellCheck belgeleri ile ArchWiki'nin ilgili sayfaları temel alınmıştır. Sürümler ve varsayılan değerler dağıtıma göre değişebilir; örnek çıktılar temsilîdir.</footer>
+  </main>
+</div>
+
+<script>
+/* ============ VERİ ============ */
+const CATS=[
+ {id:"temel",n:"Kabuk temelleri",i:"Terminal penceresi, onun arkasındaki sözde terminal ve komutları yorumlayan kabuk ayrı programlardır. Bir komutun nasıl bulunup çalıştırıldığını ve sonucunu nasıl bildirdiğini bilmek, geri kalan her şeyin temelidir."},
+ {id:"genisletme",n:"Kabuğun genişletmeleri",i:"Enter'a bastığında program hemen çalışmaz. Kabuk önce satırı sözcüklere ayırır; değişkenleri, joker karakterleri ve komut ikamelerini açar. Program yalnızca bu dönüşümün sonucunu görür."},
+ {id:"yonlendirme",n:"Akışlar, yönlendirme ve borular",i:"Her sürecin üç standart akışı vardır. Kabuk bunları dosyalara, başka süreçlere ya da hiçliğe bağlayarak küçük araçları büyük işlere dönüştürür."},
+ {id:"dosya",n:"Dosya ve dizin işlemleri",i:"Gezinmek, listelemek, kopyalamak, taşımak, silmek, aramak, arşivlemek ve eşitlemek için günlük olarak kullanılan komutlar."},
+ {id:"metin",n:"Metin işleme",i:"Unix araçlarının çoğu satır satır metin okur ve metin yazar. Bu yüzden günlükler, yapılandırma dosyaları ve komut çıktıları aynı araçlarla süzülür, dönüştürülür ve özetlenir."},
+ {id:"surec",n:"Süreçler ve iş kontrolü",i:"Çalışan programları görmek, önceliklerini ayarlamak, onlara sinyal göndermek ve terminalde birden fazla işi aynı anda yönetmek."},
+ {id:"kullanici",n:"Kullanıcılar ve yetki",i:"Komutları başka bir kullanıcı olarak çalıştırmak, dosyaların sahibini ve izinlerini değiştirmek, kullanıcı ve grupları yönetmek."},
+ {id:"sistem",n:"Sistem bilgisi",i:"Çalışan çekirdeği, belleği, donanımı ve sistem günlüklerini komut satırından okumak."},
+ {id:"ag",n:"Ağ komutları",i:"Adresleri ve yönlendirmeleri görmek, açık portları listelemek, erişilebilirliği sınamak, HTTP istekleri atmak, DNS sorgulamak ve uzak sunuculara bağlanmak."},
+ {id:"betik",n:"Kabuk betikleri",i:"Sık yaptığın işleri bir dosyaya yazıp tekrar kullanılabilir hale getirmek: parametreler, koşullar, döngüler, fonksiyonlar, diziler ve güvenli betik alışkanlıkları."},
+ {id:"ortam",n:"Ortam ve verimlilik",i:"Kabuğu kendine göre ayarlamak: ortam değişkenleri, başlangıç dosyaları, takma adlar, istem satırı, oturumları kalıcı kılan tmux ve bulanık arama."}
+];
+
+const T=[
+/* ---------- TEMEL ---------- */
+{id:"terminal-kabuk",c:"temel",a:"tty · pty",f:"Terminal, console and shell",tr:"Terminal, konsol ve kabuk",y:"üç ayrı parça",
+o:"Ekrandaki pencere (terminal öykünücüsü), çekirdekteki sözde terminal (pty) ve komutları yorumlayan kabuk birbirinden ayrı programlardır.",
+h:"Konsole ya da Alacritty gibi bir terminal öykünücüsü yalnızca tuş vuruşlarını alıp ekrana karakter çizer; komut çalıştırmayı bilmez. Açıldığında çekirdekten bir sözde terminal çifti (pty) ister ve kabuğu bu pty'nin öbür ucuna bağlar. Kabuk (bash, zsh, fish) satırı okur, yorumlar ve programları çalıştırır. Aradaki pty'nin satır disiplini; satır düzenlemeyi, yankıyı ve Ctrl-C ile Ctrl-Z gibi özel tuşları sinyale çevirmeyi üstlenir. Grafik oturum olmadan Ctrl-Alt-F2..F6 ile açılan sanal konsollar ise /dev/tty2 gibi gerçek terminal cihazlarıdır. Hangi terminalde olduğunu tty komutu söyler.",
+t:[["Terminal öykünücüsü","Konsole, Alacritty, kitty, foot, WezTerm"],["Sözde terminal","/dev/pts/N (her pencere ya da sekme için bir tane)"],["Sanal konsol","/dev/tty1–tty6, Ctrl-Alt-F1..F6"],["Satır disiplini","Ctrl-C → SIGINT, Ctrl-Z → SIGTSTP, Ctrl-\\ → SIGQUIT"],["Görmek için","tty · echo $TERM · ps -o tty= -p $$"]],
+d:{k:"seq",a:["Konsole","pty (çekirdek)","Kabuk (fish)","ls"],s:[[0,1,"tuşlar: l s ⏎","q"],[1,2,"\"ls\\n\" satırı","q"],[2,3,"fork + exec","q"],[3,1,"çıktı baytları","r"],[1,0,"ekrana çiz","r"],[0,1,"Ctrl-C","e"],[1,3,"SIGINT","e"]]},
+cap:"Terminal yalnızca girdi ve çıktıyı taşır; komutu kabuk çalıştırır, Ctrl-C'yi sinyale pty çevirir.",
+x:["Nerede olduğunu öğren",`$ tty
+/dev/pts/2
+$ echo $TERM
+xterm-256color
+$ ps -o pid,tty,comm -p $$      # $$ = bu kabuğun PID'i
+    PID TT       COMMAND
+   4120 pts/2    fish`]},
+
+{id:"komut-anatomi",c:"temel",a:"komut -s --uzun arg",f:"Anatomy of a command line",tr:"Bir komut satırının parçaları",y:"sözdizimi",
+o:"Bir komut satırı; komut adından, davranışı değiştiren seçeneklerden ve üzerinde çalışılacak argümanlardan oluşur.",
+h:"İlk sözcük çalıştırılacak komuttur, gerisi ona argüman olarak verilir. Geleneksel olarak tek tireli seçenekler tek harftir ve birleştirilebilir: ls -l -a -h ile ls -lah aynıdır. İki tireli uzun seçenekler (--all, --human-readable) okunaklıdır ve betiklerde tercih edilir. Değer alan seçenekler değeri boşlukla ya da eşittirle alır: -n 5 veya --lines=5. Tek başına -- işareti \"seçenekler bitti\" demektir; ondan sonraki her şey argümandır. Böylece adı tireyle başlayan bir dosyayı silmek için rm -- -dosya yazılır. Bu kurallar bir gelenektir, zorunluluk değildir: find, dd ve java gibi eski ya da farklı araçlar kendi sözdizimlerini kullanır.",
+t:[["Kısa seçenek","-l · birleşik: -lah"],["Uzun seçenek","--all · değerli: --lines=5"],["Seçenek sonu","-- (sonrası hep argüman)"],["Standart girdi","Birçok araçta - dosya adı yerine stdin demektir"],["İstisnalar","find -name, dd if= of=, tar cvf (tiresiz eski biçim)"]],
+d:{k:"stack",l:["rsync|komut (PATH'te aranır)","-avh|birleşik kısa seçenekler","--delete|uzun seçenek","--exclude=.git|değerli uzun seçenek","--|seçenekler burada biter","kaynak/ hedef/|argümanlar"]},
+cap:"Kabuk satırı sözcüklere böler; seçenekleri yorumlamak programın kendi işidir.",
+x:["Aynı komut, üç yazım",`$ ls -l -a -h /etc
+$ ls -lah /etc
+$ ls --format=long --all --human-readable /etc
+
+$ touch -- -tuhaf-ad      # tireyle başlayan dosya oluştur
+$ rm -- -tuhaf-ad          # ve sil
+$ echo merhaba | diff - eski.txt   # "-" = standart girdi`]},
+
+{id:"path",c:"temel",a:"$PATH",f:"Command lookup and PATH",tr:"Komut nasıl bulunur",y:"arama sırası",
+o:"Kabuğun bir komut adını takma ad, fonksiyon, yerleşik komut ve son olarak PATH'teki dizinler arasında sırayla araması.",
+h:"Bir ad yazdığında kabuk önce onun bir takma ad (alias) olup olmadığına, sonra anahtar sözcük (if, for), kabuk fonksiyonu ve yerleşik komut (cd, echo, export) olup olmadığına bakar. Hiçbiri değilse PATH değişkenindeki iki nokta ile ayrılmış dizinleri soldan sağa tarar ve ilk eşleşen çalıştırılabilir dosyayı kullanır. Bash bulduğu yolu bir karma tablosunda önbellekler; bir programı başka dizine taşıdıysan hash -r ile tabloyu temizlemen gerekebilir. Ad / içeriyorsa (./betik.sh, /usr/bin/ls) hiç arama yapılmaz. Güvenlik nedeniyle geçerli dizin (.) PATH'te yoktur; bu yüzden kendi betiğini ./ ile çağırırsın. Bir adın neye çözüldüğünü type -a, command -v ya da fish'te type -a gösterir.",
+t:[["Arama sırası","alias → anahtar sözcük → fonksiyon → yerleşik → PATH"],["Ayırıcı","İki nokta (:)"],["Tipik değer","~/.local/bin:/usr/local/bin:/usr/bin"],["Önbellek","bash: hash · hash -r ile sıfırla"],["Sorgulamak","type -a ls · command -v rg · which (harici, alias'ları bilmez)"],["Bulunamazsa","command not found, çıkış kodu 127"]],
+d:{k:"seq",a:["Kabuk","alias / fonksiyon","yerleşikler","PATH dizinleri"],s:[[0,1,"\"rg\" var mı?","q"],[1,0,"yok","r"],[0,2,"yerleşik mi?","q"],[2,0,"hayır","r"],[0,3,"~/.local/bin/rg ?","q"],[0,3,"/usr/bin/rg ?","q"],[3,0,"bulundu: /usr/bin/rg","r"]]},
+cap:"İlk eşleşen kazanır. Aynı ada sahip iki programdan hangisinin çalışacağını PATH sırası belirler.",
+x:["Bir ad neye çözülüyor?",`$ echo $PATH | tr ':' '\\n'
+/home/efe/.local/bin
+/usr/local/bin
+/usr/bin
+$ type -a ls
+ls is aliased to 'ls --color=auto'
+ls is /usr/bin/ls
+$ command -v cd rg
+cd
+/usr/bin/rg
+$ hash -r        # bash: program yer değiştirdiyse önbelleği temizle`]},
+
+{id:"fork-exec",c:"temel",a:"fork + exec",f:"How a command runs",tr:"Bir komut nasıl çalışır",y:"süreç oluşturma",
+o:"Kabuğun kendini çatallayıp (fork) çocuk süreçte programı yüklemesi (execve) ve bitmesini beklemesi (wait).",
+h:"Harici bir komut çalıştırmak için kabuk fork() ile kendisinin bir kopyasını oluşturur. Çocuk süreç önce yönlendirmeleri kurar, sonra execve() ile kendi belleğini hedef programla değiştirir; PID aynı kalır ama içindeki kod artık ls'tir. Ebeveyn kabuk waitpid() ile çocuğun bitmesini bekler ve çıkış kodunu $? değişkenine yazar. cd, export ve source gibi komutların yerleşik olması zorunludur: çocuk süreçte dizin değiştirmek ya da değişken atamak ebeveyni etkilemez. Aynı nedenle bir betiği ./betik.sh ile çalıştırmak onun değişkenlerini senin kabuğuna taşımaz; source betik.sh ise betiği mevcut kabukta çalıştırır.",
+t:[["Sistem çağrıları","fork/clone → execve → waitpid"],["Ortam","Çocuk, ebeveynin ortam değişkenlerinin bir kopyasını alır"],["Yerleşik olmak zorunda","cd, export, source/., exit, alias, umask"],["exec komutu","exec prog: kabuğun yerine geçer, geri dönüş yok"],["İzlemek","strace -f -e trace=execve bash -c 'ls'"]],
+d:{k:"seq",a:["Kabuk (PID 4120)","Çocuk (PID 5133)","Çekirdek"],s:[[0,2,"fork()","q"],[2,1,"kopya süreç","r"],[1,1,"yönlendirmeleri kur","n"],[1,2,"execve(\"/usr/bin/ls\")","q"],[1,1,"artık ls çalışıyor","n"],[1,0,"exit(0)","r"],[0,0,"$? = 0","n"]]},
+cap:"Her harici komut yeni bir süreçtir; kabuk onu başlatır ve sonucunu bekler.",
+x:["Kabuk ile alt süreç arasındaki fark",`$ bash -c 'cd /tmp; pwd'    # alt kabukta cd
+/tmp
+$ pwd                          # senin kabuğun etkilenmedi
+/home/efe
+$ cat ayar.sh
+export EDITOR=nvim
+$ ./ayar.sh; echo "\${EDITOR:-yok}"   # alt süreçte kaldı
+yok
+$ source ayar.sh; echo "$EDITOR"       # mevcut kabukta çalıştı
+nvim`]},
+
+{id:"cikis-kodu",c:"temel",a:"$?",f:"Exit status",tr:"Çıkış kodu",y:"0 = başarı",
+o:"Her komutun bitince döndürdüğü 0 ile 255 arasındaki sayı: 0 başarı, diğerleri hata ya da \"hayır\" anlamına gelir.",
+h:"Kabukta doğruluk, çıkış koduyla ifade edilir: 0 doğru ve başarılı, sıfırdan farklı her değer yanlış ya da başarısızdır. Son komutun kodu $? değişkenindedir; fish'te $status. Bu kodlar komutları zincirlemenin temelidir: a && b yalnızca a başarılıysa b'yi, a || b yalnızca a başarısızsa b'yi çalıştırır, ; ise sonuca bakmaz. Bazı kodların ortak anlamı vardır: 127 komut bulunamadı, 126 çalıştırma izni yok, 128+n ise n numaralı sinyalle öldürüldü demektir (Ctrl-C ile 130). grep gibi araçlar kodu bilgi olarak da kullanır: 0 eşleşme var, 1 yok, 2 hata. Bir borunun kodu varsayılan olarak son komutunkidir.",
+t:[["Başarı","0"],["Genel hata","1 (programa özgü anlamlar olabilir)"],["Kullanım hatası","2 (bash yerleşikleri, birçok araç)"],["126 / 127","Çalıştırılamadı / bulunamadı"],["128 + n","n sinyaliyle sonlandı (130 = SIGINT, 137 = SIGKILL)"],["Okumak","bash/zsh: $? · fish: $status"],["Tersine çevirmek","! komut"]],
+d:{k:"seq",a:["Kabuk","mkdir yedek","cp -r","echo hata"],s:[[0,1,"mkdir yedek","q"],[1,0,"çıkış 0","r"],[0,2,"&& → çalıştır","q"],[2,0,"çıkış 1 (disk dolu)","e"],[0,3,"|| → çalıştır","q"],[3,0,"çıkış 0","r"]]},
+cap:"mkdir yedek && cp -r veri yedek/ || echo hata: her adım bir öncekinin çıkış koduna bakar.",
+x:["Çıkış kodlarını okumak",`$ grep -q efe /etc/passwd; echo $?
+0
+$ grep -q yokboyle /etc/passwd; echo $?
+1
+$ yokboylebirkomut; echo $?
+bash: yokboylebirkomut: command not found
+127
+$ sleep 100        # Ctrl-C ile kes
+^C
+$ echo $?
+130
+$ ping -c1 -W1 10.9.9.9 >/dev/null && echo açık || echo ulaşılamıyor
+ulaşılamıyor`]},
+
+{id:"yardim",c:"temel",a:"man",f:"Manual pages and help",tr:"Kılavuz sayfaları ve yardım",y:"belgelendirme",
+o:"Bir komutun nasıl kullanıldığını terminalden öğrenmenin yolları: man sayfaları, --help, yerleşik yardım ve örnek odaklı tldr.",
+h:"man, sistemdeki kılavuz sayfalarını less içinde açar. Sayfalar bölümlere ayrılır; aynı ad farklı bölümlerde farklı şeyleri anlatabilir: man 1 passwd komutu, man 5 passwd ise /etc/passwd dosyasının biçimini açıklar. Hangi sayfanın var olduğunu bilmiyorsan man -k (apropos) açıklamalarda arama yapar. Çoğu program --help ile kısa bir özet basar. bash'in yerleşik komutlarının man sayfası yoktur; onlar için help cd yazılır. fish ise yerleşiklerinin kılavuzlarını da man ile sunar. tldr (Arch'ta tealdeer paketi) en yaygın kullanım örneklerini birkaç satırda gösterir. Arch tabanlı sistemlerde man sayfaları için man-db ve man-pages paketlerinin kurulu olması gerekir.",
+t:[["Bölümler","1 komut · 2 sistem çağrısı · 3 kütüphane · 4 cihaz · 5 dosya biçimi · 7 kavram · 8 yönetim"],["Arama","man -k anahtar = apropos"],["Belirli bölüm","man 5 fstab · man 7 signal"],["less içinde","/ ara · n sonraki · q çık"],["Yerleşikler","bash: help cd · fish: man cd"],["Örnekler","tldr tar (tealdeer)"]],
+d:{k:"stack",l:["man 1|kullanıcı komutları: ls, grep","man 2|sistem çağrıları: open, fork","man 3|C kütüphanesi: printf, malloc","man 4|özel dosyalar: null, tty","man 5|dosya biçimleri: fstab, passwd","man 7|kavramlar: signal, regex, glob","man 8|yönetim: mount, useradd"]},
+cap:"Aynı ad birden çok bölümde olabilir; bölüm numarasını yazmak doğru sayfayı açar.",
+x:["Doğru sayfayı bulmak",`$ man -k 'copy files'
+cp (1)           - copy files and directories
+rsync (1)        - a fast, versatile, remote (and local) file-copying tool
+$ man 5 crontab        # dosya biçimi, crontab(1) komutu değil
+$ help read | head -3  # bash yerleşiği
+$ tldr tar
+  Create an archive and write it to a file:
+      tar cf path/to/target.tar path/to/file1 path/to/file2`]},
+
+{id:"kabuk-turleri",c:"temel",a:"sh · bash · zsh · fish",f:"Shell families",tr:"Kabuk aileleri",y:"POSIX ve ötesi",
+o:"POSIX sh standardına uyan bash, zsh, dash gibi kabuklar ile etkileşimli kullanım için kendi dilini tasarlamış fish ve nushell.",
+h:"POSIX standardı sh adında bir kabuk dili tanımlar; taşınabilir betikler bu dilde yazılır. dash bu dilin küçük ve hızlı bir uygulamasıdır; Debian ve Ubuntu'da /bin/sh odur. bash, sh'yi diziler, [[ ]] ve süreç ikamesi gibi eklerle genişletir ve Linux'ta betiklerin fiili standardıdır; Arch tabanlı sistemlerde /bin/sh, bash'e bağlantıdır. zsh, bash'e çok benzer ama daha güçlü tamamlama ve glob'lar sunar; macOS'un varsayılanıdır. fish, POSIX uyumluluğundan bilinçli olarak vazgeçip otomatik öneri, sözdizimi renklendirme ve sade bir dil sunar; CachyOS'ta varsayılan etkileşimli kabuktur. Pratik kural: etkileşimli kabuğun istediğin gibi olsun, betikleri ise bash ya da sh ile yaz ve shebang satırında belirt.",
+t:[["POSIX sh","Standart dil; dash, busybox ash"],["bash","GNU kabuğu; betiklerin fiili standardı"],["zsh","bash benzeri, gelişmiş tamamlama; Oh My Zsh"],["fish","POSIX değil; öneriler, renklendirme, fish_config"],["nushell","Yapılandırılmış veri (tablo) akışı"],["Geçerli kabuk","echo $0 · ps -p $$"],["Varsayılanı değiştirmek","chsh -s /usr/bin/zsh"]],
+d:{k:"stack",l:["POSIX sh|standart dil, taşınabilir betikler","dash · ash|küçük, hızlı /bin/sh","bash|sh + diziler, [[ ]], <( )","zsh|bash benzeri + güçlü tamamlama","fish|POSIX dışı, etkileşim odaklı","nushell|metin yerine tablolar"]},
+cap:"Yukarıdan aşağıya POSIX'ten uzaklaşıp etkileşime yaklaşır.",
+x:["fish ile bash arasındaki yaygın farklar",`# bash / zsh                       # fish
+export EDITOR=nvim                   set -gx EDITOR nvim
+for f in *.txt; do echo "$f"; done   for f in *.txt; echo $f; end
+if [ -f a ]; then echo var; fi       if test -f a; echo var; end
+echo $?                              echo $status
+cmd <<'EOF' ... EOF                  (heredoc yok; printf ya da dosya kullan)
+diff <(ls a) <(ls b)                 diff (ls a | psub) (ls b | psub)
+
+$ bash eski-betik.sh   # bash betiğini fish içinden böyle çalıştır`]},
+
+{id:"satir-duzenleme",c:"temel",a:"Ctrl-R",f:"Line editing and history",tr:"Satır düzenleme ve geçmiş",y:"readline",
+o:"Komut satırında imleci hızla taşıyan, sözcük silen ve eski komutları arayan klavye kısayolları ile komut geçmişi.",
+h:"bash, girdiği satırı GNU readline kütüphanesiyle okur; zsh ve fish kendi düzenleyicilerini kullanır ama varsayılan kısayolların çoğu aynıdır ve Emacs'tan gelir. Ctrl-A satır başına, Ctrl-E sonuna gider; Ctrl-W önceki sözcüğü, Ctrl-U imlecin solundakileri siler ve Ctrl-Y sileni geri yapıştırır. Ctrl-R geçmişte geriye doğru artımlı arama yapar: birkaç harf yaz, tekrar Ctrl-R ile daha eskiye git. Alt-. önceki komutun son argümanını ekler. Geçmiş bash'te ~/.bash_history, fish'te ~/.local/share/fish/fish_history dosyasında tutulur. bash'te !! son komutu, !$ son argümanı açar: sudo !! en bilinen örnektir. fish bunun yerine yazdıkça geçmişten gri bir öneri gösterir; → ya da Ctrl-F ile kabul edilir.",
+t:[["İmleç","Ctrl-A baş · Ctrl-E son · Alt-B / Alt-F sözcük"],["Silme","Ctrl-W sözcük · Ctrl-U sola · Ctrl-K sağa · Ctrl-Y yapıştır"],["Geçmiş","Ctrl-R ara · ↑ ↓ · history · Alt-. son argüman"],["bash olay genişletme","!! son komut · !$ son argüman · !ssh son ssh komutu"],["Ekran","Ctrl-L temizle"],["Takılı kaldıysa","Ctrl-S çıktıyı dondurur, Ctrl-Q çözer"]],
+d:{k:"seq",a:["Sen","Satır düzenleyici","Geçmiş dosyası"],s:[[0,1,"Ctrl-R, \"rsync\"","q"],[1,2,"geriye doğru ara","q"],[2,1,"rsync -avh ~/proje vds:","r"],[0,1,"Ctrl-R (daha eski)","q"],[2,1,"rsync -n ...","r"],[0,1,"Ctrl-E, düzenle, ⏎","q"]]},
+cap:"Uzun bir komutu yeniden yazmak yerine geçmişte bulup düzenlemek çoğu zaman en hızlısıdır.",
+x:["Geçmişi verimli kullanmak",`$ pacman -Syu
+error: you cannot perform this operation unless you are root.
+$ sudo !!                      # bash/zsh: son komutu sudo ile tekrarla
+$ mkdir -p ~/proje/yeni-modul
+$ cd !$                        # son argüman: ~/proje/yeni-modul
+$ history | grep ssh | tail -3
+$ HISTCONTROL=ignoreboth       # bash: tekrarları ve boşlukla başlayanları kaydetme
+$  export TOKEN=gizli          # başta boşluk: geçmişe yazılmaz`]},
+
+/* ---------- GENİŞLETMELER ---------- */
+{id:"genisletme-sirasi",c:"genisletme",a:"sıralama",f:"Order of shell expansions",tr:"Genişletmelerin sırası",y:"POSIX + bash",
+o:"Kabuğun bir satırı çalıştırmadan önce uyguladığı dönüşümler ve bu dönüşümlerin sabit sırası.",
+h:"Kabuk satırı önce boşluk ve operatörlere göre sözcüklere ayırır, sonra her sözcüğe sırayla genişletmeleri uygular. bash'te sıra şöyledir: parantez genişletmesi ({a,b}), tilde (~), sonra aynı anda soldan sağa parametre ($VAR), komut ikamesi ($( )) ve aritmetik ($(( ))); ardından tırnaksız sonuçlar üzerinde sözcük bölme, en sonda da dosya adı genişletmesi (glob) ve tırnakların kaldırılması. Bu sıra birçok tuhaflığı açıklar: {1..$n} çalışmaz çünkü parantez genişletmesi değişkenden önce gelir. Tırnaksız bir değişkenin içindeki yıldız ise glob olarak açılır, çünkü glob değişkenden sonra uygulanır. set -x ile kabuğun genişletmeden sonra gerçekte ne çalıştırdığını görebilirsin.",
+t:[["1","Parantez: {a,b} · {1..5}"],["2","Tilde: ~ · ~efe"],["3","Parametre, komut ikamesi, aritmetik (soldan sağa)"],["4","Sözcük bölme (tırnaksız sonuçlarda, IFS'e göre)"],["5","Dosya adı genişletmesi: * ? [ ]"],["6","Tırnakların kaldırılması"],["Hata ayıklama","set -x · bash -x betik.sh"]],
+d:{k:"stack",l:["cp ~/{a,b}.txt \"$D\"/|ham satır","cp ~/a.txt ~/b.txt \"$D\"/|1 parantez","cp /home/efe/a.txt ...|2 tilde","... \"/mnt/yedek\"/|3 değişken","sözcük bölme yok|4 \"$D\" tırnaklı","glob karakteri yok|5 dosya adı","argv: cp, /home/efe/a.txt, …|6 tırnaklar kalktı"]},
+cap:"Program, yukarıdaki dönüşümlerin hepsi bittikten sonra kalan argüman listesini (argv) görür.",
+x:["Kabuğun gerçekte ne çalıştırdığını gör",`$ D=/mnt/yedek
+$ set -x
+$ cp ~/{a,b}.txt "$D"/
++ cp /home/efe/a.txt /home/efe/b.txt /mnt/yedek/
+$ n=3; echo {1..$n}       # parantez değişkenden önce: açılmaz
++ echo '{1..3}'
+{1..3}
+$ set +x
+$ seq 1 "$n"              # doğru yol
+1
+2
+3`]},
+
+{id:"tirnaklama",c:"genisletme",a:"' \" \\",f:"Quoting",tr:"Tırnaklama",y:"anlamı korumak",
+o:"Boşlukların, yıldızların ve dolar işaretlerinin kabuk tarafından yorumlanıp yorumlanmayacağını belirleyen üç mekanizma.",
+h:"Tek tırnak içindeki her şey harfiyen alınır; içinde hiçbir genişletme olmaz ve tek tırnağın kendisi bile kaçırılamaz. Çift tırnak sözcük bölmeyi ve glob'u engeller ama $değişken, $(komut) ve $((aritmetik)) genişletmelerine izin verir; bu yüzden değişkenleri neredeyse her zaman çift tırnakla yazmak gerekir. Ters bölü (\\) tek bir karakterin özel anlamını kaldırır; satır sonunda kullanılırsa komutu bir sonraki satıra taşır. bash ve zsh ayrıca $'...' biçimini tanır: içinde \\n, \\t ve \\x41 gibi C kaçışları çalışır. Tırnaklar, komuta geçmeden önce kabuk tarafından kaldırılır; program tırnakları hiç görmez, yalnızca sonucu görür.",
+t:[["'tek'","Hiçbir şey genişlemez"],["\"çift\"","$ ve $( ) genişler; boşluk ve * korunur"],["\\ tek karakter","\\$, \\*, \\\" · satır sonunda devam"],["$'...'","C kaçışları: $'a\\tb\\n'"],["Tek tırnak içine tek tırnak","'O'\\''nun' (kapat, kaçır, aç)"],["fish","'...' ve \"...\" benzer; $'...' yok"]],
+d:{k:"seq",a:["Sen","Kabuk","echo"],s:[[0,1,"echo '$HOME *'","q"],[1,2,"argv[1] = $HOME *","r"],[0,1,"echo \"$HOME *\"","q"],[1,2,"argv[1] = /home/efe *","r"],[0,1,"echo $HOME *","q"],[1,2,"argv: /home/efe a.txt b.txt","e"]]},
+cap:"Aynı karakterler, üç tırnaklama biçimiyle üç farklı argüman listesine dönüşür.",
+x:["Tırnaklar neyi değiştirir?",`$ ad="Yaz Tatili"
+$ mkdir $ad            # tırnaksız: iki dizin oluşur
+$ ls
+Tatili  Yaz
+$ rmdir Yaz Tatili; mkdir "$ad"
+$ ls
+'Yaz Tatili'
+$ echo 'fiyat: $5'      # tek tırnak: $5 genişlemez
+fiyat: $5
+$ printf '%s\\n' $'sütun1\\tsütun2'
+sütun1	sütun2`]},
+
+{id:"parametre",c:"genisletme",a:"${değişken}",f:"Parameter expansion",tr:"Değişken genişletme",y:"varsayılan, kırpma, değiştirme",
+o:"Bir değişkenin değerini yerine koyarken varsayılan vermeyi, önek ve sonek kırpmayı, değiştirmeyi ve uzunluk almayı sağlayan sözdizimi.",
+h:"$ad ile ${ad} aynıdır; süslü parantez, değişken adının bittiği yeri belirtmek ($ad_yedek yerine ${ad}_yedek) ve değer üzerinde işlem yapmak için gerekir. ${x:-varsayılan} değişken boşsa yerine varsayılanı koyar, ${x:=varsayılan} ayrıca atar, ${x:?mesaj} ise boşsa hata verip betiği durdurur. # ve % ile desene uyan önek ve sonek kırpılır: tek işaret en kısa, çift işaret en uzun eşleşmeyi siler. Bu, basename ve dirname çağırmadan dosya adı ve uzantı ayırmanın hızlı yoludur. ${x/eski/yeni} ilk, ${x//eski/yeni} tüm eşleşmeleri değiştirir. ${#x} uzunluğu verir; bash'te ${x^^} büyük, ${x,,} küçük harfe çevirir. fish bu sözdizimini desteklemez; aynı işleri string komutu yapar.",
+t:[["Varsayılan","${x:-v} kullan · ${x:=v} ata · ${x:?hata} dur"],["Önek kırp","${x#*/} en kısa · ${x##*/} en uzun"],["Sonek kırp","${x%.*} en kısa · ${x%%.*} en uzun"],["Değiştir","${x/a/b} ilk · ${x//a/b} hepsi"],["Uzunluk","${#x}"],["Alt dizgi","${x:2:5} (2'den başla, 5 karakter)"],["Harf","${x^^} büyük · ${x,,} küçük (bash 4+)"]],
+d:{k:"stack",l:["f=/foto/tatil.2024.jpg|değişken","${f##*/}|tatil.2024.jpg (dosya adı)","${f%/*}|/foto (dizin)","${f%.*}|/foto/tatil.2024 (uzantısız)","${f##*.}|jpg (uzantı)","${f/tatil/yaz}|/foto/yaz.2024.jpg"]},
+cap:"Kırpma operatörleri, basename ve dirname çağırmadan yolu parçalara ayırır.",
+x:["Toplu yeniden adlandırma ve güvenli varsayılan",`$ for f in *.jpeg; do mv -- "$f" "\${f%.jpeg}.jpg"; done
+$ yedek="\${YEDEK_DIZINI:-$HOME/yedek}"     # ortamda yoksa varsayılan
+$ rm -rf -- "\${HEDEF:?HEDEF boş}/"cache      # boşsa rm hiç çalışmaz
+bash: HEDEF: HEDEF boş
+$ s="merhaba dünya"; echo "\${#s} \${s^^}"
+13 MERHABA DÜNYA
+# fish karşılığı
+> string replace -r '\\.jpeg$' .jpg foto.jpeg
+foto.jpg`]},
+
+{id:"glob",c:"genisletme",a:"* ? [ ]",f:"Globbing (pathname expansion)",tr:"Joker karakterler",y:"dosya adı eşleme",
+o:"Kabuğun *, ? ve [ ] içeren bir sözcüğü, o desene uyan mevcut dosya adlarının listesine çevirmesi.",
+h:"* herhangi sayıda karakteri, ? tek bir karakteri, [abc] ve [0-9] ise küme içindeki tek bir karakteri temsil eder. Eşlemeyi program değil kabuk yapar: rm *.log yazdığında rm, *.log'u hiç görmez; eşleşen dosyaların adlarını alır. Nokta ile başlayan gizli dosyalar varsayılan olarak eşleşmez. Hiçbir dosya eşleşmediğinde davranış kabuğa göre değişir: bash deseni olduğu gibi bırakır (bu yüzden ls *.xyz \"No such file\" hatası verir), zsh ve fish ise hata verip komutu çalıştırmaz. ** alt dizinlerde özyinelemeli arama yapar; zsh ve fish'te varsayılan olarak açıktır, bash'te shopt -s globstar gerekir. Glob'lar düzenli ifade değildir: regex'teki .* yerine burada yalnızca * yazılır.",
+t:[["*","0 ya da daha fazla karakter (/ hariç)"],["?","Tam bir karakter"],["[a-c] · [!a-c]","Küme · küme dışı (bash'te [^a-c] de olur)"],["**","Özyinelemeli; bash: shopt -s globstar"],["Gizli dosyalar","Eşleşmez; bash: shopt -s dotglob"],["Eşleşme yoksa","bash: desen kalır · zsh/fish: hata · bash: shopt -s nullglob"],["Genişletilmiş","bash extglob: !(*.txt) · @(a|b) · +(x)"]],
+d:{k:"seq",a:["Kabuk","Dizin (readdir)","rm"],s:[[0,0,"*.log deseni","n"],[0,1,"girdileri listele","q"],[1,0,"a.log b.log c.txt .x.log","r"],[0,0,"eşleşen: a.log b.log","n"],[0,2,"argv: rm a.log b.log","q"]]},
+cap:"rm hiçbir zaman yıldız görmez; eşleşmeyi kabuk yapar ve dosya adlarını argüman olarak verir.",
+x:["Joker karakterlerle çalışmak",`$ ls
+IMG_0001.jpg  IMG_0002.jpg  IMG_0010.png  notlar.txt  .gizli.txt
+$ ls IMG_000?.jpg
+IMG_0001.jpg  IMG_0002.jpg
+$ ls *.[jp][pn]g
+IMG_0001.jpg  IMG_0002.jpg  IMG_0010.png
+$ echo *.txt          # gizli dosya eşleşmez
+notlar.txt
+$ shopt -s globstar; ls **/*.rs     # bash'te alt dizinlerde ara
+$ echo *.xyz          # bash: eşleşme yok, desen olduğu gibi kalır
+*.xyz`]},
+
+{id:"parantez",c:"genisletme",a:"{a,b} {1..9}",f:"Brace expansion",tr:"Parantez genişletmesi",y:"liste üretme",
+o:"Bir sözcükten, dosyaların varlığına bakmadan virgülle ayrılmış seçeneklerin ya da bir aralığın bütün birleşimlerini üretmek.",
+h:"Glob'un aksine parantez genişletmesi dosya sistemine bakmaz; yalnızca metin üretir. on{a,b,c}son, ona son, onb son, onc son değil, onason onbson oncson olur. Aralıklar sayılarla ({1..10}), sıfır dolgulu ({01..10}), harflerle ({a..e}) ve adımla ({0..100..20}) yazılabilir. Parantezler iç içe ve yan yana kullanılabilir; her birleşim ayrı bir argüman olur. En yaygın kullanımı tek komutla bir dizin iskeleti kurmak (mkdir -p proje/{src,docs,test}) ve dosyanın yedeğini almaktır: cp ayar.conf{,.bak}, cp ayar.conf ayar.conf.bak'a açılır. Parantez genişletmesi POSIX'te yoktur; bash, zsh ve fish destekler, ancak fish aralık sözdizimini ({1..5}) desteklemez, yerine seq kullanılır.",
+t:[["Liste","{a,b,c}"],["Aralık","{1..5} · {a..e}"],["Dolgulu","{001..100}"],["Adımlı","{0..100..25} → 0 25 50 75 100"],["Boş öğe","dosya{,.bak} → dosya dosya.bak"],["İç içe","{a,b{1,2}} → a b1 b2"],["Destek","bash, zsh, fish (fish'te aralık yok)"]],
+d:{k:"stack",l:["mkdir -p app/{src/{core,ui},docs,test}|yazılan","app/src/core|1. argüman","app/src/ui|2. argüman","app/docs|3. argüman","app/test|4. argüman"]},
+cap:"Tek bir sözcük, dosya sistemine hiç bakılmadan dört ayrı argümana dönüşür.",
+x:["Hızlı iskelet ve yedek",`$ mkdir -p app/{src/{core,ui},docs,test}
+$ cp /etc/pacman.conf{,.bak}     # = cp /etc/pacman.conf /etc/pacman.conf.bak
+$ echo yedek-{01..05}.tar.zst
+yedek-01.tar.zst yedek-02.tar.zst yedek-03.tar.zst yedek-04.tar.zst yedek-05.tar.zst
+$ touch gun{1..7}.md
+$ mv rapor.{txt,md}               # uzantı değiştir
+$ diff ayar.conf{.bak,}            # yedek ile yeniyi karşılaştır`]},
+
+{id:"komut-ikamesi",c:"genisletme",a:"$( )",f:"Command substitution",tr:"Komut ikamesi",y:"çıktıyı yerine koy",
+o:"Bir komutun standart çıktısını yakalayıp komut satırında o komutun yerine metin olarak koymak.",
+h:"$(komut) yazıldığında kabuk komutu bir alt kabukta çalıştırır, çıktısını yakalar, sondaki satır sonlarını siler ve sonucu yerine koyar. Eski biçim olan ters tırnak (`komut`) da çalışır ama iç içe kullanımı ve okunması zordur; $( ) her zaman tercih edilmelidir. Sonuç tırnaksız kullanılırsa sözcük bölme ve glob'a uğrar. Bu yüzden içinde boşluk olabilecek çıktılar \"$(komut)\" biçiminde tırnaklanmalıdır. İç içe kullanım serbesttir: $(dirname \"$(readlink -f \"$0\")\"), betiğin bulunduğu dizini verir. fish 3.4'ten beri $( ) sözdizimini de destekler; daha eski biçimi düz parantezdir: (komut).",
+t:[["Sözdizimi","$(komut) · eski: `komut` · fish: (komut)"],["Sondaki satır sonları","Silinir"],["Alt kabuk","Değişken atamaları dışarı taşınmaz"],["Tırnaklama","\"$(komut)\" çıktıyı tek argüman tutar"],["Çıkış kodu","x=$(komut) atamasında $? komutun kodudur"],["Hızlı dosya okuma","$(< dosya) (bash, cat çağırmaz)"]],
+d:{k:"seq",a:["Kabuk","Alt kabuk","date"],s:[[0,0,"tar czf yedek-$(date +%F).tgz","n"],[0,1,"$( ) için çatalla","q"],[1,2,"date +%F","q"],[2,1,"2026-10-12\\n","r"],[1,0,"çıktı (satır sonu silindi)","r"],[0,0,"yedek-2026-10-12.tgz","n"]]},
+cap:"Komut önce çalışır; çıktısı satıra yapıştırılır, sonra asıl komut çalışır.",
+x:["Çıktıyı argüman yapmak",`$ echo "Çekirdek: $(uname -r), çalışma süresi: $(uptime -p)"
+Çekirdek: 6.18.9-2-cachyos, çalışma süresi: up 3 hours, 12 minutes
+$ tar --zstd -cf "yedek-$(date +%F).tar.zst" ~/Belgeler
+$ kill "$(pgrep -x waybar)"
+$ BETIK_DIZINI="$(dirname "$(readlink -f "$0")")"   # betik içinde
+$ satir_sayisi=$(wc -l < günlük.txt)
+$ echo "$satir_sayisi"
+1248`]},
+
+{id:"aritmetik",c:"genisletme",a:"$(( ))",f:"Arithmetic expansion",tr:"Aritmetik",y:"tam sayı",
+o:"Kabuğun içinde tam sayı aritmetiği yapmak; ondalıklı hesaplar için bc, awk ya da python gerekir.",
+h:"$(( ifade )) içinde +, -, *, /, % ve ** (üs) ile karşılaştırma ve bit işlemleri kullanılabilir; değişkenlerin başına $ koymak gerekmez. Kabuk aritmetiği yalnızca tam sayıdır: $((7/2)) sonucu 3'tür, kesir atılır. bash'te (( )) bir komut olarak da kullanılır: ((i++)) değişkeni artırır, ((x > 5)) ise sonuca göre 0 ya da 1 çıkış koduyla döner ve if içinde kullanılabilir. Sayının başına sıfır yazılırsa sekizlik kabul edilir; $((08)) hata verir, ondalık zorlamak için $((10#08)) yazılır. Ondalıklı hesaplar için echo 'scale=2; 7/2' | bc, awk ya da qalc kullanılır. fish'te aynı işi math komutu görür ve ondalıklıyı doğrudan destekler.",
+t:[["İşlemler","+ - * / % ** · < > == · & | ^ << >>"],["Komut biçimi","((i++)) · if ((n > 10))"],["Atama","x=$((x * 2)) · ((x *= 2))"],["Taban","16#ff = 255 · 2#1010 = 10 · 10#08"],["Ondalık","bc, awk, python -c · fish: math 7/2"],["Rastgele","$RANDOM (0–32767)"]],
+d:{k:"stack",l:["$(( (dolu*100) / toplam ))|ifade","dolu=37, toplam=120|değişkenler yerine konur","3700 / 120|tam sayı bölme","30|kesir atıldı (30,83…)"]},
+cap:"Kabuk aritmetiği keser, yuvarlamaz; ondalık gerekiyorsa başka bir araç kullan.",
+x:["Tam sayı ve ondalık",`$ echo $(( 7 / 2 )) $(( 7 % 2 )) $(( 2 ** 10 ))
+3 1 1024
+$ i=0; while (( i < 3 )); do echo "tur $i"; (( i++ )); done
+tur 0
+tur 1
+tur 2
+$ echo 'scale=2; 7 / 2' | bc
+3.50
+$ awk 'BEGIN { printf "%.1f\\n", 37/120*100 }'
+30.8
+> math 7 / 2          # fish
+3.5`]},
+
+{id:"sozcuk-bolme",c:"genisletme",a:"IFS",f:"Word splitting",tr:"Sözcük bölme",y:"\"değişkeni tırnakla\"",
+o:"Tırnaksız bir genişletmenin sonucunun boşluklardan bölünüp ayrı argümanlara dönüşmesi ve ardından glob olarak açılması.",
+h:"Bir değişken ya da komut ikamesi tırnaksız kullanıldığında bash, sonucu IFS değişkenindeki karakterlerden (varsayılan olarak boşluk, sekme ve satır sonu) böler, oluşan her parçayı ayrıca glob olarak açar. Bu yüzden f=\"Yaz Tatili.jpg\" iken rm $f, Yaz ve Tatili.jpg adlı iki dosyayı silmeye çalışır. Kabuk betiklerindeki hataların büyük kısmı bu davranıştan gelir ve çaresi basittir: değişkenleri her zaman \"$f\" biçiminde tırnakla. Birden fazla öğeyi taşımak için boşluklu dizge yerine dizi kullan ve \"${dizi[@]}\" ile aç. zsh varsayılan olarak tırnaksız değişkenleri bölmez; fish ise hiç bölmez, her değişken zaten bir listedir. Yine de taşınabilirlik için tırnaklama alışkanlığı kalmalı.",
+t:[["Varsayılan IFS","boşluk, sekme, satır sonu"],["Ne zaman olur","Tırnaksız $x, $(cmd), $((…)) sonuçlarında"],["Ardından","Her parça glob olarak açılır"],["Çözüm","\"$x\" · \"$(cmd)\" · \"${dizi[@]}\""],["zsh","Varsayılan olarak bölmez (SH_WORD_SPLIT kapalı)"],["fish","Bölmez; değişkenler listedir"],["Satır satır okuma","while IFS= read -r satir"]],
+d:{k:"seq",a:["Kabuk","rm","Dosya sistemi"],s:[[0,0,"f=\"Yaz Tatili.jpg\"","n"],[0,1,"rm $f → 2 argüman","e"],[1,2,"unlink(\"Yaz\")","q"],[2,1,"böyle bir dosya yok","e"],[0,1,"rm \"$f\" → 1 argüman","q"],[1,2,"unlink(\"Yaz Tatili.jpg\")","q"],[2,1,"silindi","r"]]},
+cap:"Tırnaksız değişken bölünür; tırnaklı değişken tek parça kalır.",
+x:["Boşluklu dosya adlarıyla güvenli çalışmak",`$ f="Yaz Tatili.jpg"
+$ printf '[%s]\\n' $f
+[Yaz]
+[Tatili.jpg]
+$ printf '[%s]\\n' "$f"
+[Yaz Tatili.jpg]
+$ dosyalar=("Yaz Tatili.jpg" "kış.png")
+$ cp -- "\${dosyalar[@]}" ~/Resimler/     # her öğe tek argüman
+$ find . -name '*.log' -print0 | while IFS= read -r -d '' f; do gzip -- "$f"; done`]},
+/* ---------- YÖNLENDİRME ---------- */
+{id:"standart-akislar",c:"yonlendirme",a:"0 · 1 · 2",f:"Standard streams",tr:"Standart akışlar",y:"stdin · stdout · stderr",
+o:"Her sürecin başlangıçta sahip olduğu üç dosya tanımlayıcısı: 0 numaralı girdi, 1 numaralı çıktı ve 2 numaralı hata çıktısı.",
+h:"Bir program çalıştığında ebeveyninden açık dosya tanımlayıcılarını devralır. Geleneksel olarak 0 standart girdi (stdin), 1 standart çıktı (stdout), 2 standart hatadır (stderr). Terminalden çalıştırılan bir komutta üçü de aynı pty'ye bağlıdır; bu yüzden hata mesajları ve normal çıktı ekranda karışık görünür. Ayrı tutulmalarının nedeni, çıktıyı bir dosyaya ya da boruya gönderirken hataların yine ekranda görünmesidir. Program bu tanımlayıcıların nereye bağlı olduğunu genellikle bilmez ve umursamaz; ls gibi bazı araçlar ise çıktının terminal olup olmadığına (isatty) bakıp renk ya da sütun biçimini değiştirir. Bir sürecin açık tanımlayıcıları /proc/PID/fd altında görülebilir.",
+t:[["0 stdin","Varsayılan: klavye (pty)"],["1 stdout","Varsayılan: ekran (pty)"],["2 stderr","Varsayılan: ekran; tamponlanmaz"],["Kalıtım","Çocuk süreç ebeveynin tanımlayıcılarını devralır"],["Görmek için","ls -l /proc/$$/fd · lsof -p PID"],["Terminal mi?","[ -t 1 ] && echo terminal"]],
+d:{k:"seq",a:["Klavye","Program","Ekran","hata.log"],s:[[0,1,"fd 0: girdi","q"],[1,2,"fd 1: sonuçlar","r"],[1,2,"fd 2: uyarılar","e"],[1,3,"2> hata.log ile","e"]]},
+cap:"Çıktı ile hatalar ayrı kanallardır; yönlendirme bunları farklı yerlere gönderebilir.",
+x:["Tanımlayıcıları görmek",`$ ls -l /proc/$$/fd
+lrwx------ 1 efe efe 64 0 -> /dev/pts/2
+lrwx------ 1 efe efe 64 1 -> /dev/pts/2
+lrwx------ 1 efe efe 64 2 -> /dev/pts/2
+$ ls /yok /etc/hostname > liste.txt   # hata ekrana, çıktı dosyaya
+ls: cannot access '/yok': No such file or directory
+$ cat liste.txt
+/etc/hostname`]},
+
+{id:"yonlendirme",c:"yonlendirme",a:"> >> < 2>&1",f:"Redirection",tr:"Yönlendirme",y:"dosya tanımlayıcı bağlama",
+o:"Bir komutun girdisini bir dosyadan almak, çıktısını ya da hatalarını bir dosyaya yazmak veya bir tanımlayıcıyı ötekine bağlamak.",
+h:"> çıktıyı bir dosyaya yazar ve dosya varsa önce sıfırlar; >> sonuna ekler; < girdiyi dosyadan okur. Numaralandırılmış biçimde 2> hataları, 2>> hataları ekleyerek yönlendirir. 2>&1, \"2 numaralı tanımlayıcıyı şu anda 1'in gösterdiği yere bağla\" demektir; bu yüzden sıra önemlidir: komut > out.log 2>&1 her ikisini dosyaya yazar, komut 2>&1 > out.log ise hataları ekrana bırakır. bash'te &> dosya, ikisini birden yönlendirmenin kısa yoludur. Yönlendirmeler komut çalışmadan önce kurulur: sort a.txt > a.txt yazarsan kabuk dosyayı sıfırlar ve sort boş bir dosya okur. set -o noclobber bu tür kazaları önler; bilerek üzerine yazmak için >| kullanılır.",
+t:[["> dosya","Çıktıyı yaz (üzerine)"],[">> dosya","Çıktıyı ekle"],["< dosya","Girdiyi dosyadan oku"],["2> · 2>>","Hataları yaz · ekle"],["> f 2>&1 · &> f","Her ikisini birden (sıra önemli)"],["n>&m · n<&-","Kopyala · kapat"],["Koruma","set -o noclobber · zorlamak için >|"]],
+d:{k:"seq",a:["Kabuk","fd tablosu","make"],s:[[0,1,"> build.log : fd1 → dosya","q"],[0,1,"2>&1 : fd2 → fd1'in hedefi","q"],[0,2,"exec make","q"],[2,1,"write(1) ve write(2)","r"],[1,1,"ikisi de build.log'a","n"]]},
+cap:"Kabuk tanımlayıcıları soldan sağa kurar, sonra programı başlatır. Program yalnızca hazır tabloyu görür.",
+x:["Yaygın yönlendirme kalıpları",`$ make > build.log 2>&1          # her şey dosyaya
+$ make &> build.log              # bash kısaltması
+$ make 2> hatalar.log            # yalnızca hatalar
+$ make 2>&1 | tee build.log      # hem ekrana hem dosyaya
+$ wc -l < /etc/passwd            # dosya adı olmadan, yalnızca sayı
+42
+$ sort notlar.txt > notlar.txt   # YANLIŞ: önce sıfırlanır, sonuç boş
+$ sort -o notlar.txt notlar.txt  # doğru (ya da sponge, ya da geçici dosya)`]},
+
+{id:"dev-null",c:"yonlendirme",a:"/dev/null",f:"The null device and friends",tr:"Kara delik ve özel cihazlar",y:"atmak, üretmek",
+o:"Kendisine yazılanı yutan /dev/null ile sıfır ve rastgele bayt üreten /dev/zero ve /dev/urandom cihazları.",
+h:"/dev/null'a yazılan her şey kaybolur, okunduğunda ise hemen dosya sonu döner. İstenmeyen çıktıyı susturmanın standart yoludur: komut > /dev/null 2>&1 hiçbir şey basmaz, yalnızca çıkış kodunu bırakır. Bu, bir şeyin var olup olmadığını sınayan betiklerde sık görülür: command -v docker > /dev/null && echo kurulu. Girdisi /dev/null'a bağlanan bir program etkileşimli soru sorarsa hemen dosya sonu alır. /dev/zero sonsuz sıfır baytı, /dev/urandom kriptografik olarak güvenli rastgele baytlar üretir. Bunlar dd ile sınama dosyası oluşturmak, bir diski sıfırlamak ya da rastgele parola üretmek için kullanılır.",
+t:[["/dev/null","Yazılan kaybolur; okuma = EOF"],["/dev/zero","Sonsuz 0x00 baytı"],["/dev/urandom","Rastgele bayt (bloklamaz)"],["/dev/full","Yazma her zaman \"disk dolu\" hatası verir (sınama için)"],["/dev/stdin · stdout · stderr","/proc/self/fd/0, 1, 2'ye bağlantı"],["Susturma","> /dev/null 2>&1 · &> /dev/null"]],
+d:{k:"seq",a:["Betik","command","/dev/null"],s:[[0,1,"command -v docker","q"],[1,2,"/usr/bin/docker (fd 1)","r"],[1,0,"çıkış 0","r"],[0,0,"kurulu, devam et","n"]]},
+cap:"Çıktı atılır, çıkış kodu kalır. Betik yalnızca cevabın \"evet\" ya da \"hayır\" olmasıyla ilgilenir.",
+x:["Atmak ve üretmek",`$ if command -v rg > /dev/null; then echo "ripgrep var"; fi
+ripgrep var
+$ find / -name '*.service' 2>/dev/null | wc -l   # izin hatalarını gizle
+$ head -c 1G /dev/zero > sinama.img                # 1 GiB sıfır
+$ head -c 24 /dev/urandom | base64                 # rastgele parola
+Qz7l4Vd2y8kM0f3n1xR9bW5cJ6tEpA8u
+$ echo test > /dev/full
+bash: echo: write error: No space left on device`]},
+
+{id:"boru",c:"yonlendirme",a:"|",f:"Pipes",tr:"Borular",y:"süreçleri bağlamak",
+o:"Bir komutun standart çıktısını, aynı anda çalışan bir sonraki komutun standart girdisine bağlamak.",
+h:"a | b yazıldığında kabuk çekirdekten bir boru ister, a'nın 1 numaralı tanımlayıcısını borunun yazma ucuna, b'nin 0 numaralısını okuma ucuna bağlar ve iki süreci aynı anda başlatır. Veri, Linux'ta varsayılan olarak 64 KiB'lık bir çekirdek arabelleğinden akar: arabellek dolunca yazan, boşalınca okuyan bekler. Okuyan taraf erken çıkarsa (örneğin head ilk 10 satırı alıp kapandığında) yazan taraf bir sonraki yazmada SIGPIPE alır ve sessizce sonlanır; bu yüzden büyük bir dosyada cat | head anında biter. Borudaki her komut ayrı bir süreçtir; bash'te son komut da alt kabukta çalışır, bu yüzden ... | while read döngüsünde atanan değişkenler döngüden sonra kaybolur. Borunun çıkış kodu son komutunkidir. Herhangi birinin hatasını yakalamak için set -o pipefail kullanılır; tüm kodlar bash'te PIPESTATUS dizisindedir.",
+t:[["Arabellek","64 KiB (varsayılan); /proc/sys/fs/pipe-max-size"],["Eşzamanlılık","Bütün komutlar aynı anda çalışır"],["Erken kapanma","Yazan SIGPIPE alır (çıkış 141)"],["Çıkış kodu","Son komutunki · set -o pipefail"],["Hepsinin kodu","bash: ${PIPESTATUS[@]} · zsh: $pipestatus · fish: $pipestatus"],["stderr de geçsin","a 2>&1 | b · bash: a |& b"]],
+d:{k:"pipe",st:["oku","süz","yaz"],r:[["journalctl",0,["oku","yaz","oku","yaz","oku","yaz"]],["grep -i usb",1,["süz","yaz","süz","yaz","süz"]],["sort",2,["oku","oku","oku","oku","oku","yaz"]],["uniq -c",3,["·","·","·","·","·","oku","yaz"]]]},
+cap:"Sütunlar zaman. journalctl ve grep aynı anda akar; sort ise bütün girdiyi görmeden yazamaz, uniq de ondan önce bir şey alamaz.",
+x:["Boru hattı kurmak",`$ journalctl -b -k | grep -i usb | tail -5
+$ du -sh ~/* 2>/dev/null | sort -h | tail -5      # en büyük 5 dizin
+$ ps aux | sort -k4 -nr | head -3                 # en çok bellek kullanan
+$ false | true; echo $?
+0
+$ set -o pipefail; false | true; echo $?
+1
+$ false | true; echo "\${PIPESTATUS[@]}"
+1 0`]},
+
+{id:"heredoc",c:"yonlendirme",a:"<<EOF · <<<",f:"Here documents and here strings",tr:"Satır içi belge",y:"çok satırlı girdi",
+o:"Bir komutun standart girdisini, ayrı bir dosya oluşturmadan doğrudan betiğin içine yazılmış metinden vermek.",
+h:"<<EOF ile başlayan satırdan sonra, yalnızca EOF yazan bir satıra kadar olan her şey komuta standart girdi olarak verilir. Bitiş sözcüğü serbesttir; EOF yalnızca bir gelenektir. Bitiş sözcüğü tırnaksızsa metnin içindeki $değişken ve $(komut) genişletilir; <<'EOF' biçiminde tırnaklanırsa metin harfiyen alınır. Bu ayrım, içinde $ işareti geçen bir yapılandırma ya da betik yazarken önemlidir. <<-EOF, satır başlarındaki sekmeleri (boşlukları değil) siler; böylece girintili kod içinde düzgün görünür. <<< \"metin\" ise tek satırlık here-string'dir ve sonuna satır sonu ekler. Kök yetkisi gereken bir dosyaya yazmak için heredoc, sudo tee ile birleştirilir. fish heredoc desteklemez; yerine printf ya da echo ile boru kullanılır.",
+t:[["<<EOF","Değişkenler genişler"],["<<'EOF'","Harfiyen (genişletme yok)"],["<<-EOF","Baştaki sekmeler silinir"],["<<< \"metin\"","Tek satır (here-string), sonuna \\n eklenir"],["Kök dosyaya yazma","sudo tee dosya <<'EOF'"],["fish","Yok · printf '%s\\n' a b | komut"]],
+d:{k:"seq",a:["Betik","Kabuk","sudo tee","/etc/…/sysctl.conf"],s:[[0,1,"<<'EOF' … EOF","q"],[1,1,"metni geçici girdiye yaz","n"],[1,2,"stdin = metin","q"],[2,3,"root olarak yaz","q"],[2,1,"metni stdout'a da bas","r"]]},
+cap:"Metin, dosya olmadan komutun standart girdisi olur; tee onu kök yetkisiyle hedefe yazar.",
+x:["Yapılandırma dosyası yazmak",`$ sudo tee /etc/sysctl.d/90-zram.conf > /dev/null <<'EOF'
+vm.swappiness = 180
+vm.page-cluster = 0
+EOF
+$ cat <<EOF
+Kullanıcı: $USER
+Dizin:     $PWD
+EOF
+Kullanıcı: efe
+Dizin:     /home/efe
+$ grep -o '[0-9]\\+' <<< "sürüm 4.2.17"
+4
+2
+17`]},
+
+{id:"tee",c:"yonlendirme",a:"tee",f:"Read from stdin, write to stdout and files",tr:"Akışı ikiye ayırmak",y:"T bağlantısı",
+o:"Standart girdiden okuduğunu hem standart çıktıya hem de bir ya da daha fazla dosyaya yazan, adını tesisatçının T bağlantısından alan araç.",
+h:"tee bir boru hattının ortasına konup akışı dallandırır: veri bir yandan dosyaya kaydedilirken öbür yandan sonraki komuta ya da ekrana gitmeye devam eder. Uzun bir derlemenin çıktısını hem izleyip hem kaydetmek için make 2>&1 | tee build.log yazılır. -a dosyanın üzerine yazmak yerine sonuna ekler. tee'nin ikinci önemli kullanımı yetki sorunudur: sudo echo x > /etc/dosya çalışmaz, çünkü yönlendirmeyi sudo değil, senin yetkisiz kabuğun kurar. echo x | sudo tee /etc/dosya ise çalışır, çünkü dosyayı root olarak çalışan tee açar. Çıktıyı ekranda görmek istemiyorsan tee'nin çıktısı > /dev/null ile atılır.",
+t:[["Temel","komut | tee dosya"],["Ekle","tee -a dosya"],["Birden çok dosya","tee a.log b.log"],["Kök dosyası","echo x | sudo tee /etc/f > /dev/null"],["Neden sudo echo > olmaz","Yönlendirmeyi kabuk (sen) açar, sudo değil"],["Ara aşama kaydı","a | tee ara.txt | b"]],
+d:{k:"seq",a:["Kabuk (efe)","sudo","tee (root)","/etc/hosts"],s:[[0,3,"> /etc/hosts açmayı dene","e"],[3,0,"Permission denied","e"],[0,1,"echo … | sudo tee -a","q"],[1,2,"root olarak başlat","q"],[2,3,"dosyayı aç ve ekle","q"],[2,0,"satırı ekrana da bas","r"]]},
+cap:"Yetki, dosyayı açan sürece aittir. tee'yi sudo ile çalıştırmak dosyayı root'un açmasını sağlar.",
+x:["Kaydederken izlemek, root olarak yazmak",`$ cargo build --release 2>&1 | tee derleme.log
+$ sudo echo "203.0.113.10 vds" >> /etc/hosts
+bash: /etc/hosts: Permission denied
+$ echo "203.0.113.10 vds" | sudo tee -a /etc/hosts
+203.0.113.10 vds
+$ ip -br a | tee ag-durumu.txt | grep UP`]},
+
+{id:"surec-ikamesi",c:"yonlendirme",a:"<( ) >( )",f:"Process substitution",tr:"Süreç ikamesi",y:"çıktıyı dosya gibi ver",
+o:"Bir komutun çıktısını, dosya adı bekleyen başka bir komuta geçici bir dosya yolu olarak vermek.",
+h:"Bazı araçlar standart girdiden değil, dosya adlarından okur ve birden fazla girdi ister: diff iki dosya, comm iki sıralı liste, paste birkaç sütun ister. <(komut) yazıldığında kabuk komutu bir boruyla başlatır ve onun yerine /dev/fd/63 gibi bir yol koyar; okuyan program bunu sıradan bir dosya sanır. Böylece iki komutun çıktısı geçici dosya oluşturmadan karşılaştırılabilir. Ters yönü >(komut), bir dosyaya yazılan veriyi o komuta gönderir; tee ile birleşince akış birden fazla sürece dağıtılabilir. Yol bir boru olduğu için ileri geri atlanamaz; dosyada geriye dönmeye çalışan programlarla (lseek) çalışmaz. bash ve zsh destekler, POSIX sh desteklemez. fish'te aynı iş (komut | psub) ile yapılır.",
+t:[["Okuma","diff <(cmd1) <(cmd2)"],["Yazma","tee >(gzip > a.gz) >(sha256sum)"],["Gerçekte ne","/dev/fd/63 gibi bir boru yolu"],["Kısıt","Geri sarma (seek) yok; tek geçiş"],["Destek","bash, zsh · fish: (cmd | psub) · sh: yok"]],
+d:{k:"seq",a:["Kabuk","ls ~/A","ls ~/B","diff"],s:[[0,1,"<( ) için başlat","q"],[0,2,"<( ) için başlat","q"],[0,3,"diff /dev/fd/63 /dev/fd/62","q"],[1,3,"boru 63 üzerinden","r"],[2,3,"boru 62 üzerinden","r"],[3,0,"farklar","r"]]},
+cap:"diff iki dosya okuduğunu sanır; aslında iki canlı süreçten akan borulardır.",
+x:["İki komutun çıktısını karşılaştırmak",`$ diff <(ls ~/Müzik) <(ls /mnt/yedek/Müzik)
+< yeni-albüm
+$ echo <(true)
+/dev/fd/63
+$ comm -13 <(pacman -Qqe | sort) <(sort paket-listesi.txt)   # listede olup kurulu olmayanlar
+$ curl -sL https://example.com/iso | tee >(sha256sum > iso.sha256) > imaj.iso
+> diff (ls ~/Müzik | psub) (ls /mnt/yedek/Müzik | psub)    # fish`]},
+
+{id:"xargs",c:"yonlendirme",a:"xargs",f:"Build and execute command lines from input",tr:"Girdiden argüman listesi",y:"satırları argümana çevir",
+o:"Standart girdiden okuduğu öğeleri bir komutun argümanları olarak dizip, gerekirse birkaç parça halinde çalıştıran araç.",
+h:"Birçok komut (rm, chmod, gzip) dosya adlarını standart girdiden değil argüman olarak alır. xargs bu boşluğu kapatır: find . -name '*.tmp' | xargs rm, find'ın bulduğu adları rm'ye argüman olarak verir. Bir komut satırının uzunluğunun bir sınırı (ARG_MAX, genellikle 2 MiB) olduğu için xargs listeyi gerekirse birkaç çağrıya böler; \"Argument list too long\" hatasının çaresidir. Varsayılan olarak boşlukta ve satır sonunda böldüğü için boşluklu dosya adlarında yanlış çalışır; güvenli yol find -print0 | xargs -0 ile NUL ayırıcı kullanmaktır. -n her çağrıdaki argüman sayısını, -I {} argümanın komut içindeki yerini belirler, -P ise işleri paralel çalıştırır. Basit durumlarda find -exec komut {} + aynı işi tek başına yapar.",
+t:[["Temel","girdi | xargs komut"],["Güvenli ayırıcı","find … -print0 | xargs -0 · -d '\\n'"],["Yer tutucu","-I {} komut {} hedef/"],["Paralel","-P 8 (8 iş aynı anda) · -P \"$(nproc)\" çekirdek sayısı kadar"],["Parça boyutu","-n 1 · -L 1 (satır başına)"],["Boş girdide","-r: hiç çalıştırma (GNU)"],["Sınır","getconf ARG_MAX"]],
+d:{k:"seq",a:["find","xargs","gzip (1)","gzip (2)"],s:[[0,1,"a.log\\0b.log\\0…","q"],[1,1,"listeyi ARG_MAX'e göre böl","n"],[1,2,"gzip a.log … m.log","q"],[1,3,"gzip n.log … z.log","q"],[2,1,"çıkış 0","r"],[3,1,"çıkış 0","r"]]},
+cap:"xargs uzun bir listeyi sığacak parçalara böler; -P ile parçalar aynı anda çalışabilir.",
+x:["Güvenli ve paralel kullanım",`$ rm ~/İndirilenler/*.part
+bash: /usr/bin/rm: Argument list too long
+$ find ~/İndirilenler -name '*.part' -print0 | xargs -0 -r rm --
+$ find . -name '*.png' -print0 | xargs -0 -P "$(nproc)" -n 8 oxipng -o 3
+$ cat sunucular.txt | xargs -I {} ssh {} uptime
+$ getconf ARG_MAX
+2097152`]},
+
+/* ---------- DOSYA ---------- */
+{id:"ls",c:"dosya",a:"ls",f:"List directory contents",tr:"Dizin içeriğini listele",y:"coreutils",
+o:"Bir dizindeki dosyaları ve isteğe bağlı olarak türlerini, izinlerini, sahiplerini, boyutlarını ve zamanlarını listeleyen komut.",
+h:"Tek başına ls gizli olmayan girdileri ada göre sıralı listeler. -l uzun biçimi açar: tür ve izinler, bağlantı sayısı, sahip, grup, boyut, değişiklik zamanı ve ad. -a nokta ile başlayan gizli dosyaları, -A ise . ve .. dışındaki gizlileri gösterir. -h boyutları K, M, G ile okunaklı yazar, -t zamana, -S boyuta göre sıralar, -r sırayı ters çevirir. -d bir dizinin içini değil kendisini listeler; -R alt dizinlere iner. ls'in çıktısı insanlar içindir: betiklerde dosya adlarını ls ile ayrıştırmak, boşluklu ya da satır sonu içeren adlarda bozulur; glob ya da find kullanılmalıdır. eza, aynı işi renkler, git durumu ve ağaç görünümüyle yapan modern bir alternatiftir.",
+t:[["Uzun biçim","-l (izin, sahip, boyut, zaman)"],["Gizliler","-a hepsi · -A . ve .. hariç"],["Okunaklı","-h (4.0K, 12M)"],["Sıralama","-t zaman · -S boyut · -v doğal sayı · -r ters"],["Tek dizin","-d (içini değil kendini)"],["Diğer","-i inode · -1 satır başına bir · --group-directories-first"],["Modern","eza -l --git · eza -T (ağaç)"]],
+d:{k:"stack",l:["-rw-r--r--|tür + izinler","1|sabit bağlantı sayısı","efe efe|sahip, grup","482K|boyut (-h ile)","Oct 9 14:22|son değişiklik (mtime)","rapor.pdf|ad"]},
+cap:"ls -lh çıktısının bir satırı, soldan sağa.",
+x:["Sık kullanılan ls biçimleri",`$ ls -lhA ~/proje
+total 28K
+drwxr-xr-x 1 efe efe  120 Oct 11 20:41 .git
+-rw-r--r-- 1 efe efe  412 Oct 10 18:02 Cargo.toml
+drwxr-xr-x 1 efe efe   34 Oct 11 20:40 src
+-rwxr-xr-x 1 efe efe 1.3K Oct  8 09:15 kur.sh
+$ ls -lt ~/İndirilenler | head -4      # en yeni 3 dosya
+$ ls -lS --block-size=M *.iso          # boyuta göre
+$ ls -ld /tmp
+drwxrwxrwt 18 root root 440 Oct 12 09:01 /tmp`]},
+
+{id:"cd",c:"dosya",a:"cd · pwd",f:"Changing directories",tr:"Dizinler arasında gezinmek",y:"yerleşik",
+o:"Kabuğun geçerli çalışma dizinini değiştirmek ve göstermek; göreli yolların hangi dizine göre çözüleceğini bu dizin belirler.",
+h:"Her sürecin bir çalışma dizini vardır ve / ile başlamayan her yol buna göre çözülür. cd bu dizini değiştirdiği için yerleşik bir komut olmak zorundadır. Argümansız cd ev dizinine, cd - bir önceki dizine, cd .. bir üste götürür; . geçerli dizin, ~ ise ev dizinidir. pwd geçerli dizini yazar; sembolik bağlantılar üzerinden gelindiyse -P gerçek yolu gösterir. pushd ve popd dizinleri bir yığına koyup geri dönmeyi sağlar; dirs -v yığını listeler. fish'te cd'nin geçmişi tutulur: prevd ve nextd ile ya da Alt-← ve Alt-→ ile geri ve ileri gidilir. zoxide, sık gittiğin dizinleri öğrenip z proje gibi kısa adlarla atlamanı sağlar.",
+t:[["Ev dizini","cd · cd ~"],["Önceki dizin","cd - (OLDPWD)"],["Üst dizin","cd .."],["Yığın","pushd /etc · popd · dirs -v"],["Gerçek yol","pwd -P · readlink -f ."],["fish","prevd / nextd · Alt-← Alt-→ · cdh"],["Akıllı atlama","zoxide: z proje · zi (fzf ile)"]],
+d:{k:"seq",a:["Sen","Kabuk","Dizin yığını"],s:[[0,1,"pushd /etc","q"],[1,2,"~/proje'yi it","q"],[0,1,"cd systemd/network","q"],[0,1,"popd","q"],[2,1,"~/proje","r"],[1,0,"geri döndün","r"]]},
+cap:"pushd ve popd, nereden geldiğini hatırlayarak geçici olarak başka bir dizine gitmeni sağlar.",
+x:["Gezinme kısayolları",`$ cd /var/log/journal
+$ cd -          # önceki dizine dön
+/home/efe
+$ pushd /etc/systemd > /dev/null
+$ pushd network > /dev/null
+$ dirs -v
+ 0  /etc/systemd/network
+ 1  /etc/systemd
+ 2  ~
+$ popd; popd
+$ zoxide init fish | source     # ~/.config/fish/config.fish içine
+> z atlas                        # ~/kod/atlas'a atlar`]},
+
+{id:"cp-mv",c:"dosya",a:"cp · mv",f:"Copy and move",tr:"Kopyalamak ve taşımak",y:"coreutils",
+o:"cp dosyaların içeriğini yeni bir yere kopyalar; mv ise bir dosyanın adını ya da yerini değiştirir.",
+h:"cp kaynak hedef bir dosyayı kopyalar; hedef bir dizinse dosya onun içine aynı adla konur. Dizinleri kopyalamak için -r gerekir. -a (arşiv) özyineleme ile birlikte izinleri, sahipliği, zamanları ve sembolik bağlantıları korur; yedek almak için doğru seçenektir. GNU coreutils 9'dan beri cp, btrfs ve XFS'te varsayılan olarak reflink dener: kopya anında oluşur ve veri blokları değişene kadar paylaşılır. mv aynı dosya sistemi içinde yalnızca dizin girdisini değiştirir (rename), bu yüzden 50 GB'lık bir dosyayı bile anında taşır. Farklı bir dosya sistemine taşırken ise önce kopyalar, sonra kaynağı siler. İkisi de hedef varsa sormadan üzerine yazar; -i sorar, -n hiç yazmaz, -b eskisinin yedeğini alır. Hedef dizinin sonuna / koymak, dizin yoksa yanlışlıkla dosya oluşmasını engeller.",
+t:[["Dizin kopyala","cp -r · korunarak: cp -a"],["Üzerine yazma","-i sor · -n atla · -b yedekle · -u yalnızca daha yeniyse"],["Ayrıntı","-v (ne yapıldığını yaz)"],["Reflink","cp --reflink=auto (coreutils 9+ varsayılan) · always"],["mv aynı FS","rename(): anında, veri taşınmaz"],["mv farklı FS","Kopyala + sil"],["İlerleme","rsync -aP (cp'de ilerleme çubuğu yok)"]],
+d:{k:"seq",a:["mv","Çekirdek","/home (btrfs)","/mnt/usb (exFAT)"],s:[[0,1,"rename(a.mkv, arşiv/a.mkv)","q"],[1,2,"dizin girdisini taşı","q"],[1,0,"anında bitti","r"],[0,1,"rename(→ /mnt/usb)","q"],[1,0,"EXDEV: farklı FS","e"],[0,3,"kopyala (dakikalar)","q"],[0,2,"kaynağı sil","q"]]},
+cap:"Aynı dosya sisteminde taşıma yalnızca bir ad değişikliğidir; farklı dosya sisteminde tam bir kopyadır.",
+x:["Güvenli kopyalama ve taşıma",`$ cp -av ~/Belgeler /mnt/yedek/          # izinleri ve zamanları koru
+$ cp --reflink=always vm.qcow2 vm-yedek.qcow2   # btrfs: anında kopya
+$ mv -iv rapor.pdf ~/Arşiv/
+mv: overwrite '/home/efe/Arşiv/rapor.pdf'? n
+$ mv -n *.jpg ~/Resimler/                 # var olanların üzerine yazma
+$ cp ayar.toml ~/.config/uygulamam/       # sondaki / : dizin yoksa hata verir
+cp: cannot create regular file '/home/efe/.config/uygulamam/': Not a directory`]},
+
+{id:"rm",c:"dosya",a:"rm",f:"Remove files or directories",tr:"Silmek",y:"geri dönüşü yok",
+o:"Dosyaları ve dizinleri silen komut. Çöp kutusu yoktur: silinen dosya geri alınamaz.",
+h:"rm dosyanın dizin girdisini kaldırır (unlink); başka bağlantısı ya da onu açık tutan bir süreç yoksa veri blokları serbest kalır. Masaüstündeki çöp kutusuna gitmez. -r dizinleri içleriyle birlikte siler, -f hiç sormaz ve olmayan dosyalar için hata vermez. -i her dosya için sorar; -I ise yalnızca üçten fazla dosya ya da özyinelemeli silme için bir kez sorar ve iyi bir varsayılan takma addır. GNU rm, / dizinini --no-preserve-root verilmedikçe silmeyi reddeder. Asıl tehlike betiklerdeki boş değişkendir: rm -rf \"$DIZIN/\" satırında DIZIN boşsa komut rm -rf / olur. ${DIZIN:?} biçimi bunu önler. Boş dizinler için rmdir daha güvenlidir, çünkü içi doluysa reddeder. Geri alınabilir silme için trash-cli (trash-put) ya da KDE'de kioclient move dosya trash:/ kullanılabilir.",
+t:[["Dizin","-r (özyinelemeli) · boşsa rmdir"],["Sorma","-i her dosya · -I bir kez (önerilen)"],["Zorla","-f (sorma, yoksa hata verme)"],["Koruma","--preserve-root (varsayılan) · --one-file-system"],["Betikte","rm -rf -- \"${D:?}/\"*"],["Çöp kutusu","trash-put dosya · kioclient move dosya trash:/"],["Geri kazanım","Pratikte yok; yedeğe güven"]],
+d:{k:"seq",a:["Betik","Kabuk","rm"],s:[[0,0,"DIZIN değişkeni boş","n"],[0,1,"rm -rf \"$DIZIN/\"","q"],[1,2,"argv: rm -rf /","e"],[0,1,"rm -rf \"${DIZIN:?}/\"","q"],[1,0,"DIZIN: boş, durduruldu","r"]]},
+cap:"Boş bir değişken tek bir satırı yıkıcı hale getirebilir; :? genişletmesi kabuğun komutu hiç çalıştırmamasını sağlar.",
+x:["Daha güvenli silme alışkanlıkları",`$ alias rm='rm -I'                  # ~/.bashrc · fish: alias rm 'rm -I'
+$ rm -r eski-proje/
+rm: remove 1 argument recursively? y
+$ rm -- '-garip-ad.txt'             # tireyle başlayan ad
+$ rmdir bos-dizin/ dolu-dizin/
+rmdir: failed to remove 'dolu-dizin/': Directory not empty
+$ trash-put rapor-taslak.docx       # trash-cli: geri alınabilir
+$ trash-list; trash-restore`]},
+
+{id:"mkdir-touch",c:"dosya",a:"mkdir · touch · mktemp",f:"Creating directories and files",tr:"Dizin ve dosya oluşturmak",y:"coreutils",
+o:"Dizin oluşturan mkdir, boş dosya oluşturan ya da zaman damgasını güncelleyen touch ve güvenli geçici dosya oluşturan mktemp.",
+h:"mkdir dizin oluşturur; -p eksik üst dizinleri de oluşturur ve dizin zaten varsa hata vermez, bu yüzden betiklerde neredeyse her zaman -p ile kullanılır. -m izinleri doğrudan verir: mkdir -m 700 ~/.gizli. touch asıl olarak bir dosyanın erişim ve değişiklik zamanını şu ana çeker; dosya yoksa boş olarak oluşturur. -d ya da -t ile zamanı istediğin tarihe ayarlayabilirsin; make gibi zaman damgasına bakan araçlarla çalışırken işe yarar. Betiklerde /tmp/benim.txt gibi sabit adlar kullanmak, aynı anda çalışan iki kopyanın çakışmasına ve güvenlik açıklarına yol açar. mktemp benzersiz adlı bir dosya (-d ile dizin) oluşturup yolunu yazar. install -D ise bir dosyayı gerekli dizinleri oluşturarak ve izinlerini ayarlayarak tek adımda yerine koyar.",
+t:[["Üst dizinlerle","mkdir -p a/b/c"],["İzinle","mkdir -m 700 dizin"],["Zamanı güncelle","touch dosya · touch -d '2 days ago' f"],["Oluşturmadan","touch -c (yoksa oluşturma)"],["Geçici","mktemp · mktemp -d · mktemp --suffix=.json"],["Yerleştir","install -Dm644 kaynak /hedef/yol/dosya"]],
+d:{k:"stack",l:["mkdir -p ~/kod/atlas/assets|komut","~/kod|yoksa oluştur","~/kod/atlas|yoksa oluştur","~/kod/atlas/assets|oluştur","varsa hata yok|betikte güvenli"]},
+cap:"-p, yolun her bileşenini sırayla kontrol eder ve yalnızca eksik olanları oluşturur.",
+x:["Dizin, dosya ve geçici alan",`$ mkdir -p ~/kod/atlas/{assets,src}
+$ touch ~/kod/atlas/README.md
+$ touch -d '2026-01-01 00:00' eski.txt; ls -l eski.txt
+-rw-r--r-- 1 efe efe 0 Jan  1  2026 eski.txt
+$ tmp=$(mktemp -d)
+$ echo "$tmp"
+/tmp/tmp.k3Jx8qLw2Z
+$ trap 'rm -rf -- "$tmp"' EXIT       # betik bitince temizle
+$ sudo install -Dm644 99-stlink.rules /etc/udev/rules.d/99-stlink.rules`]},
+
+{id:"find",c:"dosya",a:"find",f:"Search for files in a directory hierarchy",tr:"Dosya aramak",y:"findutils",
+o:"Bir dizin ağacını gezip ada, türe, boyuta, zamana ya da izne göre süzdüğü dosyalar üzerinde eylem yapan komut.",
+h:"find yol [testler] [eylemler] biçiminde çalışır: verilen dizinden başlayıp her girdiyi sırayla testlerden geçirir, hepsini geçenler için eylemi yapar. Varsayılan eylem -print'tir. -name ve -iname glob ile ada bakar (deseni tırnakla, yoksa kabuk açar); -type f dosya, d dizin, l bağlantı seçer. -mtime -7 son 7 günde değişenleri, -size +100M 100 MiB'tan büyükleri, -newer referans dosyasından yenileri bulur. -maxdepth derinliği sınırlar; -prune bir dizine hiç girmemeyi sağlar. Testler varsayılan olarak VE ile birleşir; -o VEYA, ! DEĞİL demektir ve gruplamak için kaçırılmış parantez \\( \\) gerekir. -exec komut {} + bulunanları gruplayarak bir komuta verir, -delete siler. Silmeden önce aynı komutu -print ile denemek iyi alışkanlıktır.",
+t:[["Ad","-name '*.log' · -iname · -path '*/build/*'"],["Tür","-type f · d · l"],["Zaman","-mtime -7 (gün) · -mmin -30 · -newer f"],["Boyut","-size +100M · -size -1k · -empty"],["Derinlik","-maxdepth 2 · -mindepth 1"],["Mantık","VE (varsayılan) · -o · ! · \\( \\)"],["Eylem","-print · -print0 · -exec cmd {} + · -delete · -ls"]],
+d:{k:"stack",l:["find ~/kod -name target -prune -o|1. target dizinlerine hiç girme","-type f|2. yalnızca sıradan dosyalar","-name '*.rs'|3. adı .rs ile biten","-mtime -2|4. son 2 günde değişmiş","-print|5. yazdır"]},
+cap:"Her girdi testleri soldan sağa geçer; biri başarısız olursa geri kalanına bakılmaz.",
+x:["Sık kullanılan find kalıpları",`$ find ~/kod -name target -prune -o -type f -name '*.rs' -mtime -2 -print
+$ find / -xdev -type f -size +1G 2>/dev/null       # tek dosya sisteminde büyük dosyalar
+$ find ~/İndirilenler -type f -mtime +30 -print     # önce bak
+$ find ~/İndirilenler -type f -mtime +30 -delete    # sonra sil
+$ find . -type f -name '*.sh' -exec chmod +x {} +
+$ find . -type d -empty -delete                     # boş dizinleri temizle
+$ find /etc -newer /etc/pacman.conf -type f         # pacman.conf'tan sonra değişenler`]},
+
+{id:"fd-locate",c:"dosya",a:"fd · locate",f:"Fast file search",tr:"Hızlı dosya arama",y:"modern ve dizinli",
+o:"Gündelik aramalar için find'dan daha kısa sözdizimli fd ile önceden oluşturulmuş bir veritabanında anında arayan plocate.",
+h:"fd, find'ın en sık kullanılan işini kısa bir sözdizimiyle yapar: fd desen, geçerli dizinin altında adında desen geçen her şeyi bulur. Desen varsayılan olarak düzenli ifadedir (-g ile glob), büyük harf yazmadıkça büyük-küçük harf duyarsızdır. Gizli dosyaları ve .gitignore'da listelenenleri varsayılan olarak atlar; -H gizlileri, -I yok sayılanları da dahil eder. -e uzantıya, -t türe göre süzer; -x her sonuç için, -X bütün sonuçlarla bir kez komut çalıştırır. Birden çok iş parçacığıyla çalıştığı için büyük ağaçlarda hızlıdır. locate ise diski hiç taramaz: updatedb'nin düzenli aralıklarla oluşturduğu veritabanında arar, bu yüzden anında yanıt verir ama son güncellemeden sonra oluşan dosyaları bilmez. Arch tabanlı sistemlerde plocate paketi ve plocate-updatedb.timer ile gelir.",
+t:[["fd temel","fd desen [dizin] (regex, harf duyarsız)"],["Uzantı / tür","-e rs · -t f · -t d · -t x (çalıştırılabilir)"],["Gizli / yok sayılan","-H · -I · -u (ikisi birden)"],["Komut","-x cmd {} (her biri) · -X cmd (hepsi)"],["Arch paketi","fd"],["locate","plocate desen · sudo updatedb"],["Zamanlayıcı","plocate-updatedb.timer"]],
+d:{k:"seq",a:["Sen","plocate","Veritabanı","Disk"],s:[[3,2,"updatedb (günde bir)","q"],[0,1,"locate fstab","q"],[1,2,"dizinde ara","q"],[2,1,"/etc/fstab …","r"],[1,0,"milisaniyeler içinde","r"]]},
+cap:"locate diski taramaz; hız, sonuçların en son updatedb anına ait olmasıyla ödenir.",
+x:["fd ve locate",`$ fd '\\.toml$' ~/kod
+kod/atlas/Cargo.toml
+kod/stm32-emu/Cargo.toml
+$ fd -e jpg -e png --changed-within 1week ~/Resimler
+$ fd -H -t f '^\\.env' ~/kod            # gizli .env dosyaları
+$ fd -e md -X wc -l                     # bütün markdown dosyalarının satır sayısı
+$ sudo pacman -S plocate && sudo systemctl enable --now plocate-updatedb.timer
+$ locate -i readme | head -3`]},
+
+{id:"tar",c:"dosya",a:"tar",f:"Tape archiver",tr:"Arşivlemek ve sıkıştırmak",y:"tar + zstd/gzip/xz",
+o:"Birçok dosyayı, izinleri ve dizin yapısıyla birlikte tek bir akışa paketleyen arşivleyici; sıkıştırma ayrı bir katman olarak eklenir.",
+h:"tar adını teyp yedeklemesinden alır ve hâlâ aynı fikirle çalışır: dosyaları başlıklarıyla birlikte arka arkaya dizip tek bir akış oluşturur. Kendisi sıkıştırmaz; akış gzip, xz ya da zstd gibi bir sıkıştırıcıdan geçirilir ve sonuç .tar.gz, .tar.xz, .tar.zst uzantılarını alır. Üç ana kipi vardır: -c oluştur, -x çıkar, -t listele; -f arşiv dosyasının adını alır ve hemen ardından yazılmalıdır. GNU tar çıkarırken sıkıştırma türünü kendisi tanır, oluştururken -a seçeneğiyle uzantıya bakarak seçer. -C hedef dizini belirler, --exclude dışarıda bırakır. zstd hız ile oranı en iyi dengeleyen seçenektir ve Arch paketleri de .pkg.tar.zst biçimindedir. Windows ile paylaşılacak dosyalar için zip ve unzip daha uygundur.",
+t:[["Oluştur","tar -caf arsiv.tar.zst dizin/ (-a: uzantıdan seç)"],["Çıkar","tar -xf arsiv.tar.zst [-C hedef]"],["Listele","tar -tf arsiv.tar.zst"],["Sıkıştırıcı","--zstd · -z gzip · -J xz · -j bzip2"],["Dışla","--exclude='*.o' · --exclude-vcs"],["Korumak","-p izinler (root iken varsayılan) · --xattrs --acls"],["Zip","zip -r a.zip dizin · unzip a.zip -d hedef"]],
+d:{k:"stack",l:["dosyalar ve dizinler|izin, sahip, zaman","tar|başlık + veri, art arda","tek bir akış|.tar (sıkıştırılmamış)","zstd|sıkıştırma katmanı","yedek.tar.zst|disk ya da ağ"]},
+cap:"Arşivleme ve sıkıştırma ayrı katmanlardır; tar ikisini tek komutta birleştirir.",
+x:["Arşiv oluşturmak, incelemek, açmak",`$ tar -caf proje-$(date +%F).tar.zst --exclude=target --exclude-vcs ~/kod/proje
+$ tar -tf proje-2026-10-12.tar.zst | head -3
+home/efe/kod/proje/
+home/efe/kod/proje/Cargo.toml
+home/efe/kod/proje/src/
+$ mkdir -p /tmp/ac && tar -xf proje-2026-10-12.tar.zst -C /tmp/ac
+$ tar -xf arsiv.tar.gz --strip-components=1 -C hedef/   # üst klasörü atla
+$ ssh vds 'tar -czf - /srv/veri' > vds-veri.tar.gz       # uzaktan arşivi akıt`]},
+
+{id:"rsync",c:"dosya",a:"rsync",f:"Remote sync",tr:"Dosya eşitleme",y:"yerel ve SSH üzerinden",
+o:"İki dizini, yalnızca değişen dosyaları ve hatta yalnızca dosyaların değişen kısımlarını aktararak eşitleyen araç.",
+h:"rsync kaynak ile hedefi karşılaştırır ve varsayılan olarak boyutu ve değişiklik zamanı farklı olan dosyaları aktarır. Uzak bir hedefe giderken iki uçta da rsync çalışır ve değişen dosyaları blok blok karşılaştırıp yalnızca farklı blokları gönderir; bu yüzden bir kez kopyalanmış büyük bir dizini güncellemek çok hızlıdır. -a arşiv kipidir: özyineleme, izinler, zamanlar, bağlantılar. -v ayrıntı, -h okunaklı boyut, -P ilerleme ve yarıda kalanı sürdürme sağlar. --delete kaynakta olmayanları hedeften siler ve tam bir ayna oluşturur; -n (--dry-run) ile önce ne olacağını görmek gerekir. Kaynak yolunun sonundaki / anlamı değiştirir: rsync -a foto/ hedef/ fotonun içeriğini, rsync -a foto hedef/ ise foto dizininin kendisini kopyalar. Uzak yollar ssh üzerinden kullanici@sunucu:/yol biçiminde yazılır.",
+t:[["Temel","rsync -avhP kaynak/ hedef/"],["Ayna","--delete (önce -n ile dene)"],["Sondaki /","foto/ = içerik · foto = dizinin kendisi"],["Uzak","rsync -avz ~/site/ vds:/srv/site/"],["Dışla","--exclude='node_modules' · --exclude-from=liste"],["Karşılaştırma","Varsayılan: boyut + mtime · -c sağlama toplamı"],["Korumak","-AX (ACL, xattr) · -H (sabit bağlantılar)"]],
+d:{k:"seq",a:["rsync (yerel)","ssh","rsync (VDS)"],s:[[0,1,"bağlan, uzakta rsync başlat","q"],[2,0,"dosya listesi + blok sağlamaları","r"],[0,0,"değişen blokları bul","n"],[0,2,"yalnızca farklı bloklar","q"],[2,2,"dosyayı yeniden kur","n"],[2,0,"tamam","r"]]},
+cap:"Uzak eşitlemede rsync tüm dosyayı değil, yalnızca değişen blokları gönderir.",
+x:["Yedek ve dağıtım",`$ rsync -avhP --delete -n ~/Belgeler/ /mnt/yedek/Belgeler/   # önce kuru çalıştırma
+$ rsync -avhP --delete ~/Belgeler/ /mnt/yedek/Belgeler/
+sending incremental file list
+rapor.pdf
+        482.11K 100%   51.20MB/s    0:00:00
+$ rsync -avz --delete --exclude='.git' ~/kod/site/ efe@vds:/srv/site/
+$ rsync -a foto  /mnt/yedek/    # → /mnt/yedek/foto/...
+$ rsync -a foto/ /mnt/yedek/    # → /mnt/yedek/... (içerik)`]},
+/* ---------- METİN ---------- */
+{id:"cat-less",c:"metin",a:"cat · less",f:"Concatenate and page",tr:"Dosya görüntülemek",y:"okuma",
+o:"cat dosyaları art arda standart çıktıya döker; less ise uzun metni sayfa sayfa, aranabilir biçimde gösterir.",
+h:"cat'in asıl görevi adından gelir: birden çok dosyayı birleştirip (concatenate) tek akış olarak basar. Kısa bir dosyaya göz atmak için de kullanılır; -n satır numarası ekler, -A sekme, satır sonu ve görünmez karakterleri gösterir ve Windows'tan gelen \\r karakterlerini ortaya çıkarır. Ekrana sığmayan her şey için less kullanılır: dosyanın tamamını belleğe almadan açar, bu yüzden gigabaytlık günlükler bile anında açılır. İçinde / ileri, ? geri arama yapar; n ve N sonraki ve önceki eşleşmeye, g ve G başa ve sona gider, q çıkar. F ya da less +F, tail -f gibi dosyanın sonunu canlı izler; Ctrl-C ile normal kipe dönülür. Renkli çıktıyı korumak için less -R gerekir. man, git log ve journalctl de çıktılarını less ile gösterir. bat, cat'in sözdizimi renklendirmeli ve satır numaralı bir alternatifidir.",
+t:[["cat","-n satır no · -A görünmezler · -s boş satırları sıkıştır"],["less gezinme","boşluk / b sayfa · g G baş/son · 50% ortası"],["less arama","/desen · ?desen · n N · &desen (yalnızca eşleşenler)"],["less canlı","F veya less +F dosya (Ctrl-C ile çık)"],["less renk","less -R · SAYFALAYICI: export PAGER=less"],["Modern","bat dosya (renk, satır no, git farkı)"]],
+d:{k:"seq",a:["less","Dosya (8 GB günlük)","Ekran"],s:[[0,1,"ilk ekranı oku","q"],[1,0,"~50 satır","r"],[0,2,"göster","r"],[0,1,"G: sona atla (seek)","q"],[1,0,"son satırlar","r"],[0,2,"göster","r"]]},
+cap:"less dosyayı baştan sona okumaz; yalnızca gösterdiği bölümü okur.",
+x:["Görüntüleme ve inceleme",`$ cat -A windows-dosyasi.txt | head -2
+Ad;Soyad^M$
+Efe;Çelik^M$
+$ less +G /var/log/pacman.log      # sondan başla
+$ less -R <(rg --color=always TODO ~/kod)
+$ journalctl -b | less             # zaten less kullanır
+$ bat --style=numbers src/main.rs`]},
+
+{id:"head-tail",c:"metin",a:"head · tail",f:"Output the first or last part of files",tr:"Başı ve sonu",y:"coreutils",
+o:"Bir dosyanın ya da akışın ilk veya son satırlarını gösteren, tail -f ile büyüyen bir dosyayı canlı izleyen komutlar.",
+h:"head varsayılan olarak ilk 10 satırı, tail son 10 satırı yazar; -n sayıyı, -c ise bayt sayısını belirler. head -n -5 son 5 satır dışındaki her şeyi, tail -n +2 ise ikinci satırdan itibaren her şeyi verir; ikincisi bir CSV'nin başlık satırını atlamanın kısa yoludur. tail -f dosyanın sonunu izler ve eklenen satırları geldikçe basar; günlük takibinin klasik yoludur. Döndürülen (logrotate ile yeniden adlandırılıp yeniden oluşturulan) günlüklerde -F gerekir, çünkü -f eski dosyayı izlemeye devam eder. --pid=PID, izlenen süreç bitince tail'i de sonlandırır. Bir boru hattında head, istediği satırları aldıktan sonra kapanır ve öndeki komutu SIGPIPE ile durdurur; bu yüzden pahalı bir komutun sonuna head eklemek işi kısaltır. systemd günlükleri için aynı işi journalctl -n ve journalctl -f yapar.",
+t:[["İlk / son N","head -n 20 · tail -n 20"],["Bayt","head -c 512 · tail -c 1K"],["Hariç","head -n -5 (son 5 hariç) · tail -n +2 (başlığı atla)"],["Canlı","tail -f · döndürülen günlük: tail -F"],["Süreçle bitir","tail -f log --pid=1234"],["journald","journalctl -n 50 · journalctl -f -u nginx"]],
+d:{k:"seq",a:["nginx","access.log","tail -F","Ekran"],s:[[0,1,"yeni satır ekle","q"],[1,2,"değişti (inotify)","e"],[2,3,"satırı bas","r"],[0,1,"logrotate: yeni dosya","e"],[2,1,"adı yeniden aç (-F)","q"],[2,3,"izlemeye devam","r"]]},
+cap:"-F, dosya yeniden oluşturulsa bile aynı adı izlemeye devam eder.",
+x:["Baş, son ve canlı izleme",`$ head -n 3 /etc/passwd
+root:x:0:0::/root:/usr/bin/bash
+bin:x:1:1::/:/usr/bin/nologin
+daemon:x:2:2::/:/usr/bin/nologin
+$ tail -n +2 satislar.csv | wc -l        # başlık hariç satır sayısı
+$ tail -F /var/log/nginx/access.log | grep --line-buffered ' 404 '
+$ sed -n '100,120p' büyük.log            # belirli satır aralığı`]},
+
+{id:"grep",c:"metin",a:"grep",f:"Global regular expression print",tr:"Desen arama",y:"GNU grep",
+o:"Dosyalarda ya da akışta bir düzenli ifadeye uyan satırları bulup yazan araç.",
+h:"grep her satırı desenle karşılaştırır ve eşleşenleri basar. -i büyük-küçük harfi yok sayar, -v eşleşmeyenleri gösterir, -w yalnızca tam sözcükleri, -x tam satırları eşler. -n satır numarasını, -c yalnızca eşleşme sayısını, -l yalnızca eşleşen dosyaların adlarını verir. -r dizinlerde özyinelemeli arar. -A, -B ve -C eşleşmenin sonrasından, öncesinden ya da iki yanından satır ekler. Varsayılan desen dili temel düzenli ifadedir (BRE); -E genişletilmiş (ERE) dili açar ve +, ?, | ve () karakterlerini kaçırmadan kullanmayı sağlar. -F deseni düz metin olarak alır ve nokta gibi karakterlerin özel anlamını kaldırır. -o yalnızca eşleşen parçayı basar. Çıkış kodu betikler için bilgidir: 0 bulundu, 1 bulunamadı, 2 hata. Bir boru hattında canlı akış süzerken --line-buffered gerekir.",
+t:[["Eşleme","-i harf duyarsız · -w sözcük · -x satır · -v ters"],["Çıktı","-n satır no · -c sayı · -l dosya adları · -o yalnızca eşleşme"],["Bağlam","-A 3 sonra · -B 3 önce · -C 3 iki yan"],["Özyineleme","-r · --include='*.c' · --exclude-dir=.git"],["Desen dili","BRE (varsayılan) · -E genişletilmiş · -F düz metin · -P Perl"],["Çıkış kodu","0 bulundu · 1 yok · 2 hata · -q sessiz"]],
+d:{k:"seq",a:["grep","Satır","Desen","stdout"],s:[[0,1,"satırı oku","q"],[1,2,"eşleşiyor mu?","q"],[2,0,"hayır","r"],[0,1,"sonraki satır","q"],[1,2,"eşleşiyor mu?","q"],[2,0,"evet","r"],[0,3,"satırı yaz","r"]]},
+cap:"grep satır odaklıdır: her satır ayrı ayrı sınanır ve ya basılır ya atılır.",
+x:["Gündelik grep kullanımı",`$ grep -n 'PermitRootLogin' /etc/ssh/sshd_config
+33:#PermitRootLogin prohibit-password
+$ grep -rn --include='*.rs' 'unsafe' ~/kod/stm32-emu/src
+$ grep -Ev '^\\s*(#|$)' /etc/pacman.conf      # yorum ve boş satırları at
+$ grep -c 'Failed password' /var/log/auth.log
+$ dmesg | grep -iC2 'usb 1-2'
+$ grep -oE '[0-9]{1,3}(\\.[0-9]{1,3}){3}' access.log | sort -u | head`]},
+
+{id:"ripgrep",c:"metin",a:"rg",f:"ripgrep",tr:"Hızlı özyinelemeli arama",y:"Rust",
+o:"Kod depolarında arama için tasarlanmış, varsayılan olarak özyinelemeli, .gitignore'a uyan ve çok hızlı bir grep alternatifi.",
+h:"rg desen yazıldığında geçerli dizinin altındaki bütün dosyalar aranır; ayrıca -r gerekmez. .gitignore, .ignore ve .rgignore dosyalarında listelenenleri, gizli dosyaları ve ikili dosyaları varsayılan olarak atlar. Bu yüzden bir projede node_modules ya da target dizinlerine takılmadan arar. Birden çok iş parçacığı ve Rust'ın regex motoru sayesinde büyük depolarda grep -r'den belirgin şekilde hızlıdır. -t rust ya da -t py gibi tür süzgeçleri, -g ile glob süzgeçleri vardır. -u bir kez gitignore'u, -uu gizli dosyaları, -uuu ikili dosyaları da aramaya katar. --hidden yalnızca gizlileri ekler. -F düz metin, -w sözcük, -i harf duyarsızlık, -S ise \"desen büyük harf içeriyorsa duyarlı ol\" demektir. -r ile değiştirilmiş çıktıyı önizleyebilir ama dosyaya yazmaz.",
+t:[["Temel","rg desen [dizin]"],["Tür / glob","-t rust · -T js (hariç) · -g '!*.min.js'"],["Kapsam","--hidden · -u · -uu · -uuu"],["Eşleme","-i · -S akıllı harf · -w · -F düz metin"],["Çıktı","-l dosyalar · -c sayılar · --json · --vimgrep"],["Değiştirme önizlemesi","rg 'eski' -r 'yeni' (dosyaya yazmaz)"],["Arch paketi","ripgrep"]],
+d:{k:"stack",l:["rg TODO ~/kod/atlas|komut",".gitignore ve .ignore oku|dışlanacakları belirle","gizli ve ikili dosyaları atla|varsayılan","dosyaları iş parçacıklarına dağıt|paralel tarama","eşleşmeleri dosyaya göre grupla|renkli çıktı"]},
+cap:"ripgrep'in hızının çoğu, bakmaması gereken yerlere bakmamasından gelir.",
+x:["Bir projede arama",`$ rg -t rust 'todo!\\(' ~/kod/stm32-emu
+src/periph/spi.rs
+88:        todo!("DMA ile SPI aktarımı")
+$ rg -l 'efe-clk' --hidden -g '!.git'
+$ rg -S 'PortRead'                 # büyük harf var: harfe duyarlı
+$ rg -c 'fn ' -t rust | sort -t: -k2 -nr | head -3
+$ rg 'localhost:\\d+' -r 'localhost:8080' -t toml   # yalnızca önizleme`]},
+
+{id:"sed",c:"metin",a:"sed",f:"Stream editor",tr:"Akış düzenleyicisi",y:"satır satır düzenleme",
+o:"Girdiyi satır satır okuyup bir betiğe göre değiştiren, en sık bul-değiştir için kullanılan etkileşimsiz düzenleyici.",
+h:"sed her satırı desen alanı (pattern space) adı verilen bir arabelleğe okur, betikteki komutları uygular ve sonucu yazar. En yaygın komut s/eski/yeni/ değiştirmedir: yalnızca ilk eşleşmeyi değiştirir, sona g eklenirse satırdaki hepsini değiştirir, I ise harf duyarlılığını kaldırır. Komutların önüne adres konabilir: 3s/// yalnızca 3. satırda, /^#/d yorum satırlarını siler, 10,20p belirli bir aralığı basar. -n otomatik basmayı kapatır; p ile yalnızca istenenler basılır. -i dosyayı yerinde değiştirir; -i.bak önce yedek alır. Desende / geçiyorsa ayırıcı serbestçe değiştirilebilir: s|/usr/local|/opt|. -E genişletilmiş regex'i açar; \\1 ve & yakalanan gruplara ve tüm eşleşmeye karşılık gelir. Not: macOS ve BSD sed'inde -i bir argüman ister (sed -i '' ...), GNU sed'de istemez.",
+t:[["Değiştir","s/a/b/ ilk · s/a/b/g hepsi · s/a/b/2 ikinci · I harf duyarsız"],["Adres","3 · $ son · /regex/ · 10,20 · /a/,/b/"],["Komutlar","p bas · d sil · i\\ önce ekle · a\\ sonra ekle · c\\ değiştir"],["Yerinde","-i · -i.bak (yedekle)"],["Yalnızca seçilen","-n '…p'"],["Gruplar","-E 's/(a)(b)/\\2\\1/' · & = eşleşmenin tamamı"],["Ayırıcı","s|/yol|/yeni| · s#a#b#"]],
+d:{k:"stack",l:["satırı oku|girdiden","desen alanına koy|arabellek","adres eşleşiyor mu?|/^#/ · 3 · $","komutları uygula|s · d · p","desen alanını yaz|-n yoksa","sonraki satır|tekrar"]},
+cap:"sed her satır için aynı döngüyü çalıştırır; dosyanın tamamını belleğe almaz.",
+x:["Bul, değiştir, sil",`$ sed -i.bak 's/^#ParallelDownloads = 5/ParallelDownloads = 10/' /etc/pacman.conf
+$ sed -n '/\\[options\\]/,/^$/p' /etc/pacman.conf      # bir bölümü bas
+$ sed '/^\\s*#/d; /^$/d' sshd_config                   # yorumları ve boşları at
+$ echo "2026-10-12" | sed -E 's/([0-9]+)-([0-9]+)-([0-9]+)/\\3.\\2.\\1/'
+12.10.2026
+$ sed -i 's|http://eski.example|https://yeni.example|g' *.html
+$ sed -n '$=' büyük.log                                # satır sayısı`]},
+
+{id:"awk",c:"metin",a:"awk",f:"Pattern scanning and processing language",tr:"Alan tabanlı metin işleme",y:"küçük bir dil",
+o:"Her satırı alanlara bölen ve desen { eylem } kurallarıyla süzme, sütun seçme, toplama ve raporlama yapan küçük bir programlama dili.",
+h:"awk her satırı (kayıt) boşluklardan alanlara böler: $1 ilk alan, $NF son alan, $0 satırın tamamıdır. NR o ana kadarki satır sayısı, NF satırdaki alan sayısıdır. Ayırıcı -F ile değiştirilir: -F: ile /etc/passwd, -F, ile basit CSV okunur. Bir program desen { eylem } kurallarından oluşur; desen yoksa eylem her satırda, eylem yoksa eşleşen satır basılır. BEGIN ilk satırdan önce, END son satırdan sonra çalışır; toplam ve ortalama burada yazılır. Değişkenler tanımlanmadan kullanılabilir ve ilişkili diziler sayım için idealdir: say[$1]++ her farklı değeri sayar. printf biçimli çıktı verir ve ondalıklı aritmetiği destekler. Linux'ta genellikle GNU awk (gawk) kuruludur. cut'ın yetmediği, ama Python yazmaya da değmeyen sütun işleri için en uygun araçtır.",
+t:[["Alanlar","$1 … $NF · $0 satırın tamamı"],["Yerleşik değişkenler","NR satır no · NF alan sayısı · FS ayırıcı · OFS çıktı ayırıcı"],["Ayırıcı","-F: · -F, · -F'\\t' · BEGIN{FS=\";\"}"],["Yapı","BEGIN{…} desen{…} END{…}"],["Desen","/regex/ · $3 > 100 · NR==1 · $1==\"efe\""],["Diziler","say[$1]++ · for (k in say)"],["Biçim","printf \"%-10s %5.1f\\n\", $1, $2"]],
+d:{k:"stack",l:["BEGIN { FS=\":\" }|bir kez, başta","satırı oku → $1 … $NF|her satır","$3 >= 1000 ?|desen","{ print $1, $7 }|eylem","END { print NR \" satır\" }|bir kez, sonda"]},
+cap:"awk programı, her satır için desenleri sınar ve eşleşen kuralların eylemlerini çalıştırır.",
+x:["Sütun seçme, toplama, sayma",`$ awk -F: '$3 >= 1000 { print $1, $7 }' /etc/passwd     # gerçek kullanıcılar
+efe /usr/bin/fish
+$ ps aux | awk 'NR>1 { mem += $6 } END { printf "%.1f MiB\\n", mem/1024 }'
+6243.8 MiB
+$ awk '{ say[$1]++ } END { for (ip in say) print say[ip], ip }' access.log | sort -nr | head -3
+$ df -h | awk 'NR==1 || $5+0 > 80'         # başlık + %80'den dolu olanlar
+$ awk -F, 'NR>1 { t += $3 } END { print t / (NR-1) }' satislar.csv`]},
+
+{id:"cut-tr",c:"metin",a:"cut · tr · column",f:"Columns and characters",tr:"Sütun ve karakter araçları",y:"coreutils",
+o:"Sabit ayırıcılı sütunları kesen cut, karakterleri çeviren ya da silen tr ve düzensiz çıktıyı hizalı tabloya çeviren column.",
+h:"cut her satırdan belirli alanları ya da karakter aralıklarını alır: -d ayırıcıyı, -f alan numaralarını, -c karakter konumlarını belirler. Ayırıcı tek bir karakter olmak zorundadır; birden fazla boşlukla hizalanmış çıktılarda cut yerine awk kullanılır. tr dosya adı almaz, yalnızca standart girdiden okur ve karakter karakter çalışır: tr a-z A-Z büyük harfe çevirir, -d karakterleri siler, -s tekrarlananları teke indirir. Windows satır sonlarını temizlemek için tr -d '\\r' kullanılır. Türkçe ı, İ gibi çok baytlı karakterlerde GNU tr güvenilir değildir; bu durumda sed ya da awk tercih edilir. column -t boşluklarla ayrılmış girdiyi hizalı bir tabloya çevirir, -s ayırıcıyı belirler. paste satırları yan yana birleştirir, -s ile bir sütunu tek satıra toplar.",
+t:[["cut","-d: -f1,7 · -f2- · -c1-8"],["tr","tr a-z A-Z · tr -d '\\r' · tr -s ' ' · tr ':' '\\n'"],["tr kısıtı","Çok baytlı UTF-8 karakterlerde güvenilmez"],["column","column -t · column -t -s, · column -t -o ' | '"],["paste","paste a b · paste -sd+ | bc (toplama)"],["Hizalı çıktı","İnsan için column; betik için ayırıcıyı koru"]],
+d:{k:"seq",a:["/etc/passwd","cut -d: -f1,7","column -t","Ekran"],s:[[0,1,"efe:x:1000:…:/usr/bin/fish","q"],[1,2,"efe:/usr/bin/fish","r"],[2,3,"efe   /usr/bin/fish","r"]]},
+cap:"Her araç tek bir dönüşüm yapar; boru onları birbirine bağlar.",
+x:["Sütun almak ve karakter dönüştürmek",`$ cut -d: -f1,7 /etc/passwd | tr ':' ' ' | column -t | head -3
+root    /usr/bin/bash
+bin     /usr/bin/nologin
+efe     /usr/bin/fish
+$ echo "$PATH" | tr ':' '\\n'
+$ tr -d '\\r' < windows.csv > unix.csv
+$ echo "çok    fazla   boşluk" | tr -s ' '
+çok fazla boşluk
+$ seq 1 10 | paste -sd+ | bc
+55`]},
+
+{id:"sort-uniq",c:"metin",a:"sort · uniq · wc",f:"Sort, deduplicate, count",tr:"Sıralamak, tekilleştirmek, saymak",y:"coreutils",
+o:"Satırları sıralayan sort, ardışık tekrarları birleştiren ya da sayan uniq ve satır, sözcük, bayt sayan wc.",
+h:"sort satırları varsayılan olarak alfabetik sıralar; -n sayısal, -h insan okunur boyut (2K, 1G), -V sürüm numarası sırası verir. -r tersine çevirir, -u tekrarları atar. -k ve -t belirli bir sütuna göre sıralar: sort -t, -k3,3n üçüncü sütunu sayı olarak sıralar. sort bütün girdiyi okumadan tek satır yazamaz; büyük girdilerde geçici dosyalar kullanır. uniq yalnızca art arda gelen aynı satırları birleştirir, bu yüzden neredeyse her zaman sort'tan sonra gelir. uniq -c her satırın kaç kez geçtiğini yazar, -d yalnızca tekrarlananları gösterir. sort | uniq -c | sort -rn | head, \"en sık geçenler\" sorusunun klasik cevabıdır. Sıralama kuralları yerel ayara (locale) bağlıdır; baytlara göre hızlı ve öngörülebilir sıralama için LC_ALL=C sort kullanılır. wc -l satır, -w sözcük, -c bayt, -m karakter sayar.",
+t:[["sort türleri","-n sayı · -h boyut · -V sürüm · -M ay · -R karışık"],["Sütun","-t, -k2,2 · -k3,3nr"],["Tekil","sort -u · uniq (yalnızca ardışık)"],["Sayım","uniq -c · uniq -d tekrarlar · uniq -u tekiller"],["Yerel ayar","LC_ALL=C sort (bayt sırası, hızlı)"],["wc","-l satır · -w sözcük · -c bayt · -m karakter"]],
+d:{k:"stack",l:["cut -d' ' -f1 access.log|IP adreslerini al","sort|aynı IP'ler yan yana gelir","uniq -c|ardışık tekrarları say","sort -rn|sayıya göre çoktan aza","head -5|en çok istek atan 5 IP"]},
+cap:"uniq ardışık satırlara baktığı için önce sort gerekir; sonra bir sort daha sayıya göre sıralar.",
+x:["En sık geçenler, boyut ve sürüm sıralaması",`$ cut -d' ' -f1 access.log | sort | uniq -c | sort -rn | head -3
+   1824 203.0.113.44
+    611 198.51.100.7
+     92 192.0.2.15
+$ du -sh ~/.cache/* | sort -h | tail -3
+$ printf '%s\\n' 1.10 1.9 1.2 | sort -V
+1.2
+1.9
+1.10
+$ sort -t, -k3,3nr satislar.csv | head
+$ wc -l src/*.rs | tail -1
+  3812 total`]},
+
+{id:"diff",c:"metin",a:"diff · patch",f:"Compare files line by line",tr:"Farkları bulmak",y:"diffutils",
+o:"İki dosya ya da dizin arasındaki satır farklarını bulan diff ve bu farkları başka bir kopyaya uygulayan patch.",
+h:"diff iki dosyayı satır satır karşılaştırır ve birini diğerine dönüştürmek için gereken en küçük değişiklik listesini üretir. Aynıysa hiçbir şey yazmaz ve 0 ile çıkar, farklıysa 1 ile çıkar. Varsayılan çıktı biçimi eskidir; neredeyse her zaman -u (birleşik biçim) kullanılır: - ile başlayan satırlar silinen, + ile başlayanlar eklenen, boşlukla başlayanlar bağlamdır. -r dizinleri özyinelemeli karşılaştırır, -q yalnızca hangi dosyaların farklı olduğunu söyler. --color renklendirir; daha okunaklı yan yana görünüm için diff -y ya da delta kullanılabilir. Birleşik biçimdeki bir fark dosyası (yama), patch -p1 < yama.diff ile başka bir kopyaya uygulanır; -R geri alır. git diff aynı biçimi kullanır ve git diff --no-index a b ile depo dışındaki dosyalarda da çalışır. Sıralı iki listede ortak ve farklı satırları comm verir.",
+t:[["Birleşik biçim","diff -u eski yeni"],["Dizin","diff -ru a/ b/ · -q yalnızca adlar"],["Görünüm","--color · -y yan yana · delta"],["Yok sayma","-w boşluk · -B boş satırlar · -i harf"],["Yama uygula","patch -p1 < f.diff · geri al: -R · dene: --dry-run"],["Ortak satırlar","comm -12 a b (ikisi de sıralı olmalı)"],["Çıkış kodu","0 aynı · 1 farklı · 2 hata"]],
+d:{k:"seq",a:["diff -u","sshd_config.pacnew","sshd_config","Sen"],s:[[0,1,"satırları oku","q"],[0,2,"satırları oku","q"],[0,0,"en uzun ortak alt dizi","n"],[0,3,"- eski satır","e"],[0,3,"+ yeni satır","r"],[0,3,"çıkış 1 (farklı)","r"]]},
+cap:"diff, iki dosyanın ortak satırlarını bulup geri kalanı silme ve ekleme olarak gösterir.",
+x:["Yapılandırma güncellemesini incelemek",`$ diff -u /etc/ssh/sshd_config /etc/ssh/sshd_config.pacnew
+--- /etc/ssh/sshd_config
++++ /etc/ssh/sshd_config.pacnew
+@@ -31,3 +31,3 @@
+ #LoginGraceTime 2m
+-PermitRootLogin no
++#PermitRootLogin prohibit-password
+ #StrictModes yes
+$ diff -rq ~/kod/site/ /mnt/yedek/site/
+Files .../index.html and .../index.html differ
+$ diff -u eski.c yeni.c > duzeltme.diff && patch -p0 --dry-run < duzeltme.diff`]},
+
+{id:"jq",c:"metin",a:"jq",f:"Command-line JSON processor",tr:"JSON işlemek",y:"sorgu dili",
+o:"JSON verisini süzmek, seçmek, dönüştürmek ve okunaklı yazdırmak için kullanılan küçük bir sorgu dili ve aracı.",
+h:"Modern araçların ve web API'lerinin çoğu çıktısını JSON olarak verir; grep ve awk bu yapıyı anlamaz. jq girdiyi ayrıştırır ve bir filtre ifadesinden geçirir. En basit filtre . girdiyi olduğu gibi, renkli ve girintili basar. .ad bir alanı, .[0] bir dizinin ilk öğesini, .[] dizinin her öğesini ayrı ayrı çıkarır. Filtreler | ile zincirlenir: .[] | .ad. select(koşul) süzer, map(f) her öğeye uygular, length sayar, keys alan adlarını verir. {ad: .name, boyut: .size} yeni nesne oluşturur. -r dizgileri tırnaksız basar ve betikte değişkene atamak için gereklidir. -c her sonucu tek satıra sıkıştırır, --arg kabuk değişkenini güvenle içeri aktarır. ip -j, lsblk -J, podman inspect ve curl ile alınan API yanıtları jq'nun doğal girdileridir. YAML ve TOML için yq aynı dili sunar.",
+t:[["Seçme",". · .ad · .a.b · .[0] · .[]"],["Zincirleme","| (her sonucu sonraki filtreye ver)"],["Süzme","select(.boyut > 100) · map(.ad)"],["Oluşturma","{ad: .name} · [ .[] | .id ]"],["Çıktı","-r ham dizgi · -c tek satır · -S anahtarları sırala"],["Değişken","--arg ad \"$ad\" · $ad"],["JSON üreten araçlar","ip -j · lsblk -J · findmnt -J · podman inspect"]],
+d:{k:"stack",l:["curl … /repos/efe-clk/atlas|JSON yanıtı","jq '.[]'|diziyi öğelere aç","select(.fork == false)|süz","{ad: .name, yildiz: .stargazers_count}|yeni nesne","-c|her biri tek satır"]},
+cap:"jq ifadesi bir boru hattıdır; her aşama bir öncekinin çıktısını alır.",
+x:["Komut çıktısını ve API yanıtını süzmek",`$ ip -j addr | jq -r '.[] | select(.operstate == "UP") | .ifname'
+enp3s0
+$ lsblk -J -o NAME,SIZE,MOUNTPOINTS | jq '.blockdevices[0].children | length'
+3
+$ curl -s https://api.github.com/users/efe-clk/repos \\
+    | jq -r '.[] | select(.fork | not) | "\\(.name)\\t\\(.stargazers_count)"'
+atlas	3
+$ jq --arg s "$SURUM" '.version = $s' package.json > yeni.json`]},
+
+/* ---------- SÜREÇLER ---------- */
+{id:"ps",c:"surec",a:"ps · pgrep",f:"Process status",tr:"Süreçleri listelemek",y:"procps-ng",
+o:"Çalışan süreçlerin anlık bir listesini veren ps ile süreçleri ada ya da özelliğe göre bulan pgrep.",
+h:"ps, /proc altındaki her PID dizinini okuyup bir tablo basar. Linux'ta iki sözdizimi bir arada yaşar: BSD tarzı ps aux bütün süreçleri kullanıcı, CPU ve bellek kullanımıyla; System V tarzı ps -ef ise ebeveyn PID'leriyle gösterir. -o ile sütunlar seçilir, --sort ile sıralanır. STAT sütunu süreç durumunu verir: R çalışıyor, S uyuyor (bir şey bekliyor), D kesintisiz uyku (genellikle disk G/Ç'si; kill ile bile durdurulamaz), T durdurulmuş, Z zombi (bitmiş ama ebeveyni çıkış kodunu henüz almamış). RSS sürecin gerçekte RAM'de tuttuğu, VSZ ise ayırdığı sanal bellektir. pgrep adı desenle eşleşen süreçlerin PID'lerini verir; -a komut satırını, -u kullanıcıyı, -x tam adı kullanır. pstree süreçleri ağaç olarak gösterir; pidof ise tam bir program adının PID'lerini verir.",
+t:[["Hepsi","ps aux (BSD) · ps -ef (System V)"],["Seçili sütunlar","ps -eo pid,ppid,stat,rss,comm --sort=-rss"],["STAT","R çalışıyor · S uyuyor · D G/Ç bekliyor · T durmuş · Z zombi"],["Bellek","RSS gerçek RAM · VSZ sanal"],["Bulmak","pgrep -a firefox · pgrep -u efe · pidof sshd"],["Ağaç","pstree -p · ps -ejH"],["Kaynak","/proc/PID/stat, status, cmdline"]],
+d:{k:"seq",a:["ps","/proc","/proc/4120","/proc/5133"],s:[[0,1,"PID dizinlerini listele","q"],[1,0,"1 2 … 4120 5133","r"],[0,2,"stat, status oku","q"],[2,0,"fish S 52 MB","r"],[0,3,"stat, status oku","q"],[3,0,"cargo R 410 MB","r"]]},
+cap:"ps bir veritabanına değil, çekirdeğin /proc altında dosya gibi sunduğu süreç bilgilerine bakar.",
+x:["Süreçleri bulmak ve sıralamak",`$ ps -eo pid,ppid,stat,%cpu,rss,comm --sort=-rss | head -4
+    PID    PPID STAT %CPU   RSS COMMAND
+   2251    1873 Sl   12.4 1984320 firefox
+   3302    2251 Sl    3.1  812004 Isolated Web Co
+   1904    1873 Sl    1.2  402112 plasmashell
+$ pgrep -a ssh
+812 sshd: /usr/bin/sshd -D [listener] 0 of 10-100 startups
+$ pstree -p $$
+fish(4120)───pstree(5301)
+$ ps -o stat= -p 1234     # tek bir sürecin durumu`]},
+
+{id:"top",c:"surec",a:"top · htop · btop",f:"Live process monitors",tr:"Canlı süreç izleyicileri",y:"etkileşimli",
+o:"Sistemin yükünü, CPU ve bellek kullanımını ve en çok kaynak tüketen süreçleri birkaç saniyede bir yenileyerek gösteren araçlar.",
+h:"top her sistemde bulunur: üstte çalışma süresi, yük ortalaması, görev sayıları, CPU dağılımı ve bellek; altta süreç tablosu yer alır. Yük ortalaması son 1, 5 ve 15 dakikada çalışmaya hazır ya da G/Ç bekleyen süreçlerin ortalama sayısıdır; çekirdek sayısıyla birlikte okunur: 6 çekirdekli bir sistemde 6 tam doluluk demektir. CPU satırındaki us kullanıcı, sy çekirdek, wa G/Ç bekleme, st sanal makinede hipervizörün çaldığı süredir; VDS'te yüksek st komşuların yükünü gösterir. top içinde M belleğe, P CPU'ya göre sıralar, k sinyal gönderir, 1 çekirdekleri ayrı gösterir. htop renkli çubuklar, fareyle seçim, ağaç görünümü (F5) ve arama (F3) ekler. btop ayrıca ağ ve disk grafiklerini çizer. Hangisini kullanırsan kullan, RES sütunu sürecin gerçek RAM kullanımına, VIRT ise ayırdığı sanal alana karşılık gelir.",
+t:[["Yük ortalaması","1 · 5 · 15 dk; çekirdek sayısına göre oku (nproc)"],["CPU","us kullanıcı · sy çekirdek · wa G/Ç · st hipervizör"],["Bellek sütunları","RES gerçek · VIRT sanal · SHR paylaşılan"],["top tuşları","P CPU · M bellek · 1 çekirdekler · k öldür · q"],["htop","F3 ara · F4 süz · F5 ağaç · F9 sinyal"],["btop","CPU, bellek, ağ ve disk grafikleri"],["Toplu kip","top -b -n1 | head -15"]],
+d:{k:"stack",l:["up 3:12, load 1.24 0.98 0.71|yük: 6 çekirdeğin ~%20'si","%Cpu: 8 us, 3 sy, 0.4 wa, 0 st|nereye harcanıyor","MiB Mem: 31.2G total, 18.9G avail|kullanılabilir bellek","PID USER %CPU %MEM RES COMMAND|süreç tablosu","2251 efe 12.4 6.1 1.9g firefox|en üstteki tüketici"]},
+cap:"top'un üst bölümü sistemin genel durumunu, alt bölümü bu duruma kimin neden olduğunu gösterir.",
+x:["Yükü yorumlamak",`$ uptime
+ 09:41:12 up 3:12,  1 user,  load average: 1.24, 0.98, 0.71
+$ nproc
+12
+$ top -b -n1 -o %MEM | head -12        # betikte anlık görüntü
+$ htop -u efe                           # yalnızca kendi süreçlerin
+$ btop                                  # tam ekran panel`]},
+
+{id:"sinyaller",c:"surec",a:"kill",f:"Signals",tr:"Sinyaller",y:"süreçlere mesaj",
+o:"Bir sürece çekirdek aracılığıyla gönderilen kısa bildirimler: durmasını, kapanmasını, ayarlarını yeniden okumasını ya da devam etmesini istemek.",
+h:"kill aslında öldürmez, sinyal gönderir; varsayılan sinyal 15 numaralı SIGTERM'dir ve \"lütfen kapan\" anlamına gelir. Program bu sinyali yakalayıp dosyalarını kaydedebilir, geçici dosyalarını silebilir ve düzgünce çıkabilir. SIGKILL (9) ve SIGSTOP (19) yakalanamaz: çekirdek süreci hemen sonlandırır ya da dondurur, programa temizlik şansı tanımaz. Bu yüzden doğru sıra önce TERM, birkaç saniye sonra hâlâ yaşıyorsa KILL'dir. Ctrl-C ön plandaki sürece SIGINT (2), Ctrl-Z SIGTSTP (20), Ctrl-\\ SIGQUIT (3) gönderir. Terminal kapanınca süreçler SIGHUP (1) alır; birçok sunucu programı SIGHUP'ı \"yapılandırmayı yeniden oku\" olarak yorumlar. SIGCONT durdurulmuş süreci devam ettirir. pkill ve killall adla eşleşen süreçlere sinyal gönderir. D durumundaki bir süreç SIGKILL'e bile G/Ç bitene kadar yanıt veremez.",
+t:[["SIGTERM 15","Kibarca kapan (varsayılan)"],["SIGKILL 9","Hemen öl; yakalanamaz"],["SIGINT 2","Ctrl-C · kesinti"],["SIGHUP 1","Terminal kapandı · çoğu sunucuda: yeniden yükle"],["SIGTSTP 20 / SIGSTOP 19","Ctrl-Z / zorla durdur"],["SIGCONT 18","Devam et"],["Gönderme","kill PID · kill -HUP PID · pkill -x ad · killall ad"],["Liste","kill -l · man 7 signal"]],
+d:{k:"seq",a:["Sen","Çekirdek","Program","Disk"],s:[[0,1,"kill 5133 (TERM)","q"],[1,2,"SIGTERM","e"],[2,3,"dosyaları kaydet, kilidi sil","q"],[2,1,"exit(0)","r"],[0,1,"kill -9 (yalnız gerekirse)","e"],[1,1,"süreci hemen kaldır","n"]]},
+cap:"TERM programa son sözü verir; KILL vermez. Önce TERM, gerekirse KILL.",
+x:["Sinyal göndermek",`$ pgrep -a code
+6120 /usr/lib/electron/electron /usr/lib/code/out/cli.js
+$ kill 6120                     # SIGTERM
+$ sleep 3; kill -0 6120 2>/dev/null && kill -9 6120   # hâlâ yaşıyorsa
+$ sudo kill -HUP "$(pidof nginx | cut -d' ' -f1)"     # yapılandırmayı yeniden oku
+$ pkill -USR1 -x dunst          # programa özgü sinyal
+$ kill -l | head -2
+ 1) SIGHUP	 2) SIGINT	 3) SIGQUIT	 4) SIGILL	 5) SIGTRAP
+ 6) SIGABRT	 7) SIGBUS	 8) SIGFPE	 9) SIGKILL	10) SIGUSR1`]},
+
+{id:"is-kontrolu",c:"surec",a:"& · fg · bg",f:"Job control",tr:"İş kontrolü",y:"tek terminalde birden çok iş",
+o:"Kabuğun, bir terminalde başlattığı işleri ön plana ve arka plana almasını, durdurmasını ve devam ettirmesini sağlayan mekanizma.",
+h:"Bir komutun sonuna & eklenirse kabuk onu arka planda başlatır ve istemi hemen geri verir; iş numarası ve PID yazılır. Ön planda çalışan bir işi Ctrl-Z durdurur (SIGTSTP); iş bellekte kalır ama CPU kullanmaz. bg onu arka planda devam ettirir, fg ön plana geri getirir. jobs mevcut işleri listeler; %1, %2 iş numaralarıyla, %+ son işle, %- bir öncekiyle eşleşir. Arka plandaki bir iş terminalden okumaya çalışırsa durdurulur; terminale yazması ise varsayılan olarak serbesttir ve çıktısı istemle karışabilir. wait arka plandaki işlerin bitmesini bekler; betiklerde paralel işleri toplamak için kullanılır. Bu işler kabuğa bağlıdır: terminal kapanınca SIGHUP alıp genellikle sonlanırlar. Kalıcı işler için nohup, systemd-run ya da tmux gerekir.",
+t:[["Arka planda başlat","komut &"],["Durdur","Ctrl-Z (SIGTSTP)"],["Devam","bg %1 (arka) · fg %1 (ön)"],["Liste","jobs -l"],["İş belirteci","%1 · %+ son · %- önceki · %vim adla"],["Bekle","wait · wait %1 · wait -n (ilk biteni)"],["Sinyal","kill %1"]],
+d:{k:"pipe",st:["ön","arka"],r:[["nvim main.rs",0,["ön","ön","·","·","·","ön","ön"]],["cargo build",2,["ön","arka","arka","arka","arka"]],["istem",2,["·","ön","ön","·","·"]]]},
+cap:"Sütunlar zaman. nvim Ctrl-Z ile durur (dur), derleme başlar ve bg ile arka plana geçer, fg ile nvim geri gelir.",
+x:["Tek terminalde iki iş",`$ nvim src/main.rs
+[Ctrl-Z]
+[1]+  Stopped                 nvim src/main.rs
+$ cargo build --release
+[Ctrl-Z]
+[2]+  Stopped                 cargo build --release
+$ bg %2
+[2]+ cargo build --release &
+$ jobs
+[1]-  Stopped                 nvim src/main.rs
+[2]+  Running                 cargo build --release &
+$ fg %1                       # düzenlemeye dön; derleme arkada sürer
+$ for h in vds1 vds2 vds3; do ssh "$h" uptime & done; wait`]},
+
+{id:"nohup",c:"surec",a:"nohup · disown",f:"Surviving logout",tr:"Oturum kapanınca yaşamak",y:"SIGHUP'tan kaçış",
+o:"Terminal ya da SSH oturumu kapandığında bir sürecin SIGHUP alıp ölmesini engellemenin yolları.",
+h:"Terminal kapandığında ya da SSH bağlantısı koptuğunda kabuk SIGHUP alır ve bunu kendi işlerine iletir; çoğu program bu sinyalde sonlanır. nohup komutu SIGHUP'ı yok sayacak şekilde başlatır ve çıktı terminale bağlıysa onu nohup.out dosyasına yönlendirir. Zaten başlamış bir iş için bash ve zsh'de disown kullanılır: iş kabuğun iş listesinden çıkarılır ve kabuk ona SIGHUP iletmez. setsid ise süreci yeni bir oturumda, terminalden tamamen kopuk başlatır. systemd'li sistemlerde en temiz yol systemd-run --user ile süreci geçici bir birim olarak başlatmaktır: günlükleri journalctl'de tutulur, durumu systemctl ile izlenir. Bir işin çıktısını sonradan görmek ya da ona tekrar bağlanmak istiyorsan tmux ya da screen kullan. Not: systemd-logind'de KillUserProcesses=yes açıksa kullanıcı oturumu kapanınca bunların bir kısmı yine öldürülür.",
+t:[["Baştan","nohup komut > log 2>&1 &"],["Sonradan","Ctrl-Z, bg, disown (bash/zsh) · fish: disown"],["Tamamen kopuk","setsid -f komut"],["systemd","systemd-run --user --unit=uzun-is komut"],["Yeniden bağlanmak","tmux · screen"],["logind ayarı","KillUserProcesses (varsayılan: no)"]],
+d:{k:"seq",a:["SSH bağlantısı","Kabuk","rsync (normal)","rsync (nohup)"],s:[[0,1,"bağlantı koptu","e"],[1,2,"SIGHUP","e"],[2,2,"sonlandı","n"],[1,3,"SIGHUP","e"],[3,3,"yok sayıldı, sürüyor","n"]]},
+cap:"nohup ile başlatılan süreç aynı sinyali alır ama görmezden gelir.",
+x:["Uzun bir işi oturumdan bağımsız çalıştırmak",`efe@vds:~$ nohup rsync -a /srv/veri/ /mnt/yedek/ > yedek.log 2>&1 &
+[1] 30122
+efe@vds:~$ exit                  # rsync çalışmaya devam eder
+$ long-task; [Ctrl-Z]; bg; disown -h %1
+$ systemd-run --user --unit=video-donustur ffmpeg -i girdi.mkv cikti.mp4
+Running as unit: video-donustur.service
+$ journalctl --user -u video-donustur -f`]},
+
+{id:"nice",c:"surec",a:"nice · ionice",f:"Scheduling priority",tr:"Öncelik",y:"-20 … 19",
+o:"Bir sürecin CPU'dan ve diskten ne kadar pay alacağını ayarlamak; arka plan işlerinin masaüstünü yavaşlatmasını önlemek.",
+h:"Her sürecin -20 ile 19 arasında bir nice değeri vardır; varsayılan 0'dır. Değer arttıkça süreç diğerlerine karşı daha nazik olur ve CPU için daha az pay alır. nice -n 19 komut bir işi en düşük öncelikle başlatır; renice zaten çalışan bir sürecin değerini değiştirir. Sıradan kullanıcılar yalnızca değeri artırabilir; düşürmek (önceliği yükseltmek) root yetkisi ister. Nice yalnızca CPU paylaşımını etkiler. Disk yoğun işler (yedekleme, indeksleme) için ionice ayrıca G/Ç önceliği verir: -c3 boşta sınıfıdır, yani yalnızca disk boştayken G/Ç yapılır; bu, BFQ gibi öncelikleri dikkate alan G/Ç zamanlayıcılarında etkilidir. systemd ile başlatılan işler için CPUWeight ve IOWeight gibi cgroup ayarları daha güçlü bir denetim sağlar: systemd-run -p CPUWeight=20.",
+t:[["Aralık","-20 (en öncelikli) … 0 (varsayılan) … 19 (en nazik)"],["Başlat","nice -n 19 komut"],["Değiştir","renice -n 10 -p PID · -u kullanıcı"],["Yetki","Yükseltmek (değeri düşürmek) root ister"],["G/Ç","ionice -c3 komut (boşta) · -c2 -n7 (düşük)"],["cgroup","systemd-run -p CPUWeight=20 -p IOWeight=20 komut"],["Görmek","ps -o pid,ni,comm · top NI sütunu"]],
+d:{k:"stack",l:["nice -20|en yüksek CPU payı (yalnız root)","nice -10|yüksek","nice 0|varsayılan","nice 10|düşük","nice 19|yalnızca boş CPU'yu kullanır"]},
+cap:"Fark mutlak değil görelidir: CPU boşsa nice 19'daki iş de tam hızla çalışır.",
+x:["Arka plan işlerini nazik çalıştırmak",`$ nice -n 19 ionice -c3 cargo build --release
+$ nice -n 15 tar --zstd -cf yedek.tar.zst ~/Belgeler
+$ renice -n 10 -p "$(pgrep -x baloo_file)"
+6644 (process ID) old priority 0, new priority 10
+$ ps -o pid,ni,comm -p 6644
+    PID  NI COMMAND
+   6644  10 baloo_file
+$ systemd-run --user --scope -p CPUWeight=20 makepkg -s`]},
+
+{id:"lsof",c:"surec",a:"lsof · fuser",f:"List open files",tr:"Kim neyi kullanıyor",y:"dosya ve port",
+o:"Hangi sürecin hangi dosyayı, dizini, cihazı ya da ağ portunu açık tuttuğunu bulmak.",
+h:"Linux'ta her şey bir dosya olduğu için açık soketler, borular ve cihazlar da süreçlerin dosya tanımlayıcı tablolarında görünür. lsof bu tabloları tarayıp listeler. lsof dosya o dosyayı açık tutan süreçleri, lsof +D dizin bir dizin altındaki her şeyi (yavaş), lsof -p PID bir sürecin açtığı her şeyi gösterir. -i ağ bağlantılarını listeler: lsof -i :8080 o portu kullananı, lsof -i tcp -sTCP:LISTEN dinleyen bütün TCP soketlerini verir. En yaygın kullanımlardan biri \"target is busy\" hatasıyla bağlantısı kesilemeyen bir USB diski kimin tuttuğunu bulmaktır; fuser -vm /mnt/usb aynı işi daha kısa yapar, -k ile o süreçlere sinyal gönderir. Silinmiş ama hâlâ açık tutulan dosyalar (df'de yer kaplayan ama du'da görünmeyen) lsof +L1 ile bulunur. Başka kullanıcıların süreçleri için sudo gerekir.",
+t:[["Dosya","lsof /yol · lsof +D /dizin"],["Süreç","lsof -p PID · lsof -c firefox"],["Ağ","lsof -i :8080 · lsof -i tcp -sTCP:LISTEN -P -n"],["Bağlama noktası","fuser -vm /mnt/usb · kapat: fuser -km"],["Silinmiş ama açık","lsof +L1"],["Alternatif","ss -tlnp (portlar) · /proc/PID/fd"]],
+d:{k:"seq",a:["umount","Çekirdek","lsof","dolphin"],s:[[0,1,"/mnt/usb'yi ayır","q"],[1,0,"target is busy","e"],[2,1,"açık dosyaları tara","q"],[1,2,"dolphin: cwd /mnt/usb","r"],[3,3,"pencereyi kapat","n"],[0,1,"tekrar dene","q"],[1,0,"ayrıldı","r"]]},
+cap:"Bir bağlama noktasını açık tutan tek bir süreç bile onu ayırmayı engeller.",
+x:["Meşgul diski ve portu bulmak",`$ sudo umount /mnt/usb
+umount: /mnt/usb: target is busy.
+$ fuser -vm /mnt/usb
+                     USER        PID ACCESS COMMAND
+/mnt/usb:            efe        7012 ..c.. dolphin
+$ sudo lsof -i :8080 -P -n
+COMMAND  PID USER FD   TYPE DEVICE SIZE/OFF NODE NAME
+python3 7741  efe 3u  IPv4  91337      0t0  TCP *:8080 (LISTEN)
+$ sudo lsof +L1 | head -3          # silinmiş ama yer kaplayan dosyalar`]},
+
+{id:"time-watch",c:"surec",a:"time · watch · timeout",f:"Measure, repeat, limit",tr:"Ölçmek, tekrarlamak, sınırlamak",y:"zamanla ilgili",
+o:"Bir komutun ne kadar sürdüğünü ölçen time, bir komutu düzenli aralıklarla yeniden çalıştıran watch ve süre sınırı koyan timeout.",
+h:"time komutun sonunda üç süre yazar: real duvar saatindeki geçen süre, user kullanıcı kipinde harcanan CPU süresi, sys ise çekirdekte harcanan CPU süresidir. Çok iş parçacıklı programlarda user, real'den büyük olabilir; G/Ç ya da ağ bekleyen bir işte real, user ile sys toplamından çok büyüktür. bash ve zsh'de time bir anahtar sözcüktür ve borunun tamamını ölçer; /usr/bin/time -v ise azami bellek kullanımı gibi ek bilgiler verir. Kıyaslama için tek ölçüm yanıltıcıdır: hyperfine komutları birçok kez çalıştırıp ortalamayı ve sapmayı verir. watch bir komutu her 2 saniyede bir çalıştırıp tam ekranda gösterir; -n aralığı, -d değişen kısımları vurgular. timeout bir komutu belirli bir süre sonra sonlandırır ve bu durumda 124 koduyla çıkar; ağ isteklerinin ya da takılabilen sınamaların betiği kilitlemesini önler.",
+t:[["time","real duvar saati · user CPU (kullanıcı) · sys CPU (çekirdek)"],["Ayrıntılı","/usr/bin/time -v (azami RSS dahil)"],["Kıyaslama","hyperfine 'komut1' 'komut2'"],["watch","watch -n 1 · -d farkları vurgula · -t başlıksız"],["timeout","timeout 10s komut · -k 5s (sonra KILL) · çıkış 124"],["Bekleme","sleep 1.5 · sleep 2m"]],
+d:{k:"stack",l:["real 0m4.21s|duvar saati: başlangıçtan bitişe","user 0m14.80s|bütün çekirdeklerde kullanıcı CPU'su","sys 0m0.93s|çekirdek içinde CPU","user > real|paralel çalıştı (~3,7 çekirdek)","real ≫ user + sys|G/Ç ya da ağ bekledi"]},
+cap:"Üç sayının birbirine oranı, işin CPU'ya mı yoksa beklemeye mi takıldığını söyler.",
+x:["Ölçmek, izlemek, sınırlamak",`$ time zstd -T0 -19 büyük.tar
+real	0m4.21s
+user	0m14.80s
+sys	0m0.93s
+$ hyperfine 'grep -r TODO .' 'rg TODO'
+$ watch -n 1 -d 'sensors | grep -i tctl; cat /proc/loadavg'
+$ timeout 5s curl -s https://yavas.example.com || echo "zaman aşımı: $?"
+zaman aşımı: 124`]},
+/* ---------- KULLANICI ---------- */
+{id:"sudo",c:"kullanici",a:"sudo",f:"Superuser do",tr:"Yetkili çalıştırmak",y:"sudo · sudo-rs · run0",
+o:"Yetkili bir kullanıcının, kendi parolasıyla tek bir komutu root (ya da başka bir kullanıcı) olarak çalıştırmasını sağlayan araç.",
+h:"sudo komut yazıldığında sudo, /etc/sudoers ve /etc/sudoers.d altındaki kurallara bakar; Arch tabanlı sistemlerde genellikle wheel grubundaki kullanıcılara izin verilir. Kural izin veriyorsa PAM üzerinden senin parolanı (root'unkini değil) doğrular ve komutu root olarak çalıştırır. Doğrulama bir süre önbelleklenir; varsayılan 5 dakikadır ve bu süre içinde parola tekrar sorulmaz. sudo -i root olarak bir giriş kabuğu açar, sudo -u kullanici komutu başka bir kullanıcı olarak çalıştırır. Bir sistem dosyasını düzenlemek için sudo nano yerine sudoedit (sudo -e) kullanmak daha güvenlidir: düzenleyicin senin yetkinle bir kopya üzerinde çalışır, yalnızca kaydetme anında dosya root olarak yerine konur. sudoers dosyası her zaman visudo ile düzenlenmelidir; sözdizimi hatası sudo'yu tamamen kilitleyebilir. sudo-rs, sudo'nun Rust ile yeniden yazılmış hali, run0 ise systemd'nin polkit tabanlı alternatifidir.",
+t:[["Kurallar","/etc/sudoers · /etc/sudoers.d/* (visudo ile)"],["Tipik kural","%wheel ALL=(ALL:ALL) ALL"],["Parola","Kendi parolan; önbellek 5 dk (timestamp_timeout)"],["Kök kabuğu","sudo -i (giriş) · sudo -s (mevcut ortam)"],["Dosya düzenleme","sudoedit /etc/fstab (SUDO_EDITOR)"],["Yetkilerini gör","sudo -l"],["Alternatifler","sudo-rs · run0 (systemd 256+) · doas"]],
+d:{k:"seq",a:["efe","sudo","sudoers + PAM","pacman (root)"],s:[[0,1,"sudo pacman -Syu","q"],[1,2,"efe wheel'de mi?","q"],[2,1,"izinli","r"],[1,0,"[sudo] password for efe:","e"],[0,1,"parola","q"],[1,3,"uid 0 ile çalıştır","q"],[3,0,"çıktı","r"]]},
+cap:"sudo kimlik doğrular ve yetki kurallarını uygular; komutu ise ayrı bir süreç olarak root kimliğiyle başlatır.",
+x:["Yetki ve düzenleme",`$ sudo -l
+User efe may run the following commands on cachyos:
+    (ALL : ALL) ALL
+$ sudoedit /etc/fstab          # nvim senin yetkinle açılır
+$ sudo -u postgres psql
+$ sudo -k                      # önbelleği hemen geçersiz kıl
+$ sudo EDITOR=nvim visudo -f /etc/sudoers.d/10-efe
+efe ALL=(root) NOPASSWD: /usr/bin/systemctl restart nginx`]},
+
+{id:"chmod",c:"kullanici",a:"chmod",f:"Change file mode bits",tr:"İzinleri değiştirmek",y:"sembolik ve sekizlik",
+o:"Bir dosyanın sahip, grup ve diğerleri için okuma, yazma ve çalıştırma izinlerini değiştiren komut.",
+h:"chmod izinleri iki yazımla kabul eder. Sembolik yazımda kim (u sahip, g grup, o diğerleri, a hepsi), işlem (+ ekle, - kaldır, = tam olarak ayarla) ve izin (r, w, x) birleştirilir: chmod u+x betik.sh sahibine çalıştırma izni ekler, chmod go-rwx gizli.txt grubun ve diğerlerinin bütün izinlerini kaldırır. Sekizlik yazımda her üçlü bir rakamdır: r=4, w=2, x=1 toplanır. 755 sahibine her şeyi, diğerlerine okuma ve çalıştırmayı verir (dizinler ve programlar), 644 sahibine okuma-yazma, diğerlerine okuma verir (sıradan dosyalar), 600 yalnızca sahibine okuma-yazma verir (anahtarlar, parolalar). Dizinlerde x, dizine girme izni demektir. -R özyinelemeli uygular; ama chmod -R 755 dosyalara da gereksiz çalıştırma izni verir. Büyük X yalnızca dizinlere ve zaten çalıştırılabilir olan dosyalara x verir, bu yüzden chmod -R u=rwX,go=rX güvenli bir düzeltmedir.",
+t:[["Sembolik","u g o a · + - = · r w x · ör. u+x, go-w, a=r"],["Sekizlik","r=4 w=2 x=1 · 755 · 644 · 600 · 700"],["Dizinde x","İçine girme (cd) ve yol çözme izni"],["Büyük X","Yalnızca dizinler ve zaten çalıştırılabilirler"],["Özyineleme","-R · güvenli: chmod -R u=rwX,go=rX"],["Özel bitler","u+s setuid · g+s setgid · +t yapışkan (4000 2000 1000)"],["Görmek","stat -c '%a %A %n' dosya"]],
+d:{k:"stack",l:["rwx r-x r--|sembolik","u: rwx = 4+2+1|7","g: r-x = 4+0+1|5","o: r-- = 4+0+0|4","chmod 754|sekizlik"]},
+cap:"Her üç harflik grup, toplanarak tek bir sekizlik rakama dönüşür.",
+x:["Sık kullanılan izin ayarları",`$ chmod +x kur.sh && ./kur.sh
+$ chmod 600 ~/.ssh/id_ed25519
+$ chmod 700 ~/.ssh
+$ chmod -R u=rwX,go=rX ~/kod/site      # dizinler 755, dosyalar 644
+$ stat -c '%a %A %n' ~/.ssh/* /usr/bin/sudo
+700 drwx------ /home/efe/.ssh
+600 -rw------- /home/efe/.ssh/id_ed25519
+4755 -rwsr-xr-x /usr/bin/sudo`]},
+
+{id:"chown",c:"kullanici",a:"chown · chgrp",f:"Change file owner and group",tr:"Sahibi değiştirmek",y:"genellikle root",
+o:"Bir dosyanın sahip kullanıcısını ve grubunu değiştiren komut.",
+h:"chown kullanici dosya sahibi, chown kullanici:grup dosya ikisini birden, chown :grup dosya ya da chgrp grup dosya yalnızca grubu değiştirir. kullanici: biçimi grubu o kullanıcının birincil grubuna ayarlar. Bir dosyayı başka birine devretmek, kota ve güvenlik nedeniyle yalnızca root'un yapabileceği bir işlemdir. Sıradan bir kullanıcı ise yalnızca kendi dosyasının grubunu üyesi olduğu bir gruba değiştirebilir. -R özyinelemeli çalışır; --reference=dosya ise sahipliği başka bir dosyadan kopyalar. En sık kullanım, sudo ile oluşturulup root'a ait kalmış dosyaları geri almak ya da bir web sunucusu ya da konteyner için bir dizini doğru kullanıcıya devretmektir. Konteyner ve Docker birimlerinde sahiplik sayısal UID ile tutulur; ls'te ad yerine 1000 ya da 999 gibi sayılar görebilirsin.",
+t:[["Sahip","chown efe dosya"],["Sahip + grup","chown efe:efe dosya · chown efe: (birincil grup)"],["Yalnızca grup","chgrp www dosya · chown :www dosya"],["Özyineleme","-R · bağlantıları izleme: -h"],["Kopyala","chown --reference=a b"],["Yetki","Sahip değiştirmek root ister"],["Sayısal","chown 1000:1000 (konteyner birimleri)"]],
+d:{k:"seq",a:["efe","chown","Çekirdek"],s:[[0,1,"chown efe dosya","q"],[1,2,"chown() (efe olarak)","q"],[2,0,"EPERM: yalnızca root","e"],[0,1,"sudo chown -R efe: ~/kod","q"],[1,2,"chown() (root olarak)","q"],[2,0,"tamam","r"]]},
+cap:"Sahipliği devretmek ayrıcalıklı bir işlemdir; çekirdek bunu yalnızca CAP_CHOWN yetkisi olan bir sürece izin verir.",
+x:["Sahipliği düzeltmek",`$ sudo git clone https://github.com/efe-clk/atlas ~/kod/atlas   # hata: root'a ait oldu
+$ ls -ld ~/kod/atlas
+drwxr-xr-x 1 root root 160 Oct 12 03:37 /home/efe/kod/atlas
+$ sudo chown -R efe: ~/kod/atlas
+$ sudo chown -R 1000:1000 /srv/runtipi/app-data/site
+$ chgrp wheel ortak-not.txt         # üyesi olduğun gruba`]},
+
+{id:"kullanici-yonetimi",c:"kullanici",a:"useradd · usermod",f:"Managing users and groups",tr:"Kullanıcı ve grup yönetimi",y:"shadow-utils",
+o:"Kullanıcı oluşturmak, gruplara eklemek, parolalarını değiştirmek ve hangi kimlikle çalıştığını görmek için kullanılan komutlar.",
+h:"Kullanıcılar /etc/passwd'de (ad, UID, birincil grup, ev dizini, kabuk), parola özetleri /etc/shadow'da, gruplar /etc/group'ta tutulur. useradd -m -G wheel -s /usr/bin/fish ad ev dizini oluşturarak yeni bir kullanıcı ekler, passwd ad parolasını belirler. Var olan bir kullanıcıyı bir gruba eklemenin doğru yolu usermod -aG grup ad'dır: -a (ekle) unutulursa kullanıcı listede olmayan bütün ek gruplarından çıkarılır. Grup üyeliği oturum açılırken okunur; yeni grubun etkili olması için oturumu kapatıp açmak gerekir, o zamana kadar newgrp ya da su - ad geçici çözümdür. id kullanıcının UID'ini, GID'ini ve gruplarını; whoami etkin kullanıcı adını; who ve w oturum açmış kullanıcıları gösterir. Seri port (uucp), Docker (docker) ve sanallaştırma (libvirt) gibi gruplar donanıma ve servislere erişim sağlar.",
+t:[["Dosyalar","/etc/passwd · /etc/shadow · /etc/group"],["Oluştur","useradd -m -G wheel -s /usr/bin/fish ad · passwd ad"],["Gruba ekle","usermod -aG uucp efe (-a şart) · gpasswd -a efe uucp"],["Gruptan çıkar","gpasswd -d efe docker"],["Kabuk değiştir","chsh -s /usr/bin/zsh"],["Kimlik","id · whoami · groups · who · w · last"],["Etkinleşme","Yeniden oturum aç · geçici: newgrp grup"]],
+d:{k:"seq",a:["efe","usermod","/etc/group","Oturum"],s:[[0,1,"usermod -aG uucp efe","q"],[1,2,"uucp:x:986:efe","q"],[0,3,"id (aynı oturum)","q"],[3,0,"uucp yok","e"],[0,3,"çık + giriş yap","q"],[3,0,"groups: … uucp","r"]]},
+cap:"Grup listesi oturum açılırken sürece verilir; mevcut oturumlar eski listeyi kullanmaya devam eder.",
+x:["STM32 kartına seri port erişimi vermek",`$ ls -l /dev/ttyACM0
+crw-rw---- 1 root uucp 166, 0 Oct 12 10:02 /dev/ttyACM0
+$ sudo usermod -aG uucp efe
+$ id
+uid=1000(efe) gid=1000(efe) groups=1000(efe),998(wheel)
+$ # oturumu kapatıp açtıktan sonra:
+$ id
+uid=1000(efe) gid=1000(efe) groups=1000(efe),986(uucp),998(wheel)
+$ getent passwd efe
+efe:x:1000:1000:Efe:/home/efe:/usr/bin/fish`]},
+
+/* ---------- SİSTEM ---------- */
+{id:"uname",c:"sistem",a:"uname · os-release",f:"System identity",tr:"Sistemin kimliği",y:"çekirdek ve dağıtım",
+o:"Çalışan çekirdeğin sürümünü, mimariyi, makine adını ve dağıtım bilgisini gösteren komutlar ve dosyalar.",
+h:"uname -r çalışan çekirdeğin sürümünü, uname -m mimariyi (x86_64, aarch64), uname -n makine adını, uname -a hepsini birden verir. Bir modül derlerken, bir hata raporu yazarken ya da paket güncellemesinden sonra yeniden başlatma gerekip gerekmediğini anlamak için ilk bakılan yerdir: kurulu çekirdek ile çalışan çekirdek farklıysa yeni modüller yüklenemez. Dağıtım adı ve sürümü /etc/os-release dosyasındadır; betikler bu dosyayı source ederek ID ve VERSION_ID değişkenlerini okur. hostnamectl makine adını, çekirdeği, işletim sistemini, donanım üreticisini ve sanallaştırma türünü bir arada gösterir ve makine adını değiştirmek için de kullanılır. VDS gibi sanal makinelerde systemd-detect-virt sanallaştırma teknolojisini (kvm, microsoft) söyler. fastfetch bu bilgileri renkli bir özet halinde basar.",
+t:[["Çekirdek","uname -r · uname -a"],["Mimari","uname -m · arch"],["Dağıtım","cat /etc/os-release · . /etc/os-release; echo $ID"],["Makine adı","hostnamectl · hostnamectl set-hostname ad"],["Sanallaştırma","systemd-detect-virt"],["Özet","fastfetch · inxi -S"],["Yeniden başlatma gerekli mi","uname -r ile pacman -Q linux-cachyos karşılaştır"]],
+d:{k:"seq",a:["uname","Çekirdek","hostnamectl","systemd-hostnamed"],s:[[0,1,"uname() çağrısı","q"],[1,0,"Linux 6.18.9 x86_64","r"],[2,3,"D-Bus sorgusu","q"],[3,2,"ad, OS, donanım, sanal","r"]]},
+cap:"uname bilgiyi doğrudan çekirdekten, hostnamectl ise systemd'nin hostnamed servisinden alır.",
+x:["Kimlik bilgileri",`$ uname -srm
+Linux 6.18.9-2-cachyos x86_64
+$ . /etc/os-release; echo "$NAME ($ID)"
+CachyOS Linux (cachyos)
+$ hostnamectl | sed -n '1p;6,9p'
+     Static hostname: cachyos
+    Operating System: CachyOS Linux
+              Kernel: Linux 6.18.9-2-cachyos
+        Architecture: x86-64
+$ ssh vds systemd-detect-virt
+kvm`]},
+
+{id:"free",c:"sistem",a:"free",f:"Display amount of free and used memory",tr:"Bellek kullanımı",y:"procps-ng",
+o:"Toplam, kullanılan, önbellek olarak tutulan ve gerçekten kullanılabilir RAM ile takas alanını gösteren komut.",
+h:"free -h çıktısında en çok yanlış okunan sütun free'dir. Linux boş RAM'i israf sayar ve onu disk önbelleği (buff/cache) olarak kullanır; bu yüzden uzun süre açık kalan bir sistemde free sütunu küçük görünür. Önbellek, uygulamalar belleğe ihtiyaç duyduğunda hemen geri verilir. Asıl bakılması gereken available sütunudur: yeni programlar için takasa düşmeden ne kadar bellek kullanılabileceğinin çekirdek tarafından yapılan tahminidir. shared tmpfs ve paylaşılan bellek kullanımını gösterir. Swap satırı takas alanını gösterir; CachyOS gibi dağıtımlarda bu genellikle RAM içinde sıkıştırılmış bir zram aygıtıdır ve swapon --show ile görülür. Ayrıntılar /proc/meminfo'dadır. Bellek baskısını anlamak için PSI (/proc/pressure/memory) ve vmstat 1 daha doğru bir resim verir.",
+t:[["Okunaklı","free -h · -s 2 (2 sn'de bir)"],["available","Takasa düşmeden kullanılabilir tahmini; asıl ölçü"],["buff/cache","Disk önbelleği; gerektiğinde geri verilir"],["shared","tmpfs, paylaşılan bellek"],["Takas","swapon --show · zramctl"],["Ayrıntı","/proc/meminfo · vmstat 1 · /proc/pressure/memory"]],
+d:{k:"stack",l:["total 31Gi|fiziksel RAM","used 9.8Gi|uygulamaların kullandığı","buff/cache 19Gi|disk önbelleği (geri verilebilir)","free 2.4Gi|hiç kullanılmayan","available 21Gi|yeni işler için gerçek alan"]},
+cap:"free küçük, available büyükse sistem sağlıklıdır: RAM boş durmuyor, önbellek olarak çalışıyor.",
+x:["Belleği doğru okumak",`$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:            31Gi       9.8Gi       2.4Gi       612Mi        19Gi        21Gi
+Swap:           31Gi          0B        31Gi
+$ swapon --show
+NAME       TYPE      SIZE USED PRIO
+/dev/zram0 partition  31G   0B  100
+$ grep -E 'MemAvailable|Dirty' /proc/meminfo
+MemAvailable:   22311840 kB
+Dirty:              1204 kB`]},
+
+{id:"donanim",c:"sistem",a:"lscpu · lspci · lsusb",f:"Inspecting hardware",tr:"Donanımı tanımak",y:"util-linux · pciutils · usbutils",
+o:"İşlemciyi, PCI ve USB aygıtlarını ve hangi çekirdek sürücüsünün hangi aygıtı yönettiğini listeleyen komutlar.",
+h:"lscpu işlemcinin modelini, çekirdek ve iş parçacığı sayısını, önbellek boyutlarını, desteklenen komut setlerini (avx2, avx512) ve NUMA düzenini gösterir; bilgiyi /proc/cpuinfo ve /sys'ten toplar. lspci PCI veri yolundaki aygıtları listeler: ekran kartı, NVMe denetleyicisi, ağ ve ses kartı. -k her aygıt için kullanılan çekirdek sürücüsünü ve uygun modülleri gösterir; bir aygıt çalışmıyorsa ilk bakılacak yer burasıdır. -nn üretici ve aygıt kimliklerini köşeli parantez içinde ekler. lsusb USB aygıtlarını üretici:ürün kimlikleriyle (VID:PID) listeler; -t hub ağacını ve bağlantı hızını, -v ayrıntılı tanımlayıcıları verir. ST-LINK gibi bir aygıt için udev kuralı yazarken gereken kimlik buradan alınır. sensors (lm_sensors) sıcaklıkları ve fan hızlarını, inxi -Fz ise her şeyin özetini verir.",
+t:[["İşlemci","lscpu · nproc · /proc/cpuinfo"],["PCI","lspci · -k sürücü · -nn kimlikler · -v ayrıntı"],["USB","lsusb · -t ağaç ve hız · -d 0483: (üretici)"],["Bloklar","lsblk -f (dosya sistemleriyle)"],["Sıcaklık","sensors (lm_sensors)"],["Özet","inxi -Fz · hwinfo --short"],["Firmware","dmidecode -t system (root)"]],
+d:{k:"seq",a:["Sen","lspci -k","/sys/bus/pci","Çekirdek"],s:[[0,1,"ekran kartı hangi sürücüde?","q"],[1,2,"aygıtları oku","q"],[2,1,"10de:2684","r"],[1,3,"bağlı sürücü?","q"],[3,1,"nvidia","r"],[1,0,"Kernel driver in use: nvidia","r"]]},
+cap:"Bu araçların çoğu bilgiyi çekirdeğin /sys ve /proc altında sunduğu dosyalardan okur.",
+x:["Donanımı ve sürücüleri bulmak",`$ lscpu | grep -E 'Model name|^CPU\\(s\\)|L3'
+CPU(s):                  12
+Model name:              AMD Ryzen 5 7600X 6-Core Processor
+L3 cache:                32 MiB (1 instance)
+$ lspci -k -d ::0300
+01:00.0 VGA compatible controller: NVIDIA Corporation AD102 [GeForce RTX 4090]
+	Kernel driver in use: nvidia
+$ lsusb | grep -i st-link
+Bus 003 Device 007: ID 0483:374b STMicroelectronics ST-LINK/V2.1
+$ lsusb -t | head -3`]},
+
+{id:"gunlukler",c:"sistem",a:"dmesg · journalctl",f:"Kernel and system logs",tr:"Sistem günlükleri",y:"halka arabelleği ve journald",
+o:"Çekirdeğin mesajlarını gösteren dmesg ile systemd'nin bütün servislerden topladığı günlükleri sorgulayan journalctl.",
+h:"Çekirdek; aygıt takılması, sürücü hataları, dosya sistemi uyarıları ve bellek yetersizliği (OOM) gibi olayları bellekteki bir halka arabelleğine yazar. dmesg bu arabelleği okur; -w yeni mesajları canlı izler, -T zamanı okunaklı yazar, --level=err,warn yalnızca sorunları gösterir. Bir USB aygıtı takıp sudo dmesg -w ile izlemek, aygıtın tanınıp tanınmadığını ve hangi adı (ttyACM0, sdb) aldığını görmenin en hızlı yoludur. systemd'li sistemlerde journald hem çekirdek mesajlarını hem de servislerin çıktılarını yapılandırılmış biçimde saklar. journalctl -b bu açılışı, -b -1 bir öncekini; -u nginx bir servisi; -p err önceliğe göre; -k yalnızca çekirdeği; -f canlı akışı; --since \"1 hour ago\" zamana göre süzer. Günlüklerin kalıcı olması için /var/log/journal dizininin var olması gerekir. systemd'nin ayrıntıları bir sonraki atlasın konusu.",
+t:[["dmesg","-w canlı · -T zaman · -H okunaklı · --level=err,warn"],["Bu açılış","journalctl -b · önceki: -b -1 · liste: --list-boots"],["Servis","journalctl -u sshd · kullanıcı: --user -u"],["Öncelik","-p err · -p warning..alert"],["Çekirdek","journalctl -k (dmesg karşılığı)"],["Zaman","--since '2026-10-12 09:00' · --since -1h"],["Boyut","journalctl --disk-usage · --vacuum-size=500M"]],
+d:{k:"seq",a:["USB sürücüsü","Halka arabelleği","journald","Sen"],s:[[0,1,"usb 3-2: new device","e"],[1,3,"dmesg -w","r"],[1,2,"/dev/kmsg'den oku","q"],[2,2,"diske yaz (journal)","n"],[3,2,"journalctl -k -b -1","q"],[2,3,"önceki açılışın mesajları","r"]]},
+cap:"dmesg yalnızca bellekteki son mesajları görür; journald onları servis günlükleriyle birlikte kalıcı olarak saklar.",
+x:["Sorunu günlükte bulmak",`$ sudo dmesg -wT
+[Pzt Eki 12 10:02:14 2026] usb 3-2: New USB device found, idVendor=0483, idProduct=374b
+[Pzt Eki 12 10:02:14 2026] cdc_acm 3-2:1.2: ttyACM0: USB ACM device
+$ journalctl -b -p err --no-pager | tail -5
+$ journalctl -u sshd --since -1h | grep -i failed
+$ journalctl -b -1 -k | grep -iE 'panic|oom|error' | head
+$ journalctl --disk-usage
+Archived and active journals take up 812.0M in the file system.`]},
+
+/* ---------- AĞ ---------- */
+{id:"ip",c:"ag",a:"ip",f:"iproute2",tr:"Adresler, bağlantılar, yönlendirmeler",y:"ifconfig'in yerini aldı",
+o:"Ağ arayüzlerini, IP adreslerini, yönlendirme tablosunu ve komşu tablosunu gösteren ve değiştiren modern Linux aracı.",
+h:"ip, eski net-tools paketindeki ifconfig, route ve arp komutlarının yerini almıştır; çoğu dağıtımda ifconfig artık kurulu gelmez. Alt komutlar nesnelere göre ayrılır: ip link arayüzleri (fiziksel durum, MAC, MTU), ip addr IP adreslerini, ip route yönlendirme tablosunu, ip neigh ARP/NDP komşu tablosunu yönetir. Komutlar kısaltılabilir: ip a, ip r, ip l. -br kısa ve hizalı, -c renkli, -j JSON çıktı verir. ip route get 1.1.1.1 bir paketin hangi arayüzden ve hangi ağ geçidinden çıkacağını söyler; çok arayüzlü bir sistemde ya da VPN'de sorun ararken çok yararlıdır. ip ile yapılan değişiklikler kalıcı değildir; yeniden başlatınca kaybolur. Masaüstünde ağı NetworkManager yönetir ve kalıcı ayarlar nmcli ile yapılır; sunucularda bu iş systemd-networkd ya da netplan'a düşer.",
+t:[["Arayüzler","ip -br link · ip link set enp3s0 up"],["Adresler","ip -br a · ip -4 a · ip a add 10.0.0.5/24 dev eth0"],["Yönlendirme","ip r · ip route get 1.1.1.1"],["Komşular","ip neigh (ARP / NDP)"],["Biçim","-br kısa · -c renk · -j JSON · -s istatistik"],["Kalıcılık","Yok · NetworkManager: nmcli · sunucu: networkd"],["Eski karşılık","ifconfig → ip a · route → ip r · arp → ip n"]],
+d:{k:"seq",a:["Uygulama","Çekirdek (yönlendirme)","enp3s0","Ağ geçidi"],s:[[0,1,"1.1.1.1'e paket","q"],[1,1,"ip route get 1.1.1.1","n"],[1,2,"default via 192.168.1.1","q"],[2,3,"Ethernet çerçevesi","q"],[3,0,"yanıt","r"]]},
+cap:"ip route get, çekirdeğin bir paket için yapacağı yönlendirme kararını sana gösterir.",
+x:["Ağ durumunu okumak",`$ ip -br -c a
+lo               UNKNOWN        127.0.0.1/8 ::1/128
+enp3s0           UP             192.168.1.42/24 fe80::3a1c:4ff:fe2b:9a10/64
+wg0              UNKNOWN        10.8.0.2/24
+$ ip r
+default via 192.168.1.1 dev enp3s0 proto dhcp src 192.168.1.42 metric 100
+192.168.1.0/24 dev enp3s0 proto kernel scope link src 192.168.1.42
+$ ip route get 10.8.0.1
+10.8.0.1 dev wg0 src 10.8.0.2 uid 1000
+$ nmcli -t -f NAME,DEVICE connection show --active`]},
+
+{id:"ss",c:"ag",a:"ss",f:"Socket statistics",tr:"Açık bağlantılar ve dinleyen portlar",y:"netstat'ın yerini aldı",
+o:"Hangi programın hangi portu dinlediğini ve hangi bağlantıların açık olduğunu gösteren araç.",
+h:"ss, çekirdekten soket bilgisini doğrudan netlink ile alır ve eski netstat'tan çok daha hızlıdır. En çok kullanılan biçimi ss -tulpn'dir: t TCP, u UDP, l yalnızca dinleyenler, p soketi tutan süreç, n adları çözmeden sayısal adres ve port demektir. Local Address sütunundaki 0.0.0.0:22 ya da [::]:22 her arayüzde, 127.0.0.1:5432 ise yalnızca yerel makinede dinlendiğini gösterir. Bu ayrım güvenlik için önemlidir: bir veritabanının ya da yönetim panelinin dışarıya açık olup olmadığı buradan anlaşılır. Başka kullanıcılara ait süreçlerin adını görmek için sudo gerekir. Durum süzgeçleri bağlantıları ayırır: ss -t state established kurulu TCP bağlantılarını, ss -s ise özeti verir. Bir portu kimin tuttuğunu lsof -i :port da gösterir.",
+t:[["Dinleyenler","ss -tulpn (sudo ile süreç adları)"],["Kurulu bağlantılar","ss -tn state established"],["Port süzgeci","ss -tlnp 'sport = :443'"],["Özet","ss -s"],["Adres anlamı","0.0.0.0 / [::] her yerden · 127.0.0.1 yalnızca yerel"],["Eski karşılık","netstat -tulpn → ss -tulpn"]],
+d:{k:"seq",a:["ss","Çekirdek (netlink)","sshd","postgres"],s:[[0,1,"soketleri listele","q"],[1,0,"0.0.0.0:22 LISTEN","r"],[1,0,"127.0.0.1:5432 LISTEN","r"],[0,0,"22 dışarıya açık","n"],[0,0,"5432 yalnızca yerel","n"]]},
+cap:"Yerel adres sütunu, bir servisin dünyaya mı yoksa yalnızca makinenin kendisine mi açık olduğunu söyler.",
+x:["Hangi servis neyi dinliyor?",`$ sudo ss -tulpn
+Netid State  Local Address:Port  Peer Address:Port Process
+udp   UNCONN 127.0.0.54:53       0.0.0.0:*         users:(("systemd-resolve",pid=612,fd=19))
+tcp   LISTEN 0.0.0.0:22          0.0.0.0:*         users:(("sshd",pid=812,fd=3))
+tcp   LISTEN 127.0.0.1:5432      0.0.0.0:*         users:(("postgres",pid=944,fd=7))
+tcp   LISTEN *:80                *:*               users:(("traefik",pid=2210,fd=8))
+$ ss -tn state established '( dport = :22 or sport = :22 )'`]},
+
+{id:"ping",c:"ag",a:"ping · mtr",f:"Reachability and path",tr:"Erişilebilirlik ve yol",y:"ICMP",
+o:"Bir makineye ulaşılıp ulaşılamadığını ve gecikmeyi ölçen ping ile paketin yol boyunca geçtiği yönlendiricileri gösteren traceroute ve mtr.",
+h:"ping hedefe ICMP yankı isteği gönderir ve yanıtı bekler; her satırda yanıt süresi (time), paketin kalan ömrü (ttl) ve sıra numarası görünür. Sonda kayıp oranı ve gecikmenin en küçük, ortalama, en büyük değerleri ve sapması yazar. -c ile paket sayısı sınırlanır; Linux'ta varsayılan olarak durdurulana kadar sürer. ping bir yanıt alamadığında makinenin kapalı olduğu sonucu çıkarılamaz: birçok sunucu ve güvenlik duvarı ICMP'yi engeller. Bir sorunu adım adım daraltmak için önce ağ geçidine, sonra 1.1.1.1 gibi bir IP'ye, sonra bir alan adına ping atılır: ilk ikisi çalışıp üçüncüsü çalışmıyorsa sorun DNS'tedir. traceroute ve tracepath, paketlerin TTL değerini birer birer artırarak yoldaki her yönlendiriciyi ortaya çıkarır. mtr bu ikisini birleştirir ve her atlama için sürekli güncellenen kayıp ve gecikme istatistiği verir; hattın neresinde kayıp olduğunu bulmak için en iyi araçtır.",
+t:[["Sınırlı","ping -c 4 hedef · -i 0.2 aralık · -W 1 bekleme"],["IPv4/6","ping -4 · ping -6"],["Daraltma sırası","ağ geçidi → 1.1.1.1 → alan adı"],["Yol","tracepath hedef · traceroute hedef"],["Sürekli yol analizi","mtr hedef · mtr -rwc 50 hedef (rapor)"],["Sınır","ICMP engellenmiş olabilir; yanıt yok ≠ kapalı"]],
+d:{k:"seq",a:["Bilgisayar","Ev modemi","ISS yönlendiricisi","VDS"],s:[[0,1,"TTL=1 → süresi doldu","e"],[0,2,"TTL=2 → süresi doldu","e"],[0,3,"TTL=3 → yankı isteği","q"],[3,0,"yankı yanıtı 21 ms","r"]]},
+cap:"traceroute ve mtr, TTL değerini birer artırarak yoldaki her durağın kendini bildirmesini sağlar.",
+x:["Bağlantı sorununu daraltmak",`$ ping -c 3 192.168.1.1          # 1) ağ geçidi
+$ ping -c 3 1.1.1.1              # 2) internet (IP)
+$ ping -c 3 archlinux.org        # 3) DNS ile
+ping: archlinux.org: Temporary failure in name resolution   # → sorun DNS'te
+$ ping -c 4 vds
+--- vds ping statistics ---
+4 packets transmitted, 4 received, 0% packet loss, time 3004ms
+rtt min/avg/max/mdev = 20.8/21.4/22.9/0.8 ms
+$ mtr -rwc 50 vds              # 50 paketlik yol raporu`]},
+
+{id:"curl",c:"ag",a:"curl",f:"Client for URLs",tr:"HTTP istekleri",y:"curl · wget",
+o:"HTTP, HTTPS ve birçok başka protokolde istek atan, API'lerle konuşmanın ve dosya indirmenin standart komut satırı aracı.",
+h:"curl URL yanıtın gövdesini standart çıktıya yazar. -o dosya ya da -O (uzak adla) dosyaya kaydeder, -L yönlendirmeleri izler. -I yalnızca başlıkları ister; -i gövdeyle birlikte başlıkları da gösterir, -v ise DNS, TLS el sıkışması ve gönderilen başlıklar dahil her şeyi gösterir. -s ilerleme çubuğunu kapatır, -S buna rağmen hataları gösterir, -f HTTP 4xx ve 5xx yanıtlarında hata koduyla çıkar; betiklerde -fsSL dörtlüsü yaygındır. POST için -X POST, başlık için -H, gövde için -d kullanılır; --json bu üçünü JSON için tek seçenekte birleştirir. -w ile yanıt kodu ve süreler gibi ölçümler yazdırılır. --resolve, DNS'i atlayıp bir alan adını belirli bir IP'ye yönlendirir; Cloudflare arkasındaki bir sunucuyu doğrudan sınamak için kullanışlıdır. wget ise özyinelemeli indirme ve yarıda kalanı sürdürme (-c) için daha pratiktir.",
+t:[["Kaydet","-o ad · -O (uzak ad) · -C - (sürdür)"],["Yönlendirme","-L"],["Başlıklar","-I yalnız başlık · -i başlık + gövde · -v her şey"],["Betik dörtlüsü","-fsSL"],["POST / JSON","-H 'Authorization: Bearer …' --json '{\"a\":1}'"],["Ölçüm","-w '%{http_code} %{time_total}\\n' -o /dev/null"],["DNS'i atla","--resolve site.com:443:203.0.113.10"]],
+d:{k:"seq",a:["curl","DNS","Cloudflare","Kaynak sunucu"],s:[[0,1,"site.example A?","q"],[1,0,"104.21.x.x","r"],[0,2,"TLS + GET /","q"],[2,3,"tünel üzerinden","q"],[3,2,"200 OK","r"],[2,0,"200 OK + gövde","r"]]},
+cap:"curl -v bu adımların her birini (çözümleme, TLS, istek ve yanıt başlıkları) satır satır gösterir.",
+x:["İstek atmak ve ölçmek",`$ curl -I https://archlinux.org
+HTTP/2 200
+content-type: text/html; charset=utf-8
+$ curl -fsSL https://raw.githubusercontent.com/efe-clk/atlas/main/README.md | head -3
+$ curl -s -o /dev/null -w '%{http_code} %{time_total}s\\n' https://efe-clk.github.io/atlas/
+200 0.183412s
+$ curl --json '{"ad":"deneme"}' -H "Authorization: Bearer $TOKEN" https://api.example.com/v1/ogeler
+$ curl -C - -LO https://example.com/buyuk.iso      # yarıda kaldıysa sürdür`]},
+
+{id:"dig",c:"ag",a:"dig · resolvectl",f:"DNS lookups",tr:"DNS sorgulamak",y:"bind · systemd-resolved",
+o:"Bir alan adının IP adresini ve diğer DNS kayıtlarını sorgulayan dig ile sistemin kendi DNS çözümleyicisini sorgulayan resolvectl.",
+h:"dig alan.adı varsayılan olarak A kaydını sorar ve yanıtı ayrıntılı biçimde gösterir: soru, yanıt bölümü, kaydın TTL'i, yanıtı veren sunucu ve süre. +short yalnızca sonucu verir. Kayıt türü ad olarak eklenir: dig MX, AAAA, TXT, CNAME, NS. @1.1.1.1 sorguyu belirli bir sunucuya gönderir; böylece yerel önbelleği aşıp dünyanın gördüğü yanıtı ya da yetkili sunucunun yanıtını görebilirsin. +trace kökten başlayıp alan adını adım adım çözer. dig bind paketiyle gelir; drill ve host da benzer işler görür. Sistem programları ise DNS'i doğrudan değil glibc üzerinden ve çoğu zaman systemd-resolved aracılığıyla çözer; resolvectl query sistemin gerçekte ne yanıt aldığını, resolvectl status hangi arayüzün hangi DNS sunucusunu kullandığını gösterir. /etc/hosts dosyası DNS'ten önce okunur. getent hosts ad, uygulamaların gördüğü sonucu verir. DNS'in ayrıntıları ilerideki DNS Atlası'nın konusu.",
+t:[["Temel","dig site.com · dig +short site.com"],["Tür","dig MX · AAAA · TXT · NS · CNAME"],["Sunucu seç","dig @1.1.1.1 site.com"],["Tam çözümleme","dig +trace site.com"],["Sistem çözümleyicisi","resolvectl query site.com · resolvectl status"],["Uygulamanın gördüğü","getent hosts site.com"],["Önbelleği temizle","resolvectl flush-caches"]],
+d:{k:"seq",a:["dig","systemd-resolved","1.1.1.1","Yetkili DNS"],s:[[0,1,"atlas.example A?","q"],[1,2,"önbellekte yok, sor","q"],[2,3,"yetkili sunucuya sor","q"],[3,2,"A 203.0.113.10, TTL 300","r"],[2,1,"yanıt","r"],[1,0,"yanıt (300 sn önbellek)","r"]]},
+cap:"Yanıt her katmanda TTL süresi kadar önbelleklenir; bir değişikliğin herkese yayılması bu yüzden zaman alır.",
+x:["Kayıtları ve çözümleyiciyi sorgulamak",`$ dig +short archlinux.org
+95.217.163.246
+$ dig +short MX gmail.com | sort -n | head -2
+5 gmail-smtp-in.l.google.com.
+10 alt1.gmail-smtp-in.l.google.com.
+$ dig @1.1.1.1 +noall +answer TXT example.com
+$ resolvectl status | sed -n '/Link 2/,/DNS Servers/p'
+$ getent hosts vds
+203.0.113.10    vds`]},
+
+{id:"ssh",c:"ag",a:"ssh",f:"Secure shell",tr:"Uzak sunucuya güvenli bağlantı",y:"OpenSSH",
+o:"Uzak bir makinede şifreli bir kabuk açan, komut çalıştıran ve dosya aktaran araç; sunucu yönetiminin temeli.",
+h:"ssh kullanici@sunucu bağlantıyı kurar: önce sunucunun ana makine anahtarı ~/.ssh/known_hosts ile karşılaştırılır (ilk bağlantıda parmak izi sorulur), sonra kullanıcı kimliği doğrulanır. Parola yerine anahtar kullanmak hem daha güvenli hem daha pratiktir: ssh-keygen -t ed25519 bir anahtar çifti üretir, ssh-copy-id genel anahtarı sunucudaki ~/.ssh/authorized_keys dosyasına ekler. Özel anahtar yalnızca senin makinende kalır ve bir parola cümlesiyle korunur; ssh-agent bu cümleyi oturum boyunca hatırlar. ~/.ssh/config dosyası sık bağlandığın sunucular için kısa adlar tanımlar: Host vds bloğuna adres, kullanıcı, port ve anahtar yazıldıktan sonra ssh vds, scp dosya vds: ve rsync ... vds: aynı ayarları kullanır. ssh sunucu komut uzakta tek bir komut çalıştırıp döner. -J bir atlama sunucusu üzerinden bağlanır. Sunucu tarafını sertleştirmek (parola girişini kapatmak, kök girişini engellemek) Güvenlik Atlası'nda ayrıntılı ele alınacak.",
+t:[["Bağlan","ssh efe@203.0.113.10 · -p 2222"],["Anahtar üret","ssh-keygen -t ed25519 -C 'efe@cachyos'"],["Anahtarı yükle","ssh-copy-id vds"],["Ayar dosyası","~/.ssh/config: Host, HostName, User, Port, IdentityFile"],["Tek komut","ssh vds 'df -h /'"],["Dosya","scp a vds:/tmp/ · sftp vds · rsync -e ssh"],["Atlama","ssh -J atlama vds · ProxyJump"]],
+d:{k:"seq",a:["ssh (istemci)","sshd (VDS)"],s:[[0,1,"bağlantı, anahtar değişimi","q"],[1,0,"ana makine anahtarı","r"],[0,0,"known_hosts ile karşılaştır","n"],[0,1,"ed25519 imzası","q"],[1,1,"authorized_keys'te var","n"],[1,0,"oturum açıldı","r"],[0,1,"şifreli kabuk trafiği","q"]]},
+cap:"Önce sunucu kendini kanıtlar, sonra sen. Bu sırada hiçbir parola ağdan geçmez.",
+x:["Anahtarla bağlanmak ve ~/.ssh/config",`$ ssh-keygen -t ed25519 -C "efe@cachyos"
+$ ssh-copy-id -i ~/.ssh/id_ed25519.pub efe@203.0.113.10
+$ cat ~/.ssh/config
+Host vds
+    HostName 203.0.113.10
+    User efe
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519
+$ ssh vds 'df -h / && docker ps --format "{{.Names}}"'
+$ scp ./site.tar.zst vds:/tmp/`]},
+
+{id:"ssh-tunel",c:"ag",a:"ssh -L · -R · -D",f:"SSH port forwarding",tr:"SSH tünelleri",y:"port yönlendirme",
+o:"Bir SSH bağlantısının içinden başka TCP bağlantıları taşıyarak, dışarıya kapalı bir servise güvenle erişmek ya da yerel bir servisi uzağa açmak.",
+h:"Yerel yönlendirme (-L) en sık kullanılanıdır: ssh -L 8080:localhost:80 vds, kendi makinendeki 8080 portuna gelen bağlantıları SSH içinden taşır ve sunucuda localhost:80'e bağlar. Böylece yalnızca 127.0.0.1'de dinleyen bir yönetim paneline ya da veritabanına, onu internete açmadan tarayıcından erişebilirsin. Hedef adres sunucunun bakış açısından çözülür: -L 5432:db.internal:5432 sunucunun erişebildiği iç bir makineye ulaşır. Uzak yönlendirme (-R) tersini yapar: sunucudaki bir portu senin makinendeki bir servise bağlar. -D dinamik yönlendirme ile yerel bir SOCKS vekil sunucusu açılır ve tarayıcının bütün trafiği sunucu üzerinden çıkar. -N uzak komut çalıştırmadan yalnızca tüneli tutar, -f arka plana geçer. Kalıcı tüneller için LocalForward satırları ~/.ssh/config'e yazılabilir; sürekli açık bir erişim için Cloudflare Tunnel ya da WireGuard daha uygun olabilir.",
+t:[["Yerel","-L [yerel_port]:hedef:hedef_port"],["Uzak","-R [uzak_port]:hedef:hedef_port"],["SOCKS","-D 1080"],["Yalnızca tünel","-N · arka planda: -fN"],["Ayar dosyası","LocalForward 8080 localhost:80"],["Hedef çözümü","Sunucunun bakış açısından"]],
+d:{k:"seq",a:["Tarayıcı","ssh (yerel :8080)","sshd (VDS)","Panel (127.0.0.1:80)"],s:[[0,1,"GET localhost:8080","q"],[1,2,"SSH kanalı içinde","q"],[2,3,"localhost:80'e bağlan","q"],[3,2,"200 OK","r"],[2,1,"şifreli","r"],[1,0,"sayfa","r"]]},
+cap:"Panel internete hiç açılmaz; trafik var olan SSH bağlantısının içinden geçer.",
+x:["Kapalı bir servise güvenle erişmek",`$ ssh -fN -L 8080:localhost:80 vds        # tarayıcıda http://localhost:8080
+$ ssh -fN -L 5433:localhost:5432 vds      # yerel psql -p 5433 → VDS'teki PostgreSQL
+$ psql -h localhost -p 5433 -U uygulama
+$ ssh -fN -D 1080 vds                     # SOCKS vekili: tarayıcıda 127.0.0.1:1080
+$ cat >> ~/.ssh/config <<'EOF'
+Host vds-panel
+    HostName 203.0.113.10
+    User efe
+    LocalForward 8080 localhost:80
+EOF`]},
+/* ---------- BETİK ---------- */
+{id:"shebang",c:"betik",a:"#!",f:"Shebang and running scripts",tr:"Betik çalıştırmak",y:"#!/usr/bin/env bash",
+o:"Bir metin dosyasının ilk satırına yazılan ve çekirdeğe onu hangi yorumlayıcıyla çalıştıracağını söyleyen #! satırı.",
+h:"Bir dosyayı ./betik.sh ile çalıştırdığında kabuk onu execve ile çekirdeğe verir. Çekirdek dosyanın ilk iki baytına bakar: #! ise satırın geri kalanını yorumlayıcı yolu olarak okur ve /bin/bash ./betik.sh çağrısına dönüştürür. #!/usr/bin/env bash biçimi bash'i PATH'te arar ve farklı sistemlerde daha taşınabilirdir; #!/bin/sh ise yalnızca POSIX özelliklerini kullanan betikler için doğrudur. Çalıştırmak için dosyanın x izni olmalıdır (chmod +x). Geçerli dizin PATH'te olmadığından ./ öneki gerekir; betiği ~/.local/bin'e koyarsan her yerden adıyla çağrılabilir. bash betik.sh biçimi shebang'i ve x iznini yok sayar. source betik.sh (ya da . betik.sh) ise betiği yeni bir süreçte değil, mevcut kabukta çalıştırır; ortam değişkeni ayarlayan dosyalar bu yüzden source edilir. fish kullanıyorsan bash betiklerini doğrudan çalıştırabilirsin; yalnızca source edemezsin.",
+t:[["Taşınabilir","#!/usr/bin/env bash"],["POSIX","#!/bin/sh (bash özelliği kullanma)"],["Çalıştırma","chmod +x b.sh && ./b.sh · bash b.sh"],["Mevcut kabukta","source b.sh · . b.sh"],["Her yerden","~/.local/bin/ içine koy (PATH'te)"],["Windows satır sonu","bad interpreter: /bin/bash^M → dos2unix"]],
+d:{k:"seq",a:["Kabuk","Çekirdek","/usr/bin/env","bash"],s:[[0,1,"execve(\"./yedekle\")","q"],[1,1,"ilk 2 bayt: #!","n"],[1,2,"/usr/bin/env bash ./yedekle","q"],[2,3,"PATH'te bash'i bul, exec","q"],[3,3,"betiği satır satır çalıştır","n"],[3,0,"çıkış kodu","r"]]},
+cap:"Shebang'i kabuk değil çekirdek okur; bu yüzden betiği hangi kabuktan çağırdığın fark etmez.",
+x:["İlk betik",`$ cat > ~/.local/bin/yedekle <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+rsync -avh --delete ~/Belgeler/ /mnt/yedek/Belgeler/
+echo "yedek tamam: $(date +%T)"
+EOF
+$ chmod +x ~/.local/bin/yedekle
+$ yedekle
+$ head -c 2 ~/.local/bin/yedekle | xxd
+00000000: 2321                                     #!`]},
+
+{id:"parametreler",c:"betik",a:"$1 $@ $#",f:"Positional and special parameters",tr:"Betik argümanları",y:"özel değişkenler",
+o:"Bir betiğe ya da fonksiyona verilen argümanları ve kabuğun kendisi hakkında bilgi taşıyan özel değişkenler.",
+h:"Betik çalıştığında $0 betiğin adını, $1, $2 … argümanları, ${10} onuncu ve sonraki argümanları, $# argüman sayısını tutar. Bütün argümanlar için \"$@\" kullanılır: her argümanı ayrı bir sözcük olarak, içindeki boşlukları koruyarak açar. \"$*\" ise hepsini tek bir dizgide birleştirir; argümanları başka bir komuta aktarırken neredeyse her zaman yanlış seçimdir. shift argümanları bir sola kaydırır ve $1'i atar; döngülerde seçenekleri tek tek işlemek için kullanılır. getopts -v ve -o dosya gibi kısa seçenekleri standart biçimde ayrıştırır. Diğer özel değişkenler: $? son komutun çıkış kodu, $$ kabuğun PID'i, $! arka plana atılan son işin PID'i, $_ son komutun son argümanı. fish'te argümanlar $argv listesindedir ve $argv[1] biçiminde erişilir.",
+t:[["Ad","$0"],["Argümanlar","$1 … $9 · ${10}"],["Sayı","$#"],["Hepsi","\"$@\" (ayrı ayrı) · \"$*\" (tek dizge)"],["Kaydırma","shift · shift 2"],["Seçenekler","while getopts 'vo:' opt; do …"],["Diğer","$? kod · $$ PID · $! son arka plan PID · $_ son argüman"],["fish","$argv · $argv[1] · count $argv"]],
+d:{k:"stack",l:["./donustur -q \"Yaz Tatili.mov\" kis.mov|çağrı","$0 = ./donustur|betik","$1 = -q|ilk argüman","$2 = Yaz Tatili.mov|boşluk korunur","$3 = kis.mov|son argüman","$# = 3 · \"$@\" = 3 sözcük|toplam"]},
+cap:"Kabuk argümanları çağrıdaki tırnaklara göre ayırır; betik içinde \"$@\" bu ayrımı aynen korur.",
+x:["Argümanları işlemek",`#!/usr/bin/env bash
+set -euo pipefail
+sessiz=0
+while getopts 'q' opt; do
+  case $opt in
+    q) sessiz=1 ;;
+    *) echo "kullanım: $0 [-q] dosya..." >&2; exit 2 ;;
+  esac
+done
+shift $((OPTIND - 1))
+(( $# > 0 )) || { echo "en az bir dosya ver" >&2; exit 2; }
+for f in "$@"; do
+  (( sessiz )) || echo "dönüştürülüyor: $f"
+  ffmpeg -loglevel error -i "$f" "\${f%.*}.mp4"
+done`]},
+
+{id:"kosullar",c:"betik",a:"if · [[ ]] · case",f:"Conditionals and tests",tr:"Koşullar",y:"çıkış koduna dayalı",
+o:"Bir komutun çıkış koduna göre dallanan if, dosya ve dizge sınamaları yapan test, [ ] ve [[ ]] ile desen eşleyen case.",
+h:"Kabukta if bir ifadeyi değil bir komutu değerlendirir: komut 0 ile çıkarsa then dalı çalışır. Bu yüzden if grep -q efe /etc/passwd doğrudan yazılabilir. [ aslında test komutunun bir adıdır ve son argümanı ] olmalıdır; bu yüzden köşeli parantezlerin içinde ve çevresinde boşluk zorunludur. -f dosya var ve sıradan dosya, -d dizin, -e herhangi bir şey var, -x çalıştırılabilir, -z dizge boş, -n dizge dolu demektir. Dizgeler = ve != ile, sayılar -eq, -ne, -lt, -gt ile karşılaştırılır; < ve > dizgeler içindir ve [ ] içinde yönlendirme sanılır. bash'in [[ ]] yapısı daha güvenlidir: değişkenler tırnaksız bile bölünmez, && ve || içeride kullanılabilir, == glob deseniyle, =~ düzenli ifadeyle eşler. Sayısal karşılaştırmada (( )) daha okunaklıdır. case bir değeri sırayla glob desenleriyle karşılaştırır ve çok dallı seçimler için if-elif zincirinden temizdir.",
+t:[["Dosya","-e var · -f dosya · -d dizin · -x çalıştırılabilir · -s boş değil"],["Dizge","-z boş · -n dolu · = · != · [[ == glob ]] · [[ =~ regex ]]"],["Sayı","-eq -ne -lt -le -gt -ge · (( a < b ))"],["Birleştirme","[[ a && b ]] · [ a ] && [ b ] · !"],["[ ] ile [[ ]]","[ ]: POSIX, tırnak şart · [[ ]]: bash/zsh, daha güvenli"],["case","case $x in a|b) … ;; *.jpg) … ;; *) … ;; esac"],["fish","if test -f a; … end · switch $x; case '*.jpg'; … end"]],
+d:{k:"seq",a:["if","[[ -d $hedef ]]","rsync","echo"],s:[[0,1,"çalıştır","q"],[1,0,"çıkış 0 (dizin var)","r"],[0,2,"then: rsync …","q"],[2,0,"çıkış 0","r"],[0,1,"(dizin yoksa çıkış 1)","e"],[0,3,"else: hata mesajı","q"]]},
+cap:"if bir doğruluk değerine değil, koşul komutunun çıkış koduna bakar.",
+x:["Sınamalar ve case",`hedef=/mnt/yedek
+if [[ ! -d $hedef ]]; then
+  echo "yedek diski bağlı değil: $hedef" >&2
+  exit 1
+fi
+
+if ! command -v zstd > /dev/null; then sudo pacman -S --needed zstd; fi
+
+case "$1" in
+  *.tar.zst) tar -xf "$1" ;;
+  *.zip)     unzip -q "$1" ;;
+  *.gz)      gunzip "$1" ;;
+  *)         echo "bilinmeyen biçim: $1" >&2; exit 2 ;;
+esac
+
+[[ $(hostname) == vds* ]] && echo "sunucudayız"`]},
+
+{id:"donguler",c:"betik",a:"for · while",f:"Loops",tr:"Döngüler",y:"tekrar",
+o:"Bir listenin öğeleri üzerinde dönen for, bir koşul doğru olduğu sürece dönen while ve bir dosyayı ya da akışı satır satır okuyan while read.",
+h:"for f in *.jpg; do … done eşleşen her dosya için gövdeyi çalıştırır; liste glob, parantez genişletmesi, dizi ya da \"$@\" olabilir. bash ayrıca C tarzı for ((i=0; i<10; i++)) döngüsünü destekler. for f in $(ls) yazılmamalıdır: ls çıktısı boşluklu adlarda bölünür. Bir dosyayı ya da komut çıktısını satır satır işlemek için doğru kalıp while IFS= read -r satir; do … done < dosya'dır: IFS= baştaki ve sondaki boşlukları, -r ters bölüleri korur. Komut çıktısı için girdiyi boru yerine < <(komut) ile vermek, döngü içinde atanan değişkenlerin döngüden sonra da yaşamasını sağlar, çünkü döngü alt kabukta çalışmaz. break döngüden çıkar, continue sonraki tura geçer. until koşul yanlış olduğu sürece döner; bir servisin hazır olmasını beklemek için kullanılır. mapfile -t dizi < dosya, satırları doğrudan bir diziye okur.",
+t:[["Liste","for x in a b c · for f in *.png · for a in \"$@\""],["Sayaç","for ((i=1; i<=10; i++)) · for i in {1..10}"],["Koşul","while koşul · until koşul"],["Satır satır","while IFS= read -r l; do …; done < dosya"],["Komut çıktısı","done < <(komut) (değişkenler korunur)"],["Kontrol","break · continue · break 2"],["Diziye oku","mapfile -t satirlar < dosya"]],
+d:{k:"pipe",st:["oku","sına","gövde"],r:[["1. tur",0],["2. tur",3],["3. tur",6,["oku","sına"]],["sonra",8,["çık"]]]},
+cap:"Her tur aynı adımları tekrarlar; read dosya sonuna ulaşıp 1 ile çıkınca döngü biter.",
+x:["Dosyalar, satırlar ve bekleme",`for f in ~/Resimler/*.heic; do
+  magick "$f" "\${f%.heic}.jpg"
+done
+
+toplam=0
+while IFS=, read -r ad adet fiyat; do
+  (( toplam += adet * fiyat ))
+done < <(tail -n +2 siparisler.csv)
+echo "toplam: $toplam"        # < <( ) sayesinde değer korunur
+
+until curl -fs http://localhost:8080/health > /dev/null; do
+  sleep 1
+done; echo "servis hazır"`]},
+
+{id:"fonksiyonlar",c:"betik",a:"ad() { }",f:"Shell functions",tr:"Fonksiyonlar",y:"yeniden kullanım",
+o:"Bir betikte ya da etkileşimli kabukta tekrar kullanılabilir komut grupları tanımlamak; kendi argümanları ve çıkış kodu olan küçük komutlar.",
+h:"ad() { komutlar; } biçiminde tanımlanan bir fonksiyon, sonra sıradan bir komut gibi çağrılır ve argümanlarını $1, $2, \"$@\" olarak alır. Fonksiyonlar ayrı bir süreç oluşturmaz, mevcut kabukta çalışır; bu yüzden cd yapabilir ve değişken atayabilirler. local ile tanımlanan değişkenler fonksiyonla sınırlı kalır; local unutulursa değişken bütün betiğe sızar. Kabuk fonksiyonları değer döndürmez: return yalnızca 0–255 arası bir çıkış kodu verir. Bir sonuç üretmek için fonksiyon onu standart çıktıya yazar, çağıran ise $( ) ile yakalar. Hata mesajları >&2 ile standart hataya yazılmalıdır ki yakalanan çıktıya karışmasın. Etkileşimli kullanım için ~/.bashrc'ye yazılan fonksiyonlar, takma adların yapamadığı argüman işleme ve koşullu mantık işlerini görür. fish'te sözdizimi function ad; …; end'dir ve ~/.config/fish/functions/ad.fish dosyasına kaydedilen fonksiyonlar ilk kullanımda otomatik yüklenir.",
+t:[["Tanım","ad() { …; } · function ad { …; } (bash)"],["Argümanlar","$1 … \"$@\" · $# (betiğinkileri gölgeler)"],["Yerel değişken","local x=1 (bash, zsh)"],["Sonuç","echo ile yaz, $( ) ile al"],["Çıkış kodu","return 0–255 · yoksa son komutun kodu"],["Hata","echo \"…\" >&2; return 1"],["fish","function ad; …; end · funcsave ad"]],
+d:{k:"seq",a:["Betik","son_yedek()","ls -t"],s:[[0,1,"son_yedek /mnt/yedek","q"],[1,2,"ls -t \"$1\"/*.tar.zst","q"],[2,1,"en yeni ilk sırada","r"],[1,0,"stdout: yedek-2026-10-12.tar.zst","r"],[1,0,"return 0","r"]]},
+cap:"Fonksiyon sonucu çıktıya yazar, başarıyı çıkış koduyla bildirir; çağıran ikisini ayrı ayrı kullanır.",
+x:["Küçük ve güvenli fonksiyonlar",`son_yedek() {
+  local dizin=\${1:?dizin ver}
+  local f
+  f=$(ls -t -- "$dizin"/*.tar.zst 2>/dev/null | head -n1) || true
+  [[ -n $f ]] || { echo "yedek yok: $dizin" >&2; return 1; }
+  printf '%s\\n' "$f"
+}
+
+if y=$(son_yedek /mnt/yedek); then
+  echo "en son yedek: $y"
+fi
+
+mkcd() { mkdir -p -- "$1" && cd -- "$1"; }    # ~/.bashrc
+> function mkcd; mkdir -p -- $argv[1]; and cd -- $argv[1]; end; funcsave mkcd   # fish`]},
+
+{id:"diziler",c:"betik",a:"dizi=( )",f:"Arrays",tr:"Diziler",y:"bash · zsh",
+o:"Birden çok değeri, her biri boşluk içerse bile ayrı öğeler olarak tutan değişkenler; dosya listelerini ve komut argümanlarını güvenle taşımanın yolu.",
+h:"bash'te dizi parantezle tanımlanır: dosyalar=(\"a b.txt\" c.txt). \"${dosyalar[@]}\" her öğeyi ayrı ve bozulmadan açar; ${dosyalar[0]} ilk öğeyi, ${#dosyalar[@]} öğe sayısını, ${!dosyalar[@]} indisleri verir. += ile öğe eklenir. Dizilerin en değerli kullanımı bir komutun argümanlarını parça parça kurmaktır: seçenekler bir diziye eklenir ve sonunda komut \"${arg[@]}\" ile çağrılır. Aynı işi boşlukla birleştirilmiş tek bir dizgeyle yapmak, tırnak ve boşluk sorunlarına yol açar. bash 4'ten itibaren declare -A ile ilişkili diziler (sözlük) tanımlanabilir. zsh'de indisler varsayılan olarak 1'den başlar. POSIX sh'de dizi yoktur; tek dizi \"$@\"tir ve set -- ile değiştirilebilir. fish'te her değişken zaten bir listedir ve indisler 1'den başlar.",
+t:[["Tanım","d=(a \"b c\" d) · boş: d=()"],["Hepsi","\"${d[@]}\" (her zaman tırnakla)"],["Öğe / sayı","${d[0]} · ${#d[@]} · indisler: ${!d[@]}"],["Ekleme","d+=(yeni)"],["Dilim","\"${d[@]:1:2}\""],["Sözlük","declare -A r=([kirmizi]=f00); ${r[kirmizi]}"],["Farklar","zsh ve fish: indis 1'den · sh: yok"]],
+d:{k:"stack",l:["arg=(-avh)|başlangıç","arg+=(--delete)|koşula göre ekle","arg+=(--exclude \"Önbellek Dosyaları\")|boşluklu değer tek öğe","rsync \"${arg[@]}\" kaynak/ hedef/|çağrı","argv: -avh --delete --exclude 'Önbellek Dosyaları' …|bozulmadan"]},
+cap:"Dizi, her argümanı ayrı tutar; boşluklu bir değer bile tek öğe olarak komuta ulaşır.",
+x:["Argümanları dizide kurmak",`arg=(-avh --info=progress2)
+[[ \${AYNA:-0} == 1 ]] && arg+=(--delete)
+arg+=(--exclude "Önbellek Dosyaları" --exclude '.cache')
+rsync "\${arg[@]}" ~/ /mnt/yedek/efe/
+
+declare -A port=([ssh]=22 [http]=80 [https]=443)
+for ad in "\${!port[@]}"; do
+  printf '%-6s %s\\n' "$ad" "\${port[$ad]}"
+done
+
+mapfile -t paketler < paket-listesi.txt
+sudo pacman -S --needed "\${paketler[@]}"`]},
+
+{id:"guvenli-betik",c:"betik",a:"set -euo pipefail",f:"Strict mode and traps",tr:"Güvenli betik alışkanlıkları",y:"set · trap",
+o:"Betiğin hatalarda sessizce devam etmesini engelleyen seçenekler ve betik nasıl biterse bitsin temizlik yapan trap.",
+h:"Bir kabuk betiği varsayılan olarak hata alan bir komuttan sonra bir sonraki satıra geçer; bu da yarım kalmış işlemlere ve silinmiş yanlış dizinlere yol açabilir. set -e, bir komut başarısız olduğunda betiği durdurur. set -u, tanımlanmamış bir değişken kullanıldığında hata verir; yazım hatalarını ve boş değişkenle rm gibi kazaları yakalar. set -o pipefail, boru hattındaki herhangi bir komutun hatasını borunun hatası sayar. Üçü birlikte \"katı kip\" olarak bilinir. set -e'nin istisnaları vardır: if ve while koşullarındaki, && ya da || zincirlerindeki (sonuncusu hariç) ve ! ile başlayan komutlarda devreye girmez; bilerek hata kabul edilecek bir komutun sonuna || true eklenir. trap 'komut' EXIT, betik normal bittiğinde, hata ile durduğunda ya da Ctrl-C ile kesildiğinde çalışır; geçici dosyaları silmek ve kilitleri kaldırmak için kullanılır. trap … ERR, hatanın hangi satırda olduğunu yazdırmak için kullanışlıdır.",
+t:[["-e","Hata alan komutta dur (errexit)"],["-u","Tanımsız değişken hatadır (nounset)"],["-o pipefail","Borudaki herhangi bir hata"],["Hata ayıklama","-x her komutu yazdır · PS4='+ ${LINENO}: '"],["İstisnalar","if/while koşulu, && ||, ! … · bilerek: komut || true"],["Temizlik","trap 'rm -rf -- \"$tmp\"' EXIT"],["Hata satırı","trap 'echo \"hata: satır $LINENO\" >&2' ERR"]],
+d:{k:"seq",a:["Betik","cd /mnt/yedek","rm -rf eski/*","trap EXIT"],s:[[0,1,"cd (disk bağlı değil)","q"],[1,0,"çıkış 1","e"],[0,0,"set -e: dur","n"],[0,3,"temizlik çalışır","r"],[0,2,"(asla çalışmaz)","e"]]},
+cap:"set -e olmasaydı cd başarısız olsa bile rm, yanlış dizinde çalışırdı.",
+x:["Güvenli betik şablonu",`#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\\n\\t'
+
+tmp=$(mktemp -d)
+trap 'rm -rf -- "$tmp"' EXIT
+trap 'echo "hata: satır $LINENO, kod $?" >&2' ERR
+
+hedef=\${1:?kullanım: $0 hedef-dizin}
+cd -- "$hedef"                      # başarısızsa betik burada durur
+grep -q bulunmayabilir log.txt || true   # bilinçli istisna
+tar -C "$tmp" -xf paket.tar.zst
+cp -a "$tmp"/. ./`]},
+
+{id:"shellcheck",c:"betik",a:"shellcheck",f:"Static analysis for shell scripts",tr:"Betik denetleyici",y:"lint",
+o:"Kabuk betiklerini çalıştırmadan okuyup tırnak eksikliği, tanımsız değişken ve taşınabilirlik sorunları gibi yaygın hataları bulan araç.",
+h:"shellcheck betiği ayrıştırır ve her sorunu bir kod, satır numarası ve açıklamayla bildirir. En sık gördüğün uyarı SC2086'dır: tırnaksız bir değişkenin bölünüp glob olarak açılabileceğini söyler. SC2164 cd başarısız olursa ne olacağını sorar, SC2046 tırnaksız komut ikamesini, SC2155 local ile atamanın aynı satırda olmasının çıkış kodunu gizlediğini belirtir. Shebang satırına bakarak sh ile bash arasındaki farkları bilir: #!/bin/sh olan bir betikte [[ ]] kullandıysan uyarır. Her uyarının wiki sayfası (shellcheck.net/wiki/SC2086) neden sorun olduğunu ve düzeltmesini anlatır. Bilerek yapılan bir şeyi susturmak için satırın üstüne # shellcheck disable=SC2086 yazılır. Editörlere (Neovim, VS Code, Kate) dil sunucusu ya da eklenti aracılığıyla bağlanır ve yazarken uyarır. shfmt ise betikleri tutarlı biçimde biçimlendirir.",
+t:[["Çalıştır","shellcheck betik.sh · -x (source edilenleri izle)"],["Kabuk seç","-s bash · -s sh (shebang yoksa)"],["SC2086","Değişkeni tırnakla"],["SC2164","cd … || exit"],["SC2046 · SC2155","Tırnaksız $( ) · local ile atamayı ayır"],["Susturma","# shellcheck disable=SC2086"],["Biçimlendirme","shfmt -w -i 2 betik.sh"]],
+d:{k:"seq",a:["Sen","shellcheck","Betik"],s:[[0,1,"shellcheck yedekle","q"],[1,2,"ayrıştır (çalıştırmadan)","q"],[1,0,"SC2086: satır 7","e"],[0,2,"\"$hedef\" diye düzelt","q"],[0,1,"tekrar","q"],[1,0,"uyarı yok","r"]]},
+cap:"Betiği çalıştırmadan, tehlikeli satırları yazarken bulmanın en ucuz yolu.",
+x:["Uyarıları okumak",`$ shellcheck yedekle
+In yedekle line 7:
+cd $hedef
+^-------^ SC2164 (warning): Use 'cd ... || exit' or 'cd ... || return' in case cd fails.
+   ^-----^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+cd "$hedef" || exit
+$ shfmt -d -i 2 yedekle      # biçim farklarını göster`]},
+
+/* ---------- ORTAM ---------- */
+{id:"ortam-degiskenleri",c:"ortam",a:"export",f:"Environment variables",tr:"Ortam değişkenleri",y:"süreçten sürece",
+o:"Bir süreçten çocuklarına kopyalanarak aktarılan ve programların davranışını ayarlayan ad=değer çiftleri.",
+h:"Kabukta x=5 yazmak yalnızca bir kabuk değişkeni oluşturur; başlatılan programlar onu görmez. export x ya da export x=5 değişkeni ortama ekler ve bundan sonra başlatılan her çocuk süreç bir kopyasını alır. Kalıtım tek yönlüdür: çocuk kendi kopyasını değiştirebilir ama ebeveyni etkileyemez. Bu yüzden bir betik senin kabuğunun PATH'ini değiştiremez; değiştirmesi gerekiyorsa source edilmelidir. AD=değer komut biçimi değişkeni yalnızca o komut için ayarlar. env ve printenv ortamı listeler; env -i temiz bir ortamla çalıştırır. Önemli değişkenler: PATH komut araması, HOME ev dizini, EDITOR ve VISUAL varsayılan düzenleyici, LANG ve LC_* dil ve biçim, XDG_* dizin konumları, WAYLAND_DISPLAY grafik oturum. fish'te set -gx AD değer dışa aktarır, set -Ux ise bütün fish oturumlarında kalıcı yapar.",
+t:[["Dışa aktar","export AD=değer · fish: set -gx AD değer"],["Tek komut için","LANG=C sort dosya"],["Listele","env · printenv PATH · declare -x"],["Kaldır","unset AD · fish: set -e AD"],["Temiz ortam","env -i bash --norc"],["Kalıcı","~/.bashrc · fish: set -Ux · grafik oturum: ~/.config/environment.d/"],["Bir sürecin ortamı","tr '\\0' '\\n' < /proc/PID/environ"]],
+d:{k:"seq",a:["Kabuk","Çocuk: bash betik","Torun: cargo"],s:[[0,0,"export RUSTFLAGS=…","n"],[0,1,"ortamın kopyası","q"],[1,2,"ortamın kopyası","q"],[1,1,"RUSTFLAGS değiştir","n"],[1,0,"(ebeveyn etkilenmez)","e"]]},
+cap:"Ortam yukarıdan aşağı kopyalanır; aşağıdan yukarı hiçbir değişiklik geri gitmez.",
+x:["Değişkenlerle çalışmak",`$ x=5; bash -c 'echo "x=$x"'
+x=
+$ export x; bash -c 'echo "x=$x"'
+x=5
+$ LANG=C date             # yalnızca bu komut için İngilizce
+Mon Oct 12 09:41:12 AM +03 2026
+$ printenv EDITOR XDG_SESSION_TYPE
+nvim
+wayland
+> set -Ux EDITOR nvim     # fish: kalıcı ve dışa aktarılmış`]},
+
+{id:"baslangic-dosyalari",c:"ortam",a:"~/.bashrc",f:"Shell startup files",tr:"Başlangıç dosyaları",y:"login · interactive",
+o:"Bir kabuk açıldığında hangi yapılandırma dosyalarının hangi sırayla okunduğu; ayarların neden bazen \"çalışmadığı\".",
+h:"bash iki ayrıma göre farklı dosyalar okur. Giriş kabuğu (SSH bağlantısı, sanal konsolda oturum açma, bash -l) önce /etc/profile'ı, sonra ~/.bash_profile, ~/.bash_login ve ~/.profile'dan ilk bulduğunu okur. Etkileşimli ama giriş olmayan kabuk (masaüstündeki her yeni terminal sekmesi) yalnızca ~/.bashrc'yi okur. Etkileşimsiz kabuklar, yani betikler, hiçbirini okumaz. Bu yüzden yaygın düzen şudur: takma adlar, istem ve fonksiyonlar ~/.bashrc'ye yazılır, ~/.bash_profile ise ortam değişkenlerini ayarlayıp ~/.bashrc'yi source eder. zsh'de karşılıkları ~/.zprofile ve ~/.zshrc, her durumda okunan ise ~/.zshenv'dir. fish her açılışta ~/.config/fish/config.fish ve conf.d/ altındaki dosyaları okur, giriş kabuğu ise status is-login ile ayırt edilir. KDE Plasma gibi grafik oturumlarda başlatılan uygulamalar kabuk dosyalarını hiç okumaz; onlar için değişkenler ~/.config/environment.d/*.conf'a yazılır.",
+t:[["bash giriş","/etc/profile → ~/.bash_profile | ~/.bash_login | ~/.profile"],["bash etkileşimli","~/.bashrc (Arch: önce /etc/bash.bashrc)"],["Betikler","Hiçbirini okumaz (BASH_ENV hariç)"],["zsh","~/.zshenv (her zaman) · ~/.zprofile · ~/.zshrc"],["fish","~/.config/fish/config.fish · conf.d/*.fish"],["Grafik oturum","~/.config/environment.d/*.conf (systemd kullanıcı oturumu)"],["Yeniden yükle","source ~/.bashrc · exec bash · fish: exec fish"]],
+d:{k:"stack",l:["SSH ile giriş|giriş + etkileşimli","/etc/profile|sistem geneli","~/.bash_profile|ortam değişkenleri","→ source ~/.bashrc|elle bağlanır","~/.bashrc|takma adlar, istem, fonksiyonlar","istem|hazır"]},
+cap:"Yeni bir terminal sekmesi yalnızca son iki adımı yaşar; ortamı oradan değil, oturumdan devralır.",
+x:["Doğru dosyaya doğru ayar",`$ cat ~/.bash_profile
+export EDITOR=nvim
+export PATH="$HOME/.local/bin:$PATH"
+[[ -f ~/.bashrc ]] && . ~/.bashrc
+$ cat ~/.config/environment.d/10-editor.conf     # KDE uygulamaları da görür
+EDITOR=nvim
+$ cat ~/.config/fish/conf.d/yol.fish
+fish_add_path ~/.local/bin ~/.cargo/bin
+$ shopt -q login_shell && echo giriş || echo giriş-değil`]},
+
+{id:"alias",c:"ortam",a:"alias",f:"Aliases and abbreviations",tr:"Takma adlar",y:"kısayol komutlar",
+o:"Uzun ya da sık kullanılan bir komut için kısa bir ad tanımlamak.",
+h:"alias ll='ls -lah' tanımlandıktan sonra ll yazmak kabuğun o satırı ls -lah olarak okumasını sağlar. Takma ad yalnızca komut satırının ilk sözcüğünde açılır ve basit bir metin değiştirmesidir; argümanları ortaya ya da sona yerleştiremez, koşul içeremez. Bunlar gerektiğinde fonksiyon yazılır. Kalıcı olmaları için ~/.bashrc'ye ya da ~/.zshrc'ye eklenmeleri gerekir. alias tek başına tanımlı takma adları listeler, unalias birini kaldırır. Takma ad bir komutu gölgeliyorsa orijinali \\ls, command ls ya da tam yoluyla çağrılabilir. Takma adlar etkileşimsiz kabuklarda (betiklerde) açılmaz; betikte güvenmemek gerekir. fish'te alias, aslında bir fonksiyon oluşturan bir kısayoldur. fish'in kendi önerisi abbr'dır: kısaltma yazdıktan sonra boşluğa basınca tam komuta açılır, böylece geçmişe ve ekrana gerçek komut yazılır.",
+t:[["Tanım","alias ll='ls -lah'"],["Liste / kaldır","alias · unalias ll"],["Orijinali çağır","\\ls · command ls · /usr/bin/ls"],["Sınır","Yalnızca ilk sözcük · argüman işleyemez → fonksiyon"],["Betikte","Açılmaz (bash'te shopt -s expand_aliases gerekir)"],["fish","abbr -a gs 'git status' (yerinde açılır)"],["Kalıcılık","~/.bashrc · ~/.zshrc · fish: abbr --add, config.fish"]],
+d:{k:"seq",a:["Sen","Kabuk","git"],s:[[0,1,"gs (fish abbr)","q"],[1,0,"satır: git status","r"],[0,1,"⏎","q"],[1,2,"git status","q"],[1,1,"geçmişe: git status","n"]]},
+cap:"fish kısaltmaları komutu yerinde açar; geçmişte ve ekranda her zaman gerçek komut görünür.",
+x:["Takma ad ve kısaltma örnekleri",`# ~/.bashrc
+alias ll='ls -lah --group-directories-first'
+alias gs='git status -sb'
+alias guncelle='sudo pacman -Syu && paru -Sua'
+alias rm='rm -I'
+$ type ll
+ll is aliased to 'ls -lah --group-directories-first'
+
+# fish
+> abbr -a gs git status -sb
+> abbr -a gc git commit -m
+> abbr -a dps 'docker ps --format "table {{.Names}}\\t{{.Status}}"'`]},
+
+{id:"istem",c:"ortam",a:"PS1",f:"The prompt",tr:"İstem satırı",y:"PS1 · starship",
+o:"Kabuğun her komuttan önce gösterdiği, kullanıcıyı, makineyi, dizini ve isteğe bağlı olarak git durumu ya da son çıkış kodunu bildiren satır.",
+h:"bash'te istem PS1 değişkeniyle tanımlanır ve özel kaçış dizileri içerir: \\u kullanıcı adı, \\h kısa makine adı, \\w geçerli dizin (ev dizini ~ olarak), \\$ ise sıradan kullanıcıda $, root'ta # olur. Renkler ANSI kaçış dizileriyle verilir ve \\[ \\] arasına alınmalıdır; aksi halde bash satır uzunluğunu yanlış hesaplar ve uzun komutlar kendi üstüne yazılır. PS2 çok satırlı komutların devam istemidir, PS4 ise set -x çıktısının önekidir. İstemin pratik bir görevi vardır: hangi makinede olduğunu (yerel mi, VDS mi?) ve root olup olmadığını bir bakışta göstermek. zsh'de PROMPT ve %n, %m, %~ dizileri, fish'te ise fish_prompt fonksiyonu kullanılır; fish_config bir tarayıcı arayüzüyle hazır temalar sunar. starship, bash, zsh ve fish'te aynı görünen, git durumu, dil sürümleri ve komut süresi gösteren hızlı bir istem programıdır.",
+t:[["bash kaçışları","\\u kullanıcı · \\h makine · \\w dizin · \\$ $/# · \\t saat"],["Renk","\\[\\e[32m\\] … \\[\\e[0m\\] (\\[ \\] şart)"],["Diğer istemler","PS2 devam · PS4 set -x öneki"],["zsh","PROMPT='%n@%m %~ %# '"],["fish","fish_prompt fonksiyonu · fish_config"],["starship","eval \"$(starship init bash)\" · fish: starship init fish | source"]],
+d:{k:"stack",l:["efe|\\u kullanıcı","@vds|\\h makine (uzakta olduğunu gösterir)","~/kod/atlas|\\w dizin","(main ✚2)|git durumu (starship)","$|\\$ sıradan kullanıcı (root'ta #)"]},
+cap:"İyi bir istem, yanlış makinede ya da yanlış yetkiyle komut çalıştırma riskini azaltır.",
+x:["İstemi ayarlamak",`# ~/.bashrc: sunucuda makine adını kırmızı göster
+PS1='\\[\\e[1;32m\\]\\u\\[\\e[0m\\]@\\[\\e[1;31m\\]\\h\\[\\e[0m\\]:\\[\\e[34m\\]\\w\\[\\e[0m\\]\\$ '
+efe@vds:~/kod/atlas$
+
+# starship (her kabukta aynı)
+$ sudo pacman -S starship
+$ echo 'eval "$(starship init bash)"' >> ~/.bashrc
+> echo 'starship init fish | source' >> ~/.config/fish/config.fish`]},
+
+{id:"tmux",c:"ortam",a:"tmux",f:"Terminal multiplexer",tr:"Terminal çoğullayıcı",y:"oturum · pencere · bölme",
+o:"Tek bir terminalde birden çok kabuk penceresi ve bölmesi açan, bağlantı kopsa bile oturumları arka planda yaşatan araç.",
+h:"tmux bir sunucu ve istemciden oluşur. tmux new -s ad bir oturum başlatır; oturumun içindeki kabuklar tmux sunucusuna bağlıdır, terminale değil. Önek tuşu (varsayılan Ctrl-b) ardından d'ye basmak oturumdan ayrılır (detach): terminal kapanabilir, SSH bağlantısı kopabilir, ama içindeki işler sürer. tmux attach -t ad ile aynı yere geri dönülür; tmux ls oturumları listeler. Bir oturum pencerelerden (sekmeler gibi; önek c yeni, n ve p ileri geri), her pencere bölmelerden oluşur (önek % dikey, \" yatay böler; ok tuşlarıyla bölmeler arasında geçilir). Önek [ kopyalama ve kaydırma kipine geçer. Bu yapı özellikle sunucularda değerlidir: VDS'te uzun bir derleme ya da güncelleme tmux içinde başlatılırsa bağlantı kopması işi bozmaz. Ayarlar ~/.config/tmux/tmux.conf dosyasındadır. zellij, varsayılan olarak tuş ipuçlarını gösteren daha yeni bir alternatiftir.",
+t:[["Oturum","tmux new -s ad · tmux ls · tmux attach -t ad"],["Ayrıl","Ctrl-b d"],["Pencere","Ctrl-b c yeni · n / p · 0–9 · , yeniden adlandır"],["Bölme","Ctrl-b % dikey · \" yatay · ok tuşları · z büyüt · x kapat"],["Kaydırma","Ctrl-b [ (q ile çık)"],["Ayar","~/.config/tmux/tmux.conf · set -g mouse on"],["Alternatif","zellij · screen"]],
+d:{k:"seq",a:["Konsole","ssh","tmux sunucusu (VDS)","kabuk + derleme"],s:[[0,1,"ssh vds","q"],[1,2,"tmux attach -t is","q"],[2,3,"kabuk bağlı","q"],[1,1,"bağlantı koptu","n"],[3,3,"derleme sürüyor","n"],[0,2,"yeniden: tmux a -t is","q"],[2,0,"ekran kaldığı yerden","r"]]},
+cap:"Kabuklar terminale değil tmux sunucusuna bağlıdır; istemci gidip gelir, işler kalır.",
+x:["Sunucuda kalıcı oturum",`$ ssh vds
+efe@vds:~$ tmux new -s guncelle
+efe@vds:~$ sudo apt full-upgrade          # uzun iş
+[Ctrl-b d]                                 # ayrıl
+[detached (from session guncelle)]
+efe@vds:~$ exit
+$ ssh vds -t tmux attach -t guncelle       # sonra, tek komutla geri dön
+$ cat ~/.config/tmux/tmux.conf
+set -g mouse on
+set -g base-index 1
+set -g history-limit 50000`]},
+
+{id:"fzf",c:"ortam",a:"fzf",f:"Command-line fuzzy finder",tr:"Bulanık arama",y:"her listeyi aranabilir yap",
+o:"Kendisine verilen herhangi bir satır listesinden, yazdıkça daralan bulanık bir aramayla seçim yapmayı sağlayan etkileşimli süzgeç.",
+h:"fzf standart girdiden satırları okur, tam ekran bir liste gösterir ve sen yazdıkça harfleri sırayla içeren satırları puanlayıp süzer; \"sscnf\" yazmak sshd_config'i bulur. Enter'a bastığında seçilen satırı standart çıktıya yazar. Bu basit sözleşme sayesinde her komutla birleşir: git branch | fzf, pacman -Qq | fzf, ps aux | fzf. Kabuk entegrasyonu üç kısayol ekler: Ctrl-R geçmişte bulanık arama yapar ve varsayılan geçmiş aramasını çok daha kullanışlı hale getirir; Ctrl-T geçerli dizin altındaki dosyalardan seçip komut satırına ekler; Alt-C seçilen dizine geçer. Entegrasyon bash'te eval \"$(fzf --bash)\", zsh'de source <(fzf --zsh), fish'te fzf --fish | source ile açılır. --preview seçili satır için bir önizleme komutu çalıştırır; bat ile birleşince dosya içeriğini yan panelde gösterir. -m çoklu seçimi açar. FZF_DEFAULT_COMMAND ile dosya listesini fd'ye ürettirmek gizli ve yok sayılan dosya davranışını da ayarlar.",
+t:[["Temel","liste | fzf → seçilen satır stdout'a"],["Kısayollar","Ctrl-R geçmiş · Ctrl-T dosya · Alt-C dizin"],["Etkinleştir","bash: eval \"$(fzf --bash)\" · fish: fzf --fish | source"],["Önizleme","--preview 'bat --color=always {}'"],["Çoklu seçim","-m (Tab ile işaretle)"],["Kaynak","FZF_DEFAULT_COMMAND='fd -t f'"],["Arama sözdizimi","'tam · ^baş · son$ · !hariç"]],
+d:{k:"seq",a:["git branch","fzf","Sen","git switch"],s:[[0,1,"12 dal adı","q"],[2,1,"\"atl\" yaz","q"],[1,2,"3 eşleşme","r"],[2,1,"⏎","q"],[1,3,"feature/atlas-komut","r"]]},
+cap:"fzf yalnızca bir süzgeçtir: liste her yerden gelebilir, seçim her komuta gidebilir.",
+x:["Her şeyi aranabilir yapmak",`> fzf --fish | source                       # config.fish içine
+$ git switch "$(git branch --format='%(refname:short)' | fzf)"
+$ nvim "$(fd -t f | fzf --preview 'bat --color=always {}')"
+$ pacman -Qq | fzf -m --preview 'pacman -Qi {}' | xargs -r sudo pacman -Rns
+$ kill -9 "$(ps -eo pid,comm | fzf | awk '{print $1}')"`]}
+];
+
+
+/* ============ SVG ÇİZİM ============ */
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e}
+function txt(t,a,p,s){const e=el(t,a,p);e.textContent=s;return e}
+
+function seqSVG(d){
+  const n=d.a.length, cw=n<=2?300:n===3?205:n===4?165:140, px=82;
+  const labelMax=Math.max(...d.s.map(s=>s[2].length));
+  const W=Math.max(px*2+cw*(n-1), labelMax*6.9+40), top=58, rh=40, H=top+d.s.length*rh+14;
+  const off=(W-(px*2+cw*(n-1)))/2;
+  const X=i=>off+px+i*cw;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.72)}px`,"aria-label":"Akış şeması: "+d.a.join(", ")});
+  d.a.forEach((name,i)=>{
+    el("line",{x1:X(i),y1:36,x2:X(i),y2:H-4,class:"life"},svg);
+    const w=Math.max(96,name.length*7.4+20);
+    el("rect",{x:X(i)-w/2,y:6,width:w,height:30,rx:6,class:"actor"},svg);
+    txt("text",{x:X(i),y:25.5,class:"actor-t","text-anchor":"middle"},svg,name);
+  });
+  const segs=d.s.map((s,i)=>{
+    const [f,t,label,k]=s, kind=k==="n"?"n":(k||"q"), y=top+i*rh+16;
+    const g=el("g",{class:"step k-"+kind},svg);
+    if(f===t){
+      const w=Math.max(104,label.length*6.8+18);
+      el("rect",{x:X(f)-w/2,y:y-13,width:w,height:24,rx:5,class:"note"},g);
+      txt("text",{x:X(f),y:y+3.5,"text-anchor":"middle",class:"lbl"},g,label);
+      return {g,x1:X(f)-w/2-9,y1:y-1,x2:X(f)-w/2-9,y2:y-1,note:true};
+    }
+    const x1=X(f),x2=X(t),dir=x2>x1?1:-1;
+    el("line",{x1:x1+dir*3,y1:y+6,x2:x2-dir*3,y2:y+6,class:"arrow","marker-end":`url(#m-${kind})`},g);
+    txt("text",{x:(x1+x2)/2,y:y-1,"text-anchor":"middle",class:"lbl"},g,label);
+    return {g,x1,y1:y+6,x2,y2:y+6};
+  });
+  const dot=el("circle",{r:5.5,class:"pkt",cx:segs[0].x1,cy:segs[0].y1},svg);
+  return {svg,segs,dot};
+}
+
+function stackSVG(d,wide){
+  const items=d.l.map(s=>s.split("|"));
+  const longest=Math.max(...items.map(i=>i[0].length*7.2+(i[1]?i[1].length*6.3:0)));
+  const W=Math.max(wide?520:440,Math.round(longest+90)), bw=W-40, bh=40, gap=14, top=12;
+  const H=top+items.length*(bh+gap)-gap+12;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.7)}px`,"aria-label":"Katman şeması: "+items.map(i=>i[0]).join(" → ")});
+  const cx=W/2;
+  const pts=items.map((it,i)=>{
+    const y=top+i*(bh+gap), g=el("g",{class:"step"},svg);
+    el("rect",{x:20,y,width:bw,height:bh,rx:7,class:"layer"},g);
+    txt("text",{x:36,y:y+25,class:"layer-t"},g,it[0]);
+    if(it[1]) txt("text",{x:W-36,y:y+25,class:"layer-c","text-anchor":"end"},g,it[1]);
+    if(i<items.length-1) el("line",{x1:cx,y1:y+bh+2,x2:cx,y2:y+bh+gap-2,class:"arrow",stroke:"var(--muted)","stroke-width":1.4},svg);
+    return {g,y:y+bh/2};
+  });
+  const segs=[];
+  for(let i=0;i<pts.length;i++){segs.push({g:pts[i].g,x1:cx,y1:i?pts[i-1].y:pts[0].y,x2:cx,y2:pts[i].y});}
+  for(let i=pts.length-2;i>=0;i--){segs.push({g:pts[i].g,x1:cx,y1:pts[i+1].y,x2:cx,y2:pts[i].y});}
+  const dot=el("circle",{r:6,class:"pkt",cx,cy:pts[0].y},svg);
+  return {svg,segs,dot};
+}
+
+/* boru hattı çizelgesi: satırlar komut, sütunlar saat çevrimi */
+function pipeSVG(d){
+  const ST=d.st||["IF","ID","EX","MEM","WB"];
+  const rows=d.r.map(r=>({label:r[0],start:r[1],seq:r[2]||ST}));
+  const ncol=Math.max(...rows.map(r=>r.start+r.seq.length));
+  const lw=Math.max(...rows.map(r=>r.label.length))*6.9+20, cw=46, rh=32, top=34;
+  const W=Math.round(lw+ncol*cw+12), H=top+rows.length*rh+10;
+  const svg=el("svg",{viewBox:`0 0 ${W} ${H}`,class:"diag",role:"img",style:`max-width:${W}px;min-width:${Math.round(W*0.75)}px`,"aria-label":"Boru hattı çizelgesi: "+rows.map(r=>r.label).join(", ")});
+  const X=c=>lw+c*cw;
+  const cols=[];
+  for(let c=0;c<ncol;c++){
+    txt("text",{x:X(c)+cw/2,y:14,class:"cyc","text-anchor":"middle"},svg,String(c+1));
+    cols.push(el("g",{class:"step"},svg));
+  }
+  el("line",{x1:lw-6,y1:top-8,x2:W-6,y2:top-8,class:"grid-l"},svg);
+  rows.forEach((r,i)=>{
+    const y=top+i*rh;
+    txt("text",{x:8,y:y+rh/2+2,class:"rowl"},svg,r.label);
+    r.seq.forEach((s,k)=>{
+      const c=r.start+k, g=cols[c], bub=s==="·";
+      el("rect",{x:X(c)+3,y:y+3,width:cw-6,height:rh-8,rx:4,class:bub?"bub":"cell"},g);
+      txt("text",{x:X(c)+cw/2,y:y+rh/2+1,"text-anchor":"middle",class:bub?"bub-t":"cell-t"},g,bub?"dur":s);
+    });
+  });
+  const cy=22;
+  const segs=cols.map((g,c)=>({g,x1:X(Math.max(0,c-1))+cw/2,y1:cy,x2:X(c)+cw/2,y2:cy}));
+  const dot=el("circle",{r:5,class:"pkt",cx:segs[0].x1,cy},svg);
+  return {svg,segs,dot};
+}
+
+/* ============ ANİMASYON ============ */
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+const live=new Set();
+function animate(diag){
+  if(reduce) return;
+  diag.i=0;diag.t0=performance.now();
+  live.add(diag);
+}
+function frame(now){
+  live.forEach(d=>{
+    if(!d.visible) return;
+    const DUR=d.pipe?750:(d.stack?650:1050);
+    const elapsed=now-d.t0;
+    if(d.i>=d.segs.length){ if(elapsed>1300){d.i=0;d.t0=now;} return;}
+    const s=d.segs[d.i];
+    if(!d.root.classList.contains("playing")) d.root.classList.add("playing");
+    d.segs.forEach((x,j)=>x.g.classList.toggle("on",j===d.i));
+    const p=Math.min(1,elapsed/DUR), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    d.dot.setAttribute("cx",s.x1+(s.x2-s.x1)*e);
+    d.dot.setAttribute("cy",s.y1+(s.y2-s.y1)*e);
+    d.dot.setAttribute("r",s.note?5.5+2*Math.sin(p*Math.PI):(d.stack?6:5.5));
+    if(p>=1){d.i++;d.t0=now; if(d.i>=d.segs.length){d.segs.forEach(x=>x.g.classList.remove("on"));d.root.classList.remove("playing");}}
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+const io=("IntersectionObserver" in window)?new IntersectionObserver(es=>es.forEach(e=>{const d=e.target.__diag;if(d)d.visible=e.isIntersecting}),{rootMargin:"60px"}):null;
+
+function mount(box,spec,wide){
+  const r=spec.k==="stack"?stackSVG(spec,wide):spec.k==="pipe"?pipeSVG(spec):seqSVG(spec);
+  box.appendChild(r.svg);
+  const d={root:r.svg,segs:r.segs,dot:r.dot,stack:spec.k==="stack",pipe:spec.k==="pipe",visible:!io};
+  box.__diag=d; if(io) io.observe(box);
+  animate(d);
+}
+
+/* ============ SAYFA ============ */
+const content=document.getElementById("content"), nav=document.getElementById("nav"), idx=document.getElementById("index");
+CATS.forEach(c=>{
+  const items=T.filter(t=>t.c===c.id);
+  const sec=document.createElement("section");sec.className="cat";sec.id=c.id;
+  const head=document.createElement("div");head.className="cat-head";
+  const h2=document.createElement("h2");h2.textContent=c.n;
+  const num=document.createElement("span");num.className="num";num.textContent=items.length+" kavram";
+  head.append(h2,num);
+  const intro=document.createElement("p");intro.className="cat-intro";intro.textContent=c.i;
+  sec.append(head,intro);
+  items.forEach(t=>{
+    const art=document.createElement("article");art.className="term";art.id=t.id;
+    art.dataset.s=(t.a+" "+t.f+" "+t.tr+" "+t.o+" "+t.h+" "+t.t.map(x=>x.join(" ")).join(" ")).toLocaleLowerCase("tr");
+    const hd=document.createElement("header");
+    hd.innerHTML=`<span class="abbr"></span><h3></h3><span class="meta"></span><p class="tr"></p>`;
+    hd.querySelector(".abbr").textContent=t.a;hd.querySelector("h3").textContent=t.f;hd.querySelector(".meta").textContent=t.y;hd.querySelector(".tr").textContent=t.tr;
+    art.appendChild(hd);
+    const one=document.createElement("p");one.className="one";one.textContent=t.o;art.appendChild(one);
+    const body=document.createElement("div");body.className="body";
+    const left=document.createElement("div");
+    const h4a=document.createElement("h4");h4a.textContent="Nasıl çalışır";left.appendChild(h4a);
+    const p=document.createElement("p");p.textContent=t.h;left.appendChild(p);
+    const h4b=document.createElement("h4");h4b.textContent="Teknik ayrıntılar";left.appendChild(h4b);
+    const dl=document.createElement("dl");dl.className="tech";
+    t.t.forEach(([k,v])=>{const dt=document.createElement("dt");dt.textContent=k;const dd=document.createElement("dd");dd.textContent=v;dl.append(dt,dd)});
+    left.appendChild(dl);
+    const fig=document.createElement("figure");
+    const box=document.createElement("div");box.className="diag-box";fig.appendChild(box);
+    const fc=document.createElement("figcaption");fc.textContent=t.cap;fig.appendChild(fc);
+    body.append(left,fig);art.appendChild(body);
+    if(t.x){const pre=document.createElement("pre");pre.className="code";const cl=document.createElement("span");cl.className="cl";cl.textContent=t.x[0];pre.appendChild(cl);pre.appendChild(document.createTextNode(t.x[1]));art.appendChild(pre);}
+    sec.appendChild(art);
+    mount(box,t.d,false);
+    const a=document.createElement("a");a.href="#"+t.id;a.textContent=t.a;idx.appendChild(a);
+  });
+  content.appendChild(sec);
+  const na=document.createElement("a");na.href="#"+c.id;na.textContent=c.n;
+  const sp=document.createElement("span");sp.textContent=items.length;na.appendChild(sp);nav.appendChild(na);
+});
+[["kabuklar","Kabuk karşılaştırması"],["modern","Modern alternatifler"],["kisayollar","Klavye kısayolları"]].forEach(([id,n])=>{
+  const na=document.createElement("a");na.href="#"+id;na.textContent=n;
+  const sp=document.createElement("span");sp.textContent="tablo";na.appendChild(sp);nav.appendChild(na);
+});
+
+mount(document.getElementById("hero-diag"),{k:"stack",l:[
+ "Okuma|satır düzenleyici, geçmiş","Sözcüklere ayırma|tırnaklar, operatörler","Genişletme|{ }  ~  $VAR  $( )  $(( ))","Sözcük bölme ve glob|IFS · * ? [ ]","Yönlendirme ve borular|>  <  2>&1  |","Komut arama|alias · yerleşik · PATH","fork + execve|yeni süreç","wait|çıkış kodu → $?"]},true);
+
+/* arama */
+const q=document.getElementById("q"), empty=document.getElementById("empty");
+q.addEventListener("input",()=>{
+  const v=q.value.trim().toLocaleLowerCase("tr");let any=false;
+  document.querySelectorAll("#content section.cat").forEach(sec=>{
+    let n=0;sec.querySelectorAll(".term").forEach(a=>{const ok=!v||a.dataset.s.includes(v);a.hidden=!ok;if(ok)n++});
+    sec.hidden=n===0;if(n)any=true;
+  });
+  document.querySelectorAll("#kabuklar,#modern,#kisayollar").forEach(s=>s.hidden=!!v);
+  empty.style.display=any?"none":"block";
+});
+</script>
+
+</body></html>
