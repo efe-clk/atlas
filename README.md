@@ -12,6 +12,7 @@ Yayın adresi: **https://efe-clk.github.io/atlas/**
 | [Açık Kaynak Repo Atlası](https://efe-clk.github.io/atlas/acik-kaynak-repo-atlasi/) | Kod kalitesi, dokümantasyonu ya da topluluğuyla öne çıkan GitHub repolarının kategorilere ayrılmış, aranabilir dizini. |
 | [Dijital Diller Atlası](https://efe-clk.github.io/atlas/dijital-diller-atlasi/) | Devre tanımlamadan SQL'e kadar bilgisayar dili ailelerini soyutlama katmanlarına göre alt türleri ve kod örnekleriyle haritalayan rehber. |
 | [Bilgisayar Mimarisi Atlası](https://efe-clk.github.io/atlas/bilgisayar-mimarisi-atlasi/) | İşlemci çekirdeğinden önbelleklere, sanal bellekten kesmelere kadar bilgisayar mimarisini canlı akış şemaları ve boru hattı çizelgeleriyle anlatan rehber. |
+| [Linux Önyükleme Atlası](https://efe-clk.github.io/atlas/linux-onyukleme-atlasi/) | Güç düğmesinden masaüstüne: UEFI, önyükleyiciler, çekirdek, initramfs, systemd ve gömülü kartlarda önyüklemeyi adım adım, canlı şemalarla anlatan rehber. |
 
 ## Yapı
 
@@ -28,7 +29,9 @@ atlas/
 │   └── index.html
 ├── dijital-diller-atlasi/
 │   └── index.html
-└── bilgisayar-mimarisi-atlasi/
+├── bilgisayar-mimarisi-atlasi/
+│   └── index.html
+└── linux-onyukleme-atlasi/
     └── index.html
 ```
 
