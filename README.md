@@ -44,7 +44,7 @@ Bir atlas ek dosyaya ihtiyaç duyarsa bunları kendi klasöründeki `assets/` al
 
 - **Bağımsızlık:** Her atlas kendi klasöründe kendi kendine yeter. Bir atlas başka bir atlasın klasöründeki dosyalara bağlanmaz. CDN'den yüklenen kütüphaneler ve fontlar serbesttir.
 - **Klasör adlandırma:** Küçük harf, Türkçe karakter yok (`ç→c`, `ğ→g`, `ı→i`, `ö→o`, `ş→s`, `ü→u`), kelimeler tire ile ayrılır. Ör. "Açık Kaynak Repo Atlası" → `acik-kaynak-repo-atlasi`.
-- **Göreli yollar:** Site `efe-clk.github.io/atlas/` alt yolunda çalışır. `/` ile başlayan yollar (`/assets/logo.png`) alan adının köküne gider ve kırılır; bunun yerine `./assets/logo.png` yazın. (Tek istisna `404.html`: Pages bu sayfayı her derinlikte sunduğu için ana sayfa linki `/atlas/` olarak yazılmıştır.)
+- **Göreli yollar:** Site `efe-clk.github.io/atlas/` alt yolunda çalışır. `/` ile başlayan yollar (`/assets/logo.png`) alan adının köküne gider ve kırılır; bunun yerine `./assets/logo.png` yazın. (Tek istisna `404.html`: Pages bu sayfayı her derinlikte sunduğu için ana sayfa linki `/atlas/` olarak yazılmıştır. Siteye özel bir domain bağlanıp site kökte çalışmaya başlarsa bu linki `/` yapın.)
 - **Depolama anahtarları:** Tüm atlaslar aynı origin'i (`efe-clk.github.io`) paylaşır, yani `localStorage` ve `sessionStorage` ortaktır. Çakışmayı önlemek için her anahtara klasör adıyla önek ekleyin: `tema` → `arayuz-atlasi:tema`. Okuma ve yazma noktalarının hepsini aynı şekilde değiştirin.
 
 ## Yerelde test
