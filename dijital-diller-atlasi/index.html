@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dijital Diller Atlası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Düzen: soyutlama merdiveni (L0 devre → L6 bildirimsel). Her aile kartı merdivendeki katmanını taşır; solda yapışkan dizin, sağda aileler. */
+:root{
+  --bg:#ECF0F4; --surface:#FFFFFF; --ink:#121A24; --muted:#536170; --line:#C9D2DC;
+  --accent:#2B44C9; --accent-2:#0B7F70; --chip:#E1E7F7; --chip-2:#DCEFEC;
+  --code-bg:#16212E; --code-fg:#DCE6F0; --code-dim:#7F93A8;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0E141B; --surface:#151E28; --ink:#E3E9F0; --muted:#94A2B1; --line:#283543;
+  --accent:#8C9DFF; --accent-2:#43C6B2; --chip:#1F2A45; --chip-2:#16312F;
+  --code-bg:#0A1017; --code-fg:#D6E0EA; --code-dim:#71859A; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0E141B; --surface:#151E28; --ink:#E3E9F0; --muted:#94A2B1; --line:#283543;
+  --accent:#8C9DFF; --accent-2:#43C6B2; --chip:#1F2A45; --chip-2:#16312F;
+  --code-bg:#0A1017; --code-fg:#D6E0EA; --code-dim:#71859A; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:28px 64px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.12}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+p{margin:0}
+
+/* Hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:24px 40px;border-bottom:1px solid var(--line)}
+.hero h1{font-size:clamp(2.6rem,6vw,4.6rem);font-weight:800;letter-spacing:-.02em;margin-block:10px 18px}
+.hero h1 span{color:var(--accent)}
+.hero .lead{font-size:1.12rem;max-width:58ch;color:var(--ink)}
+.hero .lead + .lead{margin-top:12px;color:var(--muted);font-size:1rem}
+.stats{display:flex;gap:28px;flex-wrap:wrap;margin-top:24px;font-variant-numeric:tabular-nums}
+.stats b{display:block;font-family:var(--f-display);font-size:1.9rem;line-height:1}
+.stats small{color:var(--muted);font-size:.85rem}
+.ladder{width:100%;max-width:470px;justify-self:end;height:auto}
+.ladder text{font-family:var(--f-body);fill:var(--ink)}
+.ladder .lv{font-family:var(--f-mono);font-size:12px;fill:var(--muted)}
+.ladder .nm{font-size:14px;font-weight:600}
+.ladder .ex{font-size:11.5px;fill:var(--muted)}
+.ladder rect{fill:var(--accent);stroke:var(--accent);stroke-opacity:.35}
+.ladder a:hover rect,.ladder a:focus rect{stroke-opacity:1}
+.ladder .axis{stroke:var(--muted);stroke-width:1.2;fill:none}
+.ladder .axl{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
+
+/* Bölümler */
+section.block{padding-block:48px 8px}
+.block-head{display:grid;gap:10px;max-width:70ch;margin-bottom:24px}
+.block-head h2{font-size:clamp(1.7rem,3.4vw,2.4rem);font-weight:700}
+.block-head p{color:var(--muted)}
+.diagram{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.diagram svg{display:block;min-width:780px;width:100%;height:auto}
+.diagram text{font-family:var(--f-body);fill:var(--ink)}
+.diagram .sub{fill:var(--muted);font-size:12px}
+.diagram .box{fill:var(--chip);stroke:var(--accent);stroke-width:1.2}
+.diagram .box2{fill:var(--chip-2);stroke:var(--accent-2);stroke-width:1.2}
+.diagram .arr{stroke:var(--accent);stroke-width:1.6;fill:none}
+.diagram .arr2{stroke:var(--accent-2);stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+.diagram .ah{fill:var(--accent)} .diagram .ah2{fill:var(--accent-2)}
+.diagram .note{font-family:var(--f-mono);font-size:11.5px;fill:var(--muted)}
+
+.models{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+.model{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:8px;align-content:start}
+.model h3{font-size:1.1rem}
+.model p{font-size:.93rem;color:var(--muted)}
+.model code{font-family:var(--f-mono);font-size:.82rem;color:var(--ink)}
+
+.chomsky svg{min-width:620px;max-width:820px;margin:0 auto}
+.chomsky .ring0{fill:var(--accent);fill-opacity:.05;stroke:var(--accent);stroke-opacity:.45}
+.chomsky .ring1{fill:var(--accent);fill-opacity:.08;stroke:var(--accent);stroke-opacity:.55}
+.chomsky .ring2{fill:var(--accent);fill-opacity:.12;stroke:var(--accent);stroke-opacity:.7}
+.chomsky .ring3{fill:var(--accent-2);fill-opacity:.16;stroke:var(--accent-2)}
+.chomsky .t{font-size:14.5px;font-weight:600}
+.chomsky .m{font-family:var(--f-mono);font-size:12px;fill:var(--muted)}
+.grammar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px}
+
+/* Atlas: dizin + aileler */
+.atlas{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;margin-top:8px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);align-self:start;max-height:calc(100vh - 32px);overflow:auto;padding-right:4px}
+.toc h4{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 6px;font-weight:500}
+.toc h4:first-of-type{margin-top:0}
+.toc a{display:flex;gap:8px;align-items:baseline;text-decoration:none;color:var(--ink);font-size:.9rem;padding:3px 0}
+.toc a span{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);min-width:20px}
+.toc a:hover{color:var(--accent)}
+.toc a.off{opacity:.35}
+.search{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:22px}
+.search input{flex:1 1 260px;min-width:0;font:inherit;padding:11px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.search output{font-family:var(--f-mono);font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.fam{padding-block:30px;border-top:1px solid var(--line);display:grid;gap:18px;scroll-margin-top:16px}
+.fam-head{display:grid;gap:8px}
+.fam-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lvl{font-family:var(--f-mono);font-size:.76rem;font-weight:500;padding:2px 8px;border-radius:4px;background:var(--accent);color:var(--surface)}
+.tag{font-family:var(--f-mono);font-size:.74rem;padding:2px 8px;border-radius:4px;background:var(--chip-2);color:var(--ink)}
+.grp{font-family:var(--f-mono);font-size:.74rem;color:var(--muted)}
+.fam h2{font-size:clamp(1.45rem,2.8vw,1.95rem);font-weight:700}
+.fam .lead{max-width:72ch}
+.flow-label{font-family:var(--f-mono);font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2)}
+.flow{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 0;counter-reset:s}
+.flow li{counter-increment:s;display:flex;align-items:center;font-size:.88rem}
+.flow li > span{background:var(--chip-2);border:1px solid color-mix(in srgb,var(--accent-2) 40%,transparent);border-radius:6px;padding:6px 10px;max-width:30ch}
+.flow li > span::before{content:counter(s);font-family:var(--f-mono);font-size:.72rem;color:var(--accent-2);margin-right:7px;font-weight:600}
+.flow li:not(:last-child)::after{content:"→";color:var(--accent-2);padding-inline:8px;font-weight:600}
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.sub{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:13px 14px;display:grid;gap:5px;align-content:start;min-width:0}
+.sub h3{font-family:var(--f-body);font-size:.98rem;font-weight:600}
+.sub p{font-size:.9rem;color:var(--muted)}
+.sub .ex{font-family:var(--f-mono);font-size:.78rem;color:var(--accent);overflow-wrap:anywhere}
+.sub.hide,.fam.hide{display:none}
+figure{margin:0;min-width:0}
+figcaption{font-family:var(--f-mono);font-size:.76rem;color:var(--muted);margin-bottom:6px}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);border-radius:8px;padding:14px 16px;overflow-x:auto;font-family:var(--f-mono);font-size:.84rem;line-height:1.55;tab-size:4}
+mark{background:color-mix(in srgb,var(--accent) 30%,transparent);color:inherit;border-radius:2px}
+.empty{color:var(--muted);padding:30px 0}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:minmax(0,1fr)} .ladder{justify-self:start}
+  .models{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grammar{grid-template-columns:minmax(0,1fr)}
+  .atlas{grid-template-columns:minmax(0,1fr);gap:16px}
+  .toc{position:static;max-height:none;display:flex;flex-wrap:wrap;gap:6px}
+  .toc h4{display:none}
+  .toc a{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.82rem}
+  .toc a span{display:none}
+}
+@media (max-width:520px){ .models{grid-template-columns:minmax(0,1fr)} .wrap{padding-inline:16px} }
+@media (prefers-reduced-motion:no-preference){ html{scroll-behavior:smooth} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Atlas · Bilgisayar dilleri haritası</div>
+      <h1>Dijital Diller <span>Atlası</span></h1>
+      <p class="lead">Transistörden SQL sorgusuna kadar bilgisayarın konuştuğu tüm dil ailelerinin haritası: her ailenin alt türleri, nasıl çalıştığı ve gerçek bir kod örneği.</p>
+      <p class="lead">Sağdaki merdiven soyutlama katmanlarını gösterir. Aşağı indikçe donanıma, yukarı çıktıkça insana yaklaşırsın. Her aile kartındaki <b>L</b> etiketi bu merdivendeki yerini belirtir.</p>
+      <div class="stats" id="stats"></div>
+    </div>
+    <svg class="ladder" viewBox="0 0 470 410" role="img" aria-label="Soyutlama merdiveni: L0 devre tanımlamadan L6 bildirimsel dillere">
+      <path class="axis" d="M24 392 V24"/><path class="axis" d="M18 34 L24 22 L30 34"/>
+      <text class="axl" x="10" y="14">İnsan</text><text class="axl" x="4" y="406">Donanım</text>
+      <g id="rungs"></g>
+    </svg>
+  </header>
+
+  <section class="block" id="nasil">
+    <div class="block-head">
+      <div class="eyebrow">Ortak mekanizma</div>
+      <h2>Bir dil nasıl çalışır?</h2>
+      <p>Neredeyse her dil aynı yolculuğu yapar: metin önce parçalara ayrılır, sonra ağaca dönüşür, anlamı denetlenir ve en sonunda ya makine koduna çevrilir ya da bir yorumlayıcı tarafından adım adım yürütülür. Dilleri birbirinden ayıran, bu yolun hangi noktasında durdukları ve kimin yürüttüğüdür.</p>
+    </div>
+    <div class="diagram" role="img" aria-label="Derleme hattı: kaynak kod, lexer, parser, anlam analizi, ara temsil, optimizasyon, kod üretimi, makine kodu; yan yollar transpiler, yorumlayıcı ve JIT">
+      <svg viewBox="0 0 1000 310" id="pipe"></svg>
+    </div>
+    <div class="models">
+      <div class="model"><h3>Önceden derleme (AOT)</h3><p>Program çalışmadan önce bütünüyle makine koduna çevrilir. Başlangıç hızlıdır, ikili dosya hedef işlemciye bağlıdır.</p><code>C · C++ · Rust · Go · Zig</code></div>
+      <div class="model"><h3>Yorumlama</h3><p>Yorumlayıcı kodu okur ve anında yürütür. Derleme beklemesi yoktur, karşılığında çalışma daha yavaştır.</p><code>Bash · Python · Lua · Ruby</code></div>
+      <div class="model"><h3>Bayt kod + JIT</h3><p>Kod taşınabilir bayt koda çevrilir. Sanal makine önce yorumlar, sık çalışan kısımları çalışma sırasında makine koduna derler.</p><code>Java · C# · JavaScript · Kotlin</code></div>
+      <div class="model"><h3>Bildirimsel işleme</h3><p>Programcı adımları değil sonucu tarif eder. Motor (tarayıcı, veritabanı, sentez aracı) yolu kendisi seçer.</p><code>SQL · HTML · CSS · Verilog</code></div>
+    </div>
+  </section>
+
+  <section class="block chomsky" id="temel">
+    <div class="block-head">
+      <div class="eyebrow">Biçimsel temel</div>
+      <h2>Chomsky hiyerarşisi</h2>
+      <p>Her bilgisayar dili, matematiksel olarak bir "biçimsel dil"dir: izin verilen sembol dizilerinin kümesi. Noam Chomsky bu dilleri, onları tanıyabilen makinenin gücüne göre dört iç içe sınıfa ayırdı. Derleyicinin lexer'ı en içteki sınıfı, parser'ı bir dıştakini kullanır.</p>
+    </div>
+    <div class="diagram" role="img" aria-label="İç içe dört dil sınıfı: Tip 3 düzenli, Tip 2 bağlamdan bağımsız, Tip 1 bağlama duyarlı, Tip 0 özyinelemeli sayılabilir">
+      <svg viewBox="0 0 680 380">
+        <rect class="ring0" x="2" y="2" width="676" height="376" rx="22"/>
+        <text class="t" x="24" y="30">Tip 0 · Özyinelemeli sayılabilir diller</text>
+        <text class="m" x="24" y="50">Tanıyan: Turing makinesi · Her hesaplanabilir sorun, tüm genel amaçlı dillerin gücü</text>
+        <rect class="ring1" x="34" y="70" width="612" height="296" rx="18"/>
+        <text class="t" x="56" y="98">Tip 1 · Bağlama duyarlı diller</text>
+        <text class="m" x="56" y="118">Tanıyan: doğrusal sınırlı otomat · Örnek: aⁿbⁿcⁿ, "önce tanımla sonra kullan"</text>
+        <rect class="ring2" x="66" y="138" width="548" height="216" rx="14"/>
+        <text class="t" x="88" y="166">Tip 2 · Bağlamdan bağımsız diller</text>
+        <text class="m" x="88" y="186">Tanıyan: yığınlı otomat · Parser'lar, iç içe parantez, BNF dilbilgileri</text>
+        <rect class="ring3" x="98" y="206" width="484" height="136" rx="10"/>
+        <text class="t" x="120" y="236">Tip 3 · Düzenli diller</text>
+        <text class="m" x="120" y="258">Tanıyan: sonlu otomat (DFA / NFA) · Hafıza yok</text>
+        <text class="m" x="120" y="280">Kullanım: regex, lexer'ın token kuralları</text>
+        <text class="m" x="120" y="310">[0-9]+(\.[0-9]+)?   →   3.14, 42, 0.5</text>
+      </svg>
+    </div>
+    <div class="grammar">
+      <div class="model"><h3>Sözcük (lexical)</h3><p>Karakterleri token'lara böler: anahtar kelime, sayı, isim, işleç. Düzenli dillerle tanımlanır.</p><code>x = 3 + y → [isim][=][sayı][+][isim]</code></div>
+      <div class="model"><h3>Sözdizimi (syntax)</h3><p>Token'ların hangi sırayla gelebileceğini dilbilgisi kuralları belirler. BNF, EBNF veya PEG ile yazılır.</p><code>ifade ::= terim ("+" terim)*</code></div>
+      <div class="model"><h3>Anlam (semantics)</h3><p>Sözdizimi doğru bir programın ne yaptığını belirler: tipler, kapsamlar, değerlendirme sırası.</p><code>"3" + 4 → hata mı, "34" mü, 7 mi?</code></div>
+    </div>
+  </section>
+
+  <section class="block" id="aileler">
+    <div class="block-head">
+      <div class="eyebrow">Aileler</div>
+      <h2>Dil aileleri ve alt türleri</h2>
+      <p>Her ailede: ne olduğu, çalışma mantığının adım adım akışı, alt türleri ve kısa bir örnek. Aramaya bir dil adı (ör. "Rust", "YAML") veya kavram (ör. "JIT", "regex") yazarak süzebilirsin.</p>
+    </div>
+    <div class="atlas">
+      <nav class="toc" id="toc" aria-label="Aile dizini"></nav>
+      <div>
+        <div class="search">
+          <label for="q" class="eyebrow">Ara</label>
+          <input id="q" type="search" placeholder="Dil, alt tür veya kavram…" autocomplete="off">
+          <output id="count" for="q"></output>
+        </div>
+        <div id="fams"></div>
+        <p class="empty" id="empty" hidden>Bu aramayla eşleşen dil bulunamadı. Daha kısa bir kelime dene, ör. "SQL" yerine "sorgu".</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Dijital Diller Atlası · atlas koleksiyonu</span>
+    <span>Katmanlar: L0 devre · L1 makine · L2 assembly · L3 ara dil · L4 sistem/GPU · L5 uygulama · L6 bildirimsel</span>
+  </footer>
+</div>
+
+<script>
+const c = String.raw;
+const LEVELS = [
+  ["L6","Bildirimsel diller","SQL · HTML · CSS · YAML · DSL'ler","f-sorgu"],
+  ["L5","Uygulama ve betik dilleri","Python · Java · JS · Bash","f-yuksek"],
+  ["L4","Sistem ve GPU dilleri","C · C++ · Rust · Zig · GLSL","f-sistem"],
+  ["L3","Ara diller, bayt kod","LLVM IR · JVM · Wasm · eBPF","f-ara"],
+  ["L2","Assembly","x86 · ARM · RISC-V","f-asm"],
+  ["L1","Makine kodu, kodlamalar","opcode baytları · UTF-8","f-makine"],
+  ["L0","Devre tanımlama","Verilog · VHDL · Chisel","f-hdl"]
+];
+
+const F = [
+{id:"f-makine",grp:"Donanıma yakın",lv:"L1",name:"Makine dili",tags:["Doğrudan yürütülür"],
+lead:"İşlemcinin anladığı tek dil: bellekteki ikili sayılar. Her komut bir işlem kodu (opcode) ve işlenenlerden oluşur. Komut kümesi mimarisi (ISA) hangi bit dizisinin ne anlama geldiğini tanımlar.",
+flow:["Getir: program sayacındaki (PC) adresten komut okunur","Çöz: opcode ve işlenen alanları ayrılır","Yürüt: ALU, yazmaç veya bellek işlemi","Geri yaz: sonuç yazmaca veya belleğe","PC ilerler ya da dallanır"],
+subs:[["CISC","Karmaşık, değişken uzunluklu komutlar; tek komut bellekten okuyup hesap yapabilir.","x86, x86-64"],
+["RISC","Sabit uzunluklu basit komutlar; belleğe yalnızca load/store ile erişilir.","ARM (AArch64), RISC-V, MIPS, PowerPC"],
+["VLIW / DSP","Tek komut kelimesinde paralel çalışan birden çok işlem; zamanlamayı derleyici yapar.","Itanium, TI C6000, Qualcomm Hexagon"],
+["Mikrokod","CISC komutlarını işlemcinin içinde daha küçük adımlara bölen gizli katman.","Intel ve AMD mikrokod güncellemeleri"],
+["GPU komut kümeleri","Binlerce çekirdekte aynı komutu yürüten SIMT komut kümeleri.","NVIDIA SASS, AMD RDNA ISA"]],
+cap:"x86-64: Linux'ta programı 0 koduyla sonlandıran baytlar",
+code:c`B8 3C 00 00 00   ; mov eax, 60   (exit sistem çağrısı)
+31 FF            ; xor edi, edi  (dönüş kodu 0)
+0F 05            ; syscall`},
+
+{id:"f-asm",grp:"Donanıma yakın",lv:"L2",name:"Assembly dilleri",tags:["Çevrilir (assembler)"],
+lead:"Makine kodunun insan tarafından okunabilir hali. Her satır genelde tek bir makine komutuna karşılık gelir ve isimler (mnemonic), etiketler ve yönergeler (directive) içerir. Her işlemci ailesinin kendi assembly dili vardır.",
+flow:["Kaynak .s / .asm dosyası","Assembler: mnemonic → opcode, etiket → adres","Nesne dosyası: kod + sembol tablosu + yer değiştirme kayıtları","Bağlayıcı (linker) dosyaları birleştirip adresleri çözer","Çalıştırılabilir dosya: ELF, PE veya Mach-O"],
+subs:[["x86 Intel sözdizimi","Hedef önce yazılır: mov eax, 1.","NASM, MASM, FASM"],
+["x86 AT&T sözdizimi","Kaynak önce yazılır, yazmaçlar % önekli: movl $1, %eax.","GNU as (GAS)"],
+["ARM / Thumb","32 ve 16 bit karışık kodlama; gömülü sistemlerde yaygın.","Cortex-M (STM32), AArch64"],
+["RISC-V","Açık ve modüler komut kümesi; uzantılar harflerle eklenir (I, M, A, F, D, C, V).","RV32I, RV64GC"],
+["Makro assembler","Makro, koşullu derleme ve yapılarla üst düzey kolaylık.","MASM, NASM makroları"],
+["Satır içi assembly","C veya Rust kodunun içine gömülen assembly blokları.","asm!(), __asm__"]],
+cap:"RISC-V: iki sayıyı toplayıp döndüren fonksiyon",
+code:c`topla:
+    add  a0, a0, a1   # a0 = a0 + a1
+    ret               # çağırana dön`},
+
+{id:"f-ara",grp:"Donanıma yakın",lv:"L3",name:"Ara diller ve bayt kod",tags:["Derleyici içi","Sanal makine"],
+lead:"Kaynak dil ile makine kodu arasında duran, belirli bir işlemciye bağlı olmayan diller. Derleyicinin ön yüzünü (dil) arka yüzünden (işlemci) ayırırlar; böylece aynı ara temsil birçok mimariye çevrilebilir.",
+flow:["Ön yüz kaynak kodu ara temsile (IR) çevirir","Mimariden bağımsız optimizasyonlar uygulanır","Ya hedef makine koduna derlenir (AOT)","Ya da sanal makinede yorumlanır veya JIT ile derlenir"],
+subs:[["SSA tabanlı IR","Her değişkene yalnızca bir kez değer atanır; optimizasyonu kolaylaştırır.","LLVM IR, GCC GIMPLE, MLIR"],
+["Yığın tabanlı bayt kod","İşlemler değerleri bir yığından alır, sonucu yığına koyar.","JVM bytecode, .NET CIL, CPython bytecode"],
+["WebAssembly","Tarayıcıda ve dışında çalışan güvenli, taşınabilir ikili format.","Wasm, WASI"],
+["eBPF","Linux çekirdeğinde doğrulanarak çalışan küçük programlar: ağ, izleme, güvenlik.","bpftrace, XDP, Cilium"],
+["GPU ara dilleri","Sürücünün ekran kartına özel koda çevirdiği ara format.","SPIR-V, NVIDIA PTX, DXIL"]],
+cap:"LLVM IR: toplama fonksiyonu",
+code:c`define i32 @topla(i32 %a, i32 %b) {
+entry:
+  %t = add nsw i32 %a, %b
+  ret i32 %t
+}`},
+
+{id:"f-sistem",grp:"Genel programlama",lv:"L4",name:"Sistem programlama dilleri",tags:["Derlenir (AOT)"],
+lead:"Donanıma yakın çalışan, bellek düzenini ve performansı programcıya bırakan diller. İşletim sistemleri, sürücüler, gömülü yazılım, tarayıcı motorları ve oyun motorları bu dillerle yazılır.",
+flow:["Kaynak kod (.c, .rs, .zig)","Ön işleme ve makro açılımı","Derleyici: AST → IR → makine kodu","Bağlayıcı: nesne dosyaları + kütüphaneler","Yerel ikili dosya; çalışma zamanı yükü az ya da hiç yok"],
+subs:[["C","Taşınabilir assembly gibi; işaretçiler ve elle bellek yönetimi (malloc / free).","Linux çekirdeği, gömülü firmware"],
+["C++","C üzerine sınıflar, şablonlar ve RAII; sıfır maliyetli soyutlamalar.","Oyun motorları, Qt, Chromium"],
+["Rust","Sahiplik ve ödünç alma denetimiyle çöp toplayıcısız bellek güvenliği.","Linux sürücüleri, CLI araçları"],
+["Zig","C ile doğrudan çalışan, gizli kontrol akışı olmayan, derleme anında kod çalıştırabilen dil.","Araç zincirleri, oyunlar"],
+["Go","Sade sözdizimi, çöp toplayıcı ve goroutine'ler; tek statik ikili üretir.","Docker, Kubernetes"],
+["Ada / SPARK","Güvenlik kritik sistemler için sıkı tip sistemi ve biçimsel doğrulama.","Havacılık, demiryolu"]],
+cap:"Rust: sahiplik kuralı derleme anında denetlenir",
+code:c`fn main() {
+    let ad = String::from("atlas");
+    let baska = ad;           // sahiplik taşındı
+    // println!("{ad}");      // derleme hatası: ad artık geçersiz
+    println!("{baska}");
+}`},
+
+{id:"f-yuksek",grp:"Genel programlama",lv:"L5",name:"Yüksek seviye uygulama dilleri",tags:["Bayt kod + JIT","Derlenir"],
+lead:"Uygulama geliştirmek için tasarlanmış, bellek yönetimini çöp toplayıcıya veya referans sayımına bırakan, zengin standart kütüphanelere sahip diller.",
+flow:["Kaynak kod derleyiciden geçer","Bayt koda (JVM, .NET) veya yerel koda (Swift) çevrilir","Sanal makine sınıfları yükler ve doğrular","Önce yorumlar, sık çalışan kodu JIT ile derler","Çöp toplayıcı kullanılmayan nesneleri temizler"],
+subs:[["JVM dilleri","Java bayt koduna derlenip her platformda çalışan diller.","Java, Kotlin, Scala, Clojure, Groovy"],
+[".NET dilleri","CIL'e derlenir, CLR üzerinde JIT veya AOT ile çalışır.","C#, F#, VB.NET"],
+["Apple ekosistemi","LLVM ile yerel koda derlenir; otomatik referans sayımı (ARC).","Swift, Objective-C"],
+["Çok platformlu UI dilleri","Geliştirmede JIT, yayında AOT derleme.","Dart (Flutter)"],
+["Python","Hem betik hem genel amaçlı; CPython bayt koda derleyip yorumlar.","Veri bilimi, yapay zekâ, otomasyon"]],
+cap:"Kotlin: veri sınıfı ve null güvenliği",
+code:c`data class Dil(val ad: String, val yil: Int)
+
+fun main() {
+    val d: Dil? = Dil("Kotlin", 2011)
+    println(d?.ad ?: "bilinmiyor")
+}`},
+
+{id:"f-betik",grp:"Genel programlama",lv:"L5",name:"Betik (script) dilleri",tags:["Yorumlanır"],
+lead:"Derleme adımı olmadan yazılıp hemen çalıştırılan diller. Başka programları birbirine bağlamak, işleri otomatikleştirmek ve sistem yönetimi için kullanılır.",
+flow:["Betik dosyası; #! satırı yorumlayıcıyı seçer","Yorumlayıcı satırları ayrıştırır","Bayt koda veya ağaca dönüştürür","Komutları sırayla yürütür, dış programları çağırır","Çıktı, dönüş kodu ve boru hatları (pipe)"],
+subs:[["Kabuk dilleri","Komut satırı ve süreç yönetimi; boru hattı ve yönlendirme.","Bash, Zsh, Fish, POSIX sh, PowerShell, Nushell"],
+["Genel betik dilleri","Zengin kütüphaneli, dinamik tipli diller.","Python, Ruby, Perl, PHP"],
+["Gömülebilir diller","Bir programın içine yerleştirilip eklenti ve yapılandırma için kullanılır.","Lua, Tcl, QuickJS, Rhai"],
+["Metin işleme dilleri","Satır satır akan metin üzerinde desen ve dönüşüm.","awk, sed"],
+["Toplu iş dilleri","Ardışık komut dosyaları.","Windows .bat / .cmd, JCL"]],
+cap:"Bash: en çok yer kaplayan 5 klasör",
+code:c`#!/usr/bin/env bash
+set -euo pipefail
+du -sh -- */ 2>/dev/null | sort -rh | head -n 5`},
+
+{id:"f-paradigma",grp:"Genel programlama",lv:"L5",name:"Paradigma aileleri",tags:["Kavramsal"],
+lead:"Diller yalnızca seviyeye göre değil, problemi nasıl tarif ettiklerine göre de gruplanır. Çoğu modern dil birden fazla paradigmayı birlikte destekler.",
+flow:["İmperatif: durumu adım adım değiştir","Bildirimsel: ne istediğini söyle, yolu sisteme bırak","Fonksiyonel: değerleri fonksiyonlarla dönüştür","Mantıksal: gerçek ve kurallardan sonuç çıkar"],
+subs:[["Prosedürel","Fonksiyonlara bölünmüş adım adım komutlar.","C, Pascal, Fortran, COBOL"],
+["Nesne yönelimli","Veri ve davranış nesnelerde birleşir; kapsülleme, kalıtım, çok biçimlilik.","Java, C#, Smalltalk, Python"],
+["Fonksiyonel","Saf fonksiyonlar, değişmez veri, yüksek mertebeden fonksiyonlar; bazıları tembel değerlendirir.","Haskell, OCaml, F#, Elm, Lisp, Clojure"],
+["Mantıksal","Gerçekler ve kurallar yazılır; motor birleştirme (unification) ve geri izlemeyle sorguyu çözer.","Prolog, Datalog, Mercury"],
+["Aktör / eşzamanlı","Bağımsız süreçler mesajlaşır, paylaşılan bellek yoktur.","Erlang, Elixir, Pony"],
+["Dizi programlama","İşlemler tüm dizilere aynı anda uygulanır.","APL, J, K"],
+["Yığın tabanlı","Değerler yığına konur, kelimeler yığından alır (ters Leh gösterimi).","Forth, PostScript, Factor"],
+["Ezoterik","Dil tasarımının sınırlarını denemek için yazılmış oyuncak diller.","Brainfuck, Befunge, Whitespace"]],
+cap:"Aynı iş üç paradigmada: 1'den 5'e karelerin toplamı (55)",
+code:c`-- Haskell (fonksiyonel)
+sum (map (^2) [1..5])
+
+% Prolog (mantıksal)
+kt(0, 0).
+kt(N, T) :- N > 0, M is N-1, kt(M, T0), T is T0 + N*N.
+
+# Python (imperatif)
+t = 0
+for i in range(1, 6):
+    t += i * i`},
+
+{id:"f-web",grp:"Web ve belge",lv:"L5",name:"Web dilleri",tags:["JIT","Yorumlanır"],
+lead:"Tarayıcıda ve web sunucularında çalışan diller. Tarayıcı HTML, CSS ve JavaScript'i birlikte işleyerek sayfayı ekrana çizer; sunucu tarafı diller bu sayfaları üretir veya API sunar.",
+flow:["HTML ayrıştırılır → DOM ağacı","CSS ayrıştırılır → CSSOM","JS motoru (V8, SpiderMonkey) kodu JIT ile derler","DOM + CSSOM → render ağacı → yerleşim","Boyama ve katman birleştirme → ekran"],
+subs:[["İstemci betik dilleri","Tarayıcının yerel olarak çalıştırdığı tek betik dili JavaScript'tir; TypeScript tiplerle yazılıp JS'e derlenir.","JavaScript, TypeScript"],
+["JS'e derlenen diller","Başka dillerden JavaScript üreten transpiler'lar.","Elm, ReScript, ClojureScript"],
+["WebAssembly hedefleri","Rust, C++ veya Go kodu tarayıcıda neredeyse yerel hızda çalışır.","Rust → Wasm, Emscripten"],
+["Sunucu tarafı","İstekleri işleyip HTML veya JSON üreten diller.","PHP, Node.js / Deno / Bun, Python, Ruby, Go"],
+["Şablon dilleri","HTML içine değişken ve döngü yerleştirir.","Jinja, Twig, Handlebars, EJS, Liquid"],
+["Bileşen dilleri","HTML, CSS ve JS'i tek dosyada birleştiren derlenen biçimler.","JSX / TSX, Vue SFC, Svelte"]],
+cap:"TypeScript: tipler derleme anında silinir, geriye JS kalır",
+code:c`type Dil = { ad: string; yil: number };
+
+const diller: Dil[] = [{ ad: "TypeScript", yil: 2012 }];
+diller.forEach(d => console.log(d.ad, d.yil));`},
+
+{id:"f-isaret",grp:"Web ve belge",lv:"L6",name:"İşaretleme (markup) dilleri",tags:["Bildirimsel"],
+lead:"Metnin yapısını ve anlamını etiketlerle işaretleyen diller. Hesaplama yapmazlar: bir ayrıştırıcı belgeyi ağaca dönüştürür, başka bir program bu ağacı görüntüler veya işler.",
+flow:["Ham metin + etiketler","Ayrıştırıcı açılış ve kapanış etiketlerini eşler","Belge ağacı (DOM, AST) oluşur","Görüntüleyici veya dönüştürücü ağacı işler","Ekran, PDF veya HTML çıktısı"],
+subs:[["Web işaretleme","Tarayıcının görüntülediği belge yapısı.","HTML, XHTML"],
+["Genel amaçlı işaretleme","Kendi etiketlerini tanımlayabildiğin yapısal belge.","XML, SGML"],
+["Hafif işaretleme","Düz metne yakın, okunması kolay sözdizimi.","Markdown, reStructuredText, AsciiDoc, Org-mode"],
+["Dizgi (typesetting)","Matematik ve akademik belgeler için hassas sayfa düzeni.","LaTeX, TeX, Typst, groff"],
+["Vektör ve formül","Şekilleri veya formülleri XML ile tanımlar.","SVG, MathML"]],
+cap:"HTML: her etiket ağaçta bir düğüm olur",
+code:c`<article>
+  <h1>Dijital Diller</h1>
+  <p>Her etiket ağaçta bir <em>düğüm</em> olur.</p>
+</article>`},
+
+{id:"f-stil",grp:"Web ve belge",lv:"L6",name:"Stil ve dönüşüm dilleri",tags:["Bildirimsel"],
+lead:"Belgenin içeriğine değil görünümüne veya biçimine karar veren diller. Seçicilerle öğeleri bulur, kurallarla onlara özellik atar.",
+flow:["Kurallar okunur: seçici + bildirimler","Her öğe için eşleşen seçiciler bulunur","Kaskad: köken, özgüllük ve sıra ile kazanan seçilir","Kalıtım: bazı değerler ebeveynden gelir","Hesaplanan stil yerleşime aktarılır"],
+subs:[["CSS","Web sayfalarının stili; seçiciler, kutu modeli, flex ve grid düzeni.","CSS3, @layer, kapsayıcı sorguları"],
+["CSS ön işlemcileri","Değişken, iç içe kural ve fonksiyon ekleyip CSS'e derlenir.","Sass / SCSS, Less, Stylus"],
+["Son işleme ve yardımcı sınıflar","CSS'i eklentilerle dönüştürür veya hazır sınıflardan üretir.","PostCSS, Tailwind CSS"],
+["XML dönüşüm","XML belgelerini başka XML, HTML veya metne dönüştürür.","XSLT, XSL-FO"],
+["Masaüstü arayüz stili","Uygulama arayüzlerine CSS benzeri stil.","Qt QSS, GTK CSS"]],
+cap:"CSS: daha özgül seçici kazanır",
+code:c`p        { color: gray; }   /* özgüllük 0,0,1 */
+.not p   { color: navy; }   /* 0,1,1 */
+#ana p   { color: teal; }   /* 1,0,1 → kazanır */`},
+
+{id:"f-veri",grp:"Veri ve sorgu",lv:"L6",name:"Veri ve serileştirme formatları",tags:["Veri formatı"],
+lead:"Bellekteki yapıları (nesne, liste, sayı) dosyaya yazmak veya ağ üzerinden göndermek için kullanılan formatlar. Serileştirme yapıyı bayta, ters işlem bayttan yeniden yapıya çevirir.",
+flow:["Bellekteki nesne","Serileştirici alanları sırayla kodlar","Metin veya ikili bayt akışı","Dosya, ağ veya mesaj kuyruğu","Alıcı ayrıştırır ve yapıyı yeniden kurar"],
+subs:[["Metin tabanlı","İnsan okuyabilir, hata ayıklaması kolay.","JSON, YAML, TOML, INI, XML"],
+["Tablo verisi","Satır ve sütunlar.","CSV, TSV"],
+["İkili, şemasız","JSON'a benzer ama daha küçük ve hızlı.","MessagePack, CBOR, BSON"],
+["İkili, şemalı","Önce şema yazılır, koddan sınıflar üretilir; hızlı ve sürümlenebilir.","Protocol Buffers, Avro, Thrift, Cap'n Proto, FlatBuffers"],
+["Sütunlu analitik","Büyük veri için sütun bazlı, sıkıştırılmış saklama.","Parquet, ORC, Apache Arrow"],
+["Şema dilleri","Verinin hangi biçimde olması gerektiğini tanımlar.","JSON Schema, XSD, OpenAPI"]],
+cap:"Aynı veri JSON ve TOML'da",
+code:c`{ "proje": "atlas", "sayfalar": 3, "acik": true }
+
+proje = "atlas"
+sayfalar = 3
+acik = true`},
+
+{id:"f-sorgu",grp:"Veri ve sorgu",lv:"L6",name:"Sorgu dilleri",tags:["Bildirimsel"],
+lead:"Veriye nasıl ulaşılacağını değil, hangi verinin istendiğini tarif eden diller. Motor sorguyu bir çalışma planına çevirir ve en ucuz yolu seçer.",
+flow:["Sorgu metni ayrıştırılır","Mantıksal plan: ilişkisel cebir ağacı","Optimizatör: indeks, birleştirme sırası, maliyet tahmini","Fiziksel plan yürütülür","Sonuç kümesi döner"],
+subs:[["SQL ve lehçeleri","İlişkisel tablolarda seçme, birleştirme ve gruplama.","PostgreSQL, MySQL, SQLite, T-SQL, PL/SQL"],
+["Graf sorgu dilleri","Düğüm ve kenarlar üzerinde desen eşleme.","Cypher, GQL, Gremlin, SPARQL"],
+["API sorgu dilleri","İstemci hangi alanları istediğini tek sorguda belirtir.","GraphQL, OData"],
+["Belge yolu dilleri","JSON veya XML ağacında gezinme.","jq, JSONPath, XPath, XQuery"],
+["Zaman serisi ve log","Metrik ve log sorgulama.","PromQL, LogQL, Flux, KQL"],
+["Arama dilleri","Tam metin arama ifadeleri.","Lucene, Elasticsearch Query DSL"]],
+cap:"SQL: ne istediğini yaz, motor yolunu seçer",
+code:c`SELECT paradigma, COUNT(*) AS dil_sayisi
+FROM diller
+WHERE yil >= 2000
+GROUP BY paradigma
+ORDER BY dil_sayisi DESC;`},
+
+{id:"f-protokol",grp:"Veri ve sorgu",lv:"L6",name:"Protokol ve komut dilleri",tags:["Mesaj dili"],
+lead:"Cihazların ve programların birbirleriyle konuşurken uyduğu biçimsel kurallar. Her mesajın sözdizimi (hangi alan nerede) ve anlamı (hangi yanıt beklenir) protokolde tanımlıdır.",
+flow:["İstemci bağlantı açar (TCP, seri port, radyo)","Protokol dilinde istek gönderir","Karşı taraf mesajı ayrıştırır, durum makinesine göre işler","Durum kodu ve gövdeyle yanıt verir","Bağlantı kapanır ya da sürer"],
+subs:[["Metin tabanlı uygulama protokolleri","Okunabilir komut ve yanıt satırları.","HTTP/1.1, SMTP, IMAP, FTP, IRC"],
+["İkili protokoller","Kompakt çerçeveler, daha az bant genişliği.","HTTP/2, HTTP/3 (QUIC), MQTT, gRPC"],
+["Cihaz komut dilleri","Modem ve ölçüm cihazlarını yönetir.","AT komutları, SCPI"],
+["Endüstriyel protokoller","Sensör, PLC ve araç içi haberleşme.","Modbus, CAN, OPC UA"],
+["Arayüz tanımlama dilleri (IDL)","Bir servisin hangi mesajları kabul ettiğini tanımlar.","Protobuf IDL, OpenAPI, AsyncAPI"]],
+cap:"HTTP/1.1: ham istek metni",
+code:c`GET /atlas/ HTTP/1.1
+Host: example.com
+Accept: text/html`},
+
+{id:"f-hdl",grp:"Özel alanlar",lv:"L0",name:"Donanım tanımlama dilleri (HDL)",tags:["Sentezlenir"],
+lead:"Yazılım değil devre tarif eden diller. Kod sırayla çalışmaz: her satır aynı anda var olan donanımı (kapılar, flip-flop'lar, kablolar) tanımlar. Sonuç FPGA'ya yüklenir veya çip olarak üretilir.",
+flow:["RTL kodu (yazmaç transfer seviyesi)","Simülasyon: dalga formlarıyla doğrulama","Sentez: kapı seviyesinde netlist","Yerleştirme ve yönlendirme (place & route)","FPGA bitstream'i veya ASIC maskesi"],
+subs:[["Klasik HDL","Endüstri standardı iki dil.","VHDL, Verilog"],
+["Doğrulama odaklı","Sınıflar, kısıtlı rastgele test ve iddialar (assertion).","SystemVerilog, UVM"],
+["Gömülü HDL üreteçleri","Bir yazılım dili içinde devre üretir.","Chisel (Scala), SpinalHDL, Amaranth (Python), Clash (Haskell)"],
+["Yüksek seviye sentez (HLS)","C veya C++ kodunu devreye çevirir.","Vitis HLS, Intel HLS"],
+["Devre ara dilleri","Araçlar arasında ortak ara gösterim.","FIRRTL, CIRCT"]],
+cap:"Verilog: her saat kenarında artan 8 bitlik sayaç",
+code:c`module sayac(input clk, input rst, output reg [7:0] q);
+  always @(posedge clk)
+    if (rst) q <= 8'd0;
+    else     q <= q + 1;
+endmodule`},
+
+{id:"f-shader",grp:"Özel alanlar",lv:"L4",name:"Shader ve GPU dilleri",tags:["Derlenir (GPU)"],
+lead:"Ekran kartında binlerce çekirdekte aynı anda çalışan küçük programlar için kullanılır. Bir shader tek bir köşe noktası veya piksel için yazılır; GPU onu milyonlarca kez paralel çalıştırır.",
+flow:["Köşe (vertex) shader noktaları ekran uzayına taşır","Rasterleştirme: üçgenler piksellere bölünür","Parça (fragment) shader her pikselin rengini hesaplar","Derinlik testi ve karıştırma (blending)","Çerçeve tamponu → ekran"],
+subs:[["Grafik shader dilleri","Grafik API'lerinin kendi dilleri.","GLSL (OpenGL / Vulkan), HLSL (DirectX), MSL (Metal), WGSL (WebGPU)"],
+["Ara formatlar","Shader'ların sürücüye verildiği ikili biçim.","SPIR-V, DXIL"],
+["Genel amaçlı GPU (GPGPU)","Grafik dışı paralel hesaplama: yapay zekâ, simülasyon.","CUDA, OpenCL, SYCL, HIP"],
+["Hesaplama shader'ları","Grafik hattı dışında çalışan iş parçacığı grupları.","Compute shader (GLSL, HLSL, WGSL)"],
+["Yapay zekâ çekirdek dilleri","Tensör işlemleri için GPU çekirdeği yazmayı kolaylaştırır.","Triton, Mojo"]],
+cap:"GLSL: ekranı soldan sağa renk geçişiyle boyayan fragment shader",
+code:c`#version 330 core
+out vec4 renk;
+uniform vec2 cozunurluk;
+
+void main() {
+    vec2 uv = gl_FragCoord.xy / cozunurluk;
+    renk = vec4(uv.x, 0.4, 1.0 - uv.x, 1.0);
+}`},
+
+{id:"f-dsl",grp:"Özel alanlar",lv:"L6",name:"Alana özgü diller (DSL)",tags:["Bildirimsel","Yorumlanır"],
+lead:"Tek bir problem alanı için tasarlanmış küçük diller. Genel amaçlı bir dil kadar güçlü değildir, ama kendi alanında çok daha kısa ve açık ifade sağlar.",
+flow:["Kurallar alanın terimleriyle yazılır","Araç dosyayı ayrıştırır","Bağımlılık grafiği veya hedef durum modeli kurar","Hedefe ulaşmak için gereken eylemleri planlar","Komutları çalıştırır veya çıktı üretir"],
+subs:[["Derleme sistemleri","Hangi dosyanın neye bağlı olduğunu tanımlar, yalnızca değişeni yeniden derler.","Make, CMake, Meson, Ninja, Bazel"],
+["Altyapı ve yapılandırma","Sunucu, konteyner ve paketlerin istenen durumunu tanımlar.","Terraform (HCL), Nix, Dockerfile, Ansible, Kubernetes YAML"],
+["Desen eşleme","Metinde arama ve doğrulama için düzenli ifadeler.","Regex (PCRE, POSIX), glob"],
+["Bilimsel ve istatistik","Matris, veri çerçevesi ve sayısal hesaplama.","R, MATLAB, Julia, Octave"],
+["Diyagram dilleri","Metinden diyagram üretir.","Graphviz DOT, Mermaid, PlantUML, D2"],
+["Sistem yapılandırması","Servis ve sunucu ayarları.","systemd unit, nginx.conf, udev kuralları"],
+["Dilbilgisi tanımlama","Başka dillerin sözdizimini tanımlar, ayrıştırıcı üretir.","BNF / EBNF, ANTLR, Tree-sitter, PEG"]],
+cap:"Makefile: hedef, bağımlılık ve tarif",
+code:c`program: main.o util.o
+	cc -o program main.o util.o
+
+%.o: %.c
+	cc -c $< -o $@`},
+
+{id:"f-gorsel",grp:"Özel alanlar",lv:"L6",name:"Görsel ve blok tabanlı diller",tags:["Yorumlanır","Derlenir"],
+lead:"Kod yazmak yerine blok, kutu ve bağlantı yerleştirerek program kurulan diller. Program bir grafiktir: düğümler işlemleri, kenarlar veri veya kontrol akışını gösterir.",
+flow:["Bloklar veya düğümler yerleştirilir","Editör grafiği kaydeder (JSON, XML)","Grafik yorumlanır ya da metin koda çevrilir","Veri akışı: girdisi hazır olan düğüm çalışır","Sonuç ekrana, cihaza veya sahneye gider"],
+subs:[["Eğitim dilleri","Yapboz parçası gibi birbirine geçen bloklar.","Scratch, Blockly, MakeCode, Snap!"],
+["Veri akışı (dataflow)","Kablolarla bağlanan işlem kutuları.","LabVIEW, Node-RED, Max/MSP, Pure Data"],
+["Oyun motoru betikleri","Olay ve düğüm tabanlı oyun mantığı.","Unreal Blueprints"],
+["Model tabanlı tasarım","Kontrol sistemleri blok diyagramla modellenir, kod üretilir.","Simulink, Modelica"],
+["PLC dilleri (IEC 61131-3)","Fabrika otomasyonu: merdiven diyagramı (LD), fonksiyon blok diyagramı (FBD), sıralı fonksiyon şeması (SFC), yapısal metin (ST).","Siemens TIA Portal, CODESYS"],
+["Shader ve materyal grafikleri","Düğümlerle görsel efekt ve materyal.","Blender Shader Nodes, Unity Shader Graph"]],
+cap:"PLC yapısal metin (ST): motor başlat / durdur",
+code:c`IF Baslat AND NOT Durdur THEN
+    Motor := TRUE;
+ELSIF Durdur THEN
+    Motor := FALSE;
+END_IF;`},
+
+{id:"f-sozlesme",grp:"Özel alanlar",lv:"L5",name:"Akıllı sözleşme dilleri",tags:["Derlenir (sanal makine)"],
+lead:"Blok zinciri üzerinde çalışan, her düğümün aynı sonucu bulması gereken deterministik programlar. Her işlem 'gas' ile ücretlendirilir; kod yayınlandıktan sonra genelde değiştirilemez.",
+flow:["Sözleşme kaynak kodu","Derleyici sanal makine bayt kodu üretir (EVM, MoveVM)","Bayt kod bir işlemle zincire yüklenir","Her düğüm çağrıyı aynı şekilde yürütür, gas düşülür","Durum değişikliği bloğa yazılır"],
+subs:[["EVM dilleri","Ethereum Sanal Makinesi için.","Solidity, Vyper, Yul"],
+["Kaynak odaklı diller","Varlıkları kopyalanamaz kaynak tipleriyle modeller.","Move (Aptos, Sui)"],
+["Genel dil + SDK","Genel bir dille yazılıp zincirin bayt koduna derlenir.","Rust (Solana), ink! (Polkadot)"],
+["Doğrulamaya uygun diller","Matematiksel kanıta elverişli tasarım.","Michelson (Tezos), Plutus (Cardano)"]],
+cap:"Solidity: basit sayaç sözleşmesi",
+code:c`// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Sayac {
+    uint256 public deger;
+    function artir() external { deger += 1; }
+}`},
+
+{id:"f-sayfa",grp:"Özel alanlar",lv:"L6",name:"Sayfa tanımlama ve makine kontrol dilleri",tags:["Cihazda yorumlanır"],
+lead:"Yazıcıya, çiziciye, CNC tezgâhına veya 3D yazıcıya ne çizeceğini ya da nereye hareket edeceğini söyleyen diller. Cihazdaki yorumlayıcı komutları piksellere veya fiziksel harekete çevirir.",
+flow:["Uygulama çıktıyı komutlara çevirir (sürücü, dilimleyici)","Komut dosyası cihaza gönderilir","Cihazın yorumlayıcısı satırları okur","Rasterleştirme veya hareket planlama","Kâğıda baskı ya da motor hareketi"],
+subs:[["Sayfa tanımlama","Sayfadaki metni, yazı tiplerini ve vektörleri tanımlar.","PostScript, PDF, PCL, XPS"],
+["Etiket yazıcı dilleri","Barkod ve etiket düzeni.","ZPL, EPL, TSPL"],
+["CNC ve 3D baskı","Eksen hareketleri, hız ve sıcaklık komutları.","G-code, M-code"],
+["Çizici dilleri","Kalemli çizicilere vektör komutları.","HPGL"],
+["Fiş yazıcıları","Termal yazıcı kontrol kodları.","ESC/POS"]],
+cap:"G-code: 3D yazıcıda 20 mm'lik kare",
+code:c`G21              ; birim: milimetre
+G90              ; mutlak koordinat
+G1 X0  Y0  F1500 ; başlangıç noktası
+G1 X20 Y0  E1.0  ; E: itilen filament
+G1 X20 Y20 E2.0
+G1 X0  Y20 E3.0
+G1 X0  Y0  E4.0`},
+
+{id:"f-kodlama",grp:"Temeller",lv:"L1",name:"Kodlama ve sayı sistemleri",tags:["Kodlama"],
+lead:"Bilgiyi bitlere dönüştürme kuralları. Kendi başlarına programlama dili değildir, ama her dijital dilin üzerine kurulduğu zemindir: metin, sayı ve ikili veri sonunda bu kodlamalarla saklanır.",
+flow:["Karakter veya sayı","Kod noktası ya da sayısal değer belirlenir","Kodlama kuralı onu bayt dizisine çevirir","Saklanır veya iletilir","Alıcı aynı kuralla geri çözer"],
+subs:[["Sayı tabanları","Aynı değerin farklı gösterimleri.","İkili (2), sekizli (8), onluk (10), onaltılık (16)"],
+["Tamsayı ve kayan nokta","İşaretli tamsayılar için ikiye tümleyen, ondalıklılar için IEEE 754.","int8 … int64, float32, float64"],
+["Karakter kodlamaları","Karakter ↔ sayı tabloları.","ASCII, ISO-8859-9, Windows-1254, Unicode"],
+["Unicode dönüşüm biçimleri","Unicode kod noktalarını bayta çevirir.","UTF-8, UTF-16, UTF-32"],
+["Metin içinde ikili veri","İkili veriyi metin kanalında taşır.","Base64, Base32, Hex, URL (percent) kodlama"],
+["Hata denetimi ve sıkıştırma","Bozulmayı yakalar, boyutu küçültür.","CRC, Hamming kodu, Huffman, DEFLATE"]],
+cap:"'ş' harfinin bitlere yolculuğu",
+code:c`Karakter     : ş
+Unicode      : U+015F
+İkili        : 101 0101 1111
+UTF-8        : 110 00101   10 011111   →  C5 9F
+Windows-1254 : FE`}
+];
+
+/* Merdiven */
+(function(){
+  const g=document.getElementById("rungs"); const NS="http://www.w3.org/2000/svg";
+  LEVELS.forEach((L,i)=>{
+    const y=20+i*54, a=document.createElementNS(NS,"a");
+    a.setAttribute("href","#"+L[3]);
+    const r=document.createElementNS(NS,"rect");
+    Object.entries({x:46,y,width:414,height:46,rx:6,"fill-opacity":(0.22-i*0.025).toFixed(3)}).forEach(([k,v])=>r.setAttribute(k,v));
+    a.appendChild(r);
+    const t=(cls,x,yy,s)=>{const e=document.createElementNS(NS,"text");e.setAttribute("class",cls);e.setAttribute("x",x);e.setAttribute("y",yy);e.textContent=s;a.appendChild(e)};
+    t("lv",58,y+28,L[0]); t("nm",92,y+20,L[1]); t("ex",92,y+37,L[2]);
+    g.appendChild(a);
+  });
+})();
+
+/* Derleme hattı */
+(function(){
+  const s=document.getElementById("pipe");
+  const top=[["Kaynak kod","metin"],["Lexer","token akışı"],["Parser","AST ağacı"],["Anlam analizi","tip, kapsam"],["Ara temsil","IR, bayt kod"],["Optimizasyon","satır içi, döngü"],["Kod üretimi","yazmaç ataması"],["Makine kodu","CPU yürütür"]];
+  let h=`<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0 0L10 5L0 10z"/></marker><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah2" d="M0 0L10 5L0 10z"/></marker></defs>`;
+  top.forEach((b,i)=>{const x=5+i*126;
+    h+=`<rect class="box" x="${x}" y="30" width="108" height="64" rx="8"/><text x="${x+54}" y="58" text-anchor="middle" font-size="14" font-weight="600">${b[0]}</text><text class="sub" x="${x+54}" y="78" text-anchor="middle">${b[1]}</text>`;
+    if(i<7) h+=`<path class="arr" d="M${x+108} 62H${x+124}" marker-end="url(#ah)"/>`;});
+  const low=[[236,"Transpiler","AST → başka dil (TS → JS)"],[488,"Yorumlayıcı / VM","bayt kodu tek tek yürütür"],[730,"JIT derleyici","sık çalışan kodu anında derler"]];
+  low.forEach(b=>{h+=`<rect class="box2" x="${b[0]}" y="196" width="150" height="64" rx="8"/><text x="${b[0]+75}" y="224" text-anchor="middle" font-size="14" font-weight="600">${b[1]}</text><text class="sub" x="${b[0]+75}" y="244" text-anchor="middle">${b[2]}</text>`;});
+  h+=`<path class="arr2" d="M311 94V194" marker-end="url(#ah2)"/><path class="arr2" d="M563 94V194" marker-end="url(#ah2)"/><path class="arr2" d="M638 228H728" marker-end="url(#ah2)"/><path class="arr2" d="M880 228H941V96" marker-end="url(#ah2)"/>`;
+  h+=`<text class="note" x="5" y="16">Düz çizgi: önceden derleme (AOT) ana yolu</text><text class="note" x="5" y="296">Kesikli çizgi: yan yollar. Python ve Java IR'de ayrılıp VM'e gider; V8 ve HotSpot JIT ile makine koduna geri döner.</text>`;
+  s.innerHTML=h;
+})();
+
+/* Aileler, dizin, sayım */
+const fams=document.getElementById("fams"), toc=document.getElementById("toc");
+const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+let lastGrp="";
+F.forEach(f=>{
+  const sec=el("section","fam"); sec.id=f.id;
+  const head=el("div","fam-head"), meta=el("div","fam-meta");
+  meta.append(el("span","lvl",f.lv)); f.tags.forEach(t=>meta.append(el("span","tag",t))); meta.append(el("span","grp",f.grp));
+  head.append(meta, el("h2",null,f.name), el("p","lead",f.lead));
+  const flowWrap=el("div"); flowWrap.append(el("div","flow-label","Çalışma mantığı"));
+  const ol=el("ol","flow"); f.flow.forEach(s=>{const li=el("li");li.append(el("span",null,s));ol.append(li)}); flowWrap.append(ol);
+  const grid=el("div","subs");
+  f.subs.forEach(s=>{const d=el("div","sub");d.append(el("h3",null,s[0]),el("p",null,s[1]),el("div","ex",s[2]));d.dataset.k=(s.join(" ")).toLocaleLowerCase("tr");grid.append(d)});
+  const fig=el("figure"); fig.append(el("figcaption",null,f.cap), el("pre",null,f.code));
+  sec.append(head,flowWrap,grid,fig);
+  sec.dataset.k=[f.name,f.lead,f.tags.join(" "),f.flow.join(" "),f.code].join(" ").toLocaleLowerCase("tr");
+  fams.append(sec);
+  if(f.grp!==lastGrp){toc.append(el("h4",null,f.grp));lastGrp=f.grp}
+  const a=el("a"); a.href="#"+f.id; a.dataset.for=f.id; a.append(el("span",null,f.lv), document.createTextNode(f.name)); toc.append(a);
+});
+const subTotal=F.reduce((n,f)=>n+f.subs.length,0);
+document.getElementById("stats").innerHTML=`<div><b>${F.length}</b><small>dil ailesi</small></div><div><b>${subTotal}</b><small>alt tür</small></div><div><b>7</b><small>soyutlama katmanı</small></div>`;
+
+const q=document.getElementById("q"), count=document.getElementById("count"), empty=document.getElementById("empty");
+function filter(){
+  const v=q.value.trim().toLocaleLowerCase("tr"); let shownF=0, shownS=0;
+  document.querySelectorAll(".fam").forEach(sec=>{
+    const subs=[...sec.querySelectorAll(".sub")];
+    const famHit=!v||sec.dataset.k.includes(v);
+    let subHits=0;
+    subs.forEach(s=>{const hit=!v||famHit||s.dataset.k.includes(v);s.classList.toggle("hide",!hit);if(hit)subHits++});
+    const show=famHit||subHits>0;
+    sec.classList.toggle("hide",!show);
+    const link=toc.querySelector(`[data-for="${sec.id}"]`); if(link) link.classList.toggle("off",!show);
+    if(show){shownF++;shownS+=subHits}
+  });
+  count.textContent=v?`${shownF} aile · ${shownS} alt tür`:`${F.length} aile · ${subTotal} alt tür`;
+  empty.hidden=shownF>0;
+}
+q.addEventListener("input",filter); filter();
+</script>
+</body>
+</html>
