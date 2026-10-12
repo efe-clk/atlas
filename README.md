@@ -19,6 +19,7 @@ atlas/
 ├── 404.html                    # hata sayfası
 ├── .nojekyll                   # GitHub Pages'te Jekyll işlemesini kapatır
 ├── README.md
+├── LICENSE                     # CC BY 4.0
 ├── arayuz-atlasi/
 │   └── index.html
 └── acik-kaynak-repo-atlasi/
@@ -56,3 +57,11 @@ python3 -m http.server 8000
 ```
 
 Ardından http://localhost:8000/atlas/ adresini açın.
+
+## Lisans
+
+Bu repodaki içerik [Creative Commons Atıf 4.0 Uluslararası (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/deed.tr) lisansıyla paylaşılmaktadır. Atıf vermek koşuluyla ticari amaçlar dahil kopyalayabilir, dağıtabilir ve değiştirebilirsiniz.
+
+Atıf örneği: *"Atlas — Efe Çelik, https://github.com/efe-clk/atlas, CC BY 4.0"*
+
+Lisansın tam metni: [LICENSE](LICENSE)
